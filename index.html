@@ -158,20 +158,6 @@
       line-height: 1.55;
     }
     .bildirim-panel[hidden] { display: none; }
-    .bildirim-panel p + p, .bildirim-panel textarea, .bildirim-panel .bildirim-btn { margin-top: 12px; }
-    .bildirim-panel b { color: var(--ink); font-weight: 500; }
-    .bildirim-panel code { color: var(--gold); }
-    .bildirim-panel textarea {
-      display: block;
-      width: 100%;
-      min-height: 7.5em;
-      padding: 10px 12px;
-      font: 0.85rem/1.45 ui-monospace, Consolas, monospace;
-      color: var(--ink);
-      background: var(--navy);
-      border: 1px solid var(--navy-3);
-      resize: vertical;
-    }
     .osym ul { list-style: none; display: grid; gap: 8px; }
     .osym li a {
       display: grid;
@@ -363,46 +349,35 @@
         .catch(function () { /* veri yoksa bölüm gizli kalır */ });
     })();
 
-    // Masaüstü bildirimi (Web Push). Abonelik bilgisi GitHub'daki PUSH_SUBSCRIPTIONS secret'ına eklenir;
-    // her sabah çalışan görev, hatırlatma günlerinde bu aboneliklere bildirim gönderir.
+    // Masaüstü bildirimi (Web Push). Abonelik Cloudflare Worker'a (worker/osym-bildirim.js) kaydedilir;
+    // Worker her sabah hatırlatma günlerinde bütün abonelere bildirim gönderir.
     (function () {
+      var WORKER_URL = ''; // Cloudflare'a yüklendikten sonra: https://osym-bildirim.<hesap>.workers.dev
       var VAPID_PUBLIC = 'BCryU_s3mEZYtTRz6WgZd_rwIQDnsBxZxG-1sf9VzB8xOvxlsdea_hcV9vG6QAzY0X2zGIebtH__hDRNTDHm91M';
-      var SECRETS_URL = 'https://github.com/ydamga/ydamga.github.io/settings/secrets/actions';
-      if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+      if (!WORKER_URL || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
       var btn = document.getElementById('bildirim-btn');
       var panel = document.getElementById('bildirim-panel');
+      var acik = false;
       btn.hidden = false;
 
       function anahtar(b64) {
         var p = (b64 + '='.repeat((4 - b64.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/');
         return Uint8Array.from(atob(p), function (c) { return c.charCodeAt(0); });
       }
-      function mesaj(html) { panel.innerHTML = html; panel.hidden = false; }
-      function aboneligiGoster(abonelik) {
-        btn.textContent = 'Bildirimler açık';
-        mesaj('<p>Bu tarayıcı bildirim almaya hazır. Bildirimlerin gelmesi için aşağıdaki satırı bir kez ' +
-          '<a href="' + SECRETS_URL + '" target="_blank" rel="noopener" style="color:var(--gold)">GitHub Secrets</a> sayfasında ' +
-          '<code>PUSH_SUBSCRIPTIONS</code> değerine ekleyin. Birden çok cihaz için her birini ayrı satıra yazın.</p>' +
-          '<textarea id="abonelik" readonly></textarea>' +
-          '<button type="button" class="bildirim-btn" id="kopyala">Kopyala</button>');
-        var alan = document.getElementById('abonelik');
-        alan.value = JSON.stringify(abonelik);
-        document.getElementById('kopyala').onclick = function () {
-          alan.select();
-          (navigator.clipboard ? navigator.clipboard.writeText(alan.value) : Promise.reject())
-            .catch(function () { document.execCommand('copy'); })
-            .then(function () { document.getElementById('kopyala').textContent = 'Kopyalandı'; });
-        };
+      function mesaj(metin) { panel.textContent = metin; panel.hidden = !metin; }
+      function durum(a) { acik = a; btn.textContent = a ? 'Bildirimleri kapat' : 'Bildirimleri aç'; }
+      function postala(yol, govde) {
+        return fetch(WORKER_URL + yol, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(govde) })
+          .then(function (r) { if (!r.ok) throw new Error('sunucu'); });
       }
 
       var kayit = navigator.serviceWorker.register('sw.js');
       kayit.then(function (r) { return r.pushManager.getSubscription(); })
-        .then(function (a) { if (a && Notification.permission === 'granted') btn.textContent = 'Bildirimler açık'; })
+        .then(function (a) { durum(!!a && Notification.permission === 'granted'); })
         .catch(function () {});
 
-      btn.addEventListener('click', function () {
-        if (!panel.hidden && btn.textContent === 'Bildirimler açık') { panel.hidden = true; return; }
-        Notification.requestPermission()
+      function ac() {
+        return Notification.requestPermission()
           .then(function (izin) {
             if (izin !== 'granted') throw new Error('izin');
             return kayit.then(function () { return navigator.serviceWorker.ready; });
@@ -412,12 +387,33 @@
               return a || r.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: anahtar(VAPID_PUBLIC) });
             });
           })
-          .then(aboneligiGoster)
+          .then(function (a) { return postala('/abone', a.toJSON()); })
+          .then(function () {
+            durum(true);
+            mesaj('Bildirimler açıldı; bir deneme bildirimi gönderildi. Başvurudan 1 hafta önce, başvuru günü ve bitişe 3 gün kala haber vereceğiz.');
+          });
+      }
+      function kapat() {
+        return navigator.serviceWorker.ready
+          .then(function (r) { return r.pushManager.getSubscription(); })
+          .then(function (a) {
+            if (!a) return;
+            return postala('/iptal', { endpoint: a.endpoint }).then(function () { return a.unsubscribe(); });
+          })
+          .then(function () { durum(false); mesaj('Bildirimler kapatıldı.'); });
+      }
+
+      btn.addEventListener('click', function () {
+        btn.disabled = true;
+        (acik ? kapat() : ac())
           .catch(function (h) {
             mesaj(h && h.message === 'izin'
-              ? '<p>Bildirim izni verilmedi. Tarayıcının adres çubuğundaki site ayarlarından bildirimlere izin verip tekrar deneyin.</p>'
-              : '<p>Bu tarayıcıda bildirim aboneliği açılamadı. Chrome, Edge ya da Firefox ile deneyin.</p>');
-          });
+              ? 'Bildirim izni verilmedi. Tarayıcının adres çubuğundaki site ayarlarından bildirimlere izin verip tekrar deneyin.'
+              : h && h.message === 'sunucu'
+                ? 'Bildirim servisine ulaşılamadı. Biraz sonra tekrar deneyin.'
+                : 'Bu tarayıcıda bildirim aboneliği açılamadı. Chrome, Edge ya da Firefox ile deneyin.');
+          })
+          .then(function () { btn.disabled = false; });
       });
     })();
   </script>

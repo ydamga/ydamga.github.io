@@ -1,0 +1,17 @@
+name = "osym-bildirim"
+main = "osym-bildirim.js"
+compatibility_date = "2025-09-01"
+
+# Her gün 10:00 (Türkiye). GitHub Actions takvimi 09:00'da günceller.
+[triggers]
+crons = ["0 7 * * *"]
+
+[vars]
+SITE = "https://ydamga.github.io"
+VAPID_PUBLIC_KEY = "BCryU_s3mEZYtTRz6WgZd_rwIQDnsBxZxG-1sf9VzB8xOvxlsdea_hcV9vG6QAzY0X2zGIebtH__hDRNTDHm91M"
+# VAPID_PRIVATE_KEY bir secret'tır: npx wrangler secret put VAPID_PRIVATE_KEY
+
+# id, "npx wrangler kv namespace create SUBS" komutunun çıktısından gelir
+[[kv_namespaces]]
+binding = "SUBS"
+id = "KV_ID_BURAYA"
