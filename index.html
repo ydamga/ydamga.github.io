@@ -116,6 +116,59 @@
       .tool:hover .arrow { transform: translateX(6px); }
     }
 
+    /* ÖSYM başvuruları: data/osym.json'dan, GitHub Actions her sabah günceller */
+    .osym { margin-top: clamp(48px, 8vh, 96px); }
+    .osym[hidden] { display: none; }
+    .osym-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 8px 24px;
+      margin-bottom: 16px;
+    }
+    .osym-head h2 {
+      font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .osym-head span { font-size: 0.95rem; color: var(--muted); }
+    .osym ul { list-style: none; display: grid; gap: 8px; }
+    .osym li a {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+      gap: 6px clamp(16px, 3vw, 40px);
+      align-items: center;
+      padding: 18px clamp(20px, 3vw, 40px);
+      background: var(--navy-2);
+      color: inherit;
+      text-decoration: none;
+      transition: background-color 150ms ease;
+    }
+    .osym li a:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
+    @media (hover: hover) and (pointer: fine) {
+      .osym li a:hover { background: var(--navy-3); }
+    }
+    .osym .ad { font-weight: 700; font-size: 1.1rem; }
+    .osym .tarih { color: var(--ink-2); font-size: 0.98rem; font-variant-numeric: tabular-nums; }
+    .osym .durum {
+      justify-self: end;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--navy-3);
+      color: var(--ink-2);
+      font-size: 0.9rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .osym .durum.yakin { border-color: var(--gold); color: var(--gold); }
+    .osym .durum.acil { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+    .osym .bos { padding: 18px clamp(20px, 3vw, 40px); background: var(--navy-2); color: var(--ink-2); }
+    @media (max-width: 760px) {
+      .osym li a { grid-template-columns: minmax(0, 1fr) auto; }
+      .osym .tarih { grid-column: 1 / -1; grid-row: 2; }
+    }
+
     footer {
       padding-top: 28px;
       padding-bottom: 28px;
@@ -173,6 +226,14 @@
         </a>
       </li>
     </ul>
+
+    <section class="osym" id="osym" hidden aria-labelledby="osym-baslik">
+      <div class="osym-head">
+        <h2 id="osym-baslik">ÖSYM başvuruları</h2>
+        <span id="osym-not"></span>
+      </div>
+      <ul id="osym-liste"></ul>
+    </section>
   </main>
 
   <footer>
@@ -182,6 +243,75 @@
 
   <script>
     document.getElementById('yil').textContent = new Date().getFullYear();
+
+    (function () {
+      var GUN = 86400000;
+      function gunFarki(a, b) {
+        // takvim günü farkı; saatten bağımsız
+        var g = function (d) { return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); };
+        return Math.round((g(b) - g(a)) / GUN);
+      }
+      function kisa(d) {
+        return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      }
+      function durum(s, simdi, veri) {
+        var bas = new Date(s.basvuru_baslangic), bit = new Date(s.basvuru_bitis);
+        var gec = s.gec_basvuru_bitis ? new Date(s.gec_basvuru_bitis) : null;
+        if (simdi < bas) {
+          var n = gunFarki(simdi, bas);
+          return { metin: n === 1 ? 'Yarın başlıyor' : n + ' gün sonra başlıyor', sinif: n <= veri.basvurudan_once_gun ? 'yakin' : '' };
+        }
+        if (simdi <= bit) {
+          var k = gunFarki(simdi, bit);
+          return { metin: k === 0 ? 'Bugün son gün' : 'Açık · ' + k + ' gün kaldı', sinif: k <= veri.bitisten_once_gun ? 'acil' : 'yakin' };
+        }
+        if (gec && simdi <= gec) {
+          return { metin: 'Geç başvuru · ' + kisa(gec) + ' son', sinif: 'acil' };
+        }
+        return null;
+      }
+
+      fetch('data/osym.json', { cache: 'no-cache' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function (veri) {
+          var simdi = new Date();
+          var liste = document.getElementById('osym-liste');
+          var gosterilen = 0;
+          veri.sinavlar.forEach(function (s) {
+            var d = durum(s, simdi, veri);
+            if (!d) return;
+            var li = document.createElement('li');
+            var a = document.createElement('a');
+            a.href = s.link;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            var ad = document.createElement('span');
+            ad.className = 'ad';
+            ad.textContent = s.ad;
+            var tarih = document.createElement('span');
+            tarih.className = 'tarih';
+            tarih.textContent = 'Başvuru ' + kisa(new Date(s.basvuru_baslangic)) + ' – ' + kisa(new Date(s.basvuru_bitis)) +
+              (s.sinav_tarihi ? ' · Sınav ' + kisa(new Date(s.sinav_tarihi + 'T00:00:00+03:00')) : '');
+            var etiket = document.createElement('span');
+            etiket.className = 'durum ' + d.sinif;
+            etiket.textContent = d.metin;
+            a.append(ad, tarih, etiket);
+            li.appendChild(a);
+            liste.appendChild(li);
+            gosterilen++;
+          });
+          if (!gosterilen) {
+            var bos = document.createElement('li');
+            bos.className = 'bos';
+            bos.textContent = 'Takip edilen sınavlarda açık ya da yaklaşan başvuru yok. Yeni takvim yayımlanınca burada görünür.';
+            liste.appendChild(bos);
+          }
+          document.getElementById('osym-not').textContent =
+            'Güncellendi: ' + new Date(veri.guncellendi).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+          document.getElementById('osym').hidden = false;
+        })
+        .catch(function () { /* veri yoksa bölüm gizli kalır */ });
+    })();
   </script>
 </body>
 </html>

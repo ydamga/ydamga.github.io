@@ -1,0 +1,6 @@
+{
+  "_aciklama": "Takip edilecek sınavların ÖSYM takvimindeki kısa adları (ör. YDS, e-YDS, ALES, KPSS, DGS, YÖKDİL). Hatırlatma günleri: başvurudan önce, başvuru günü ve bitişten önce.",
+  "sinavlar": ["YDS", "ALES", "KPSS"],
+  "basvurudan_once_gun": 7,
+  "bitisten_once_gun": 3
+}
