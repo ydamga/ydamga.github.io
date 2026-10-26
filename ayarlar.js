@@ -41,7 +41,36 @@
         '<button type="button" class="anahtar" id="bildirim-btn" role="switch" aria-checked="false" aria-labelledby="bildirim-ad"></button>' +
       '</div>' +
       '<p class="ayar-mesaj" id="bildirim-mesaj" hidden aria-live="polite"></p>' +
+    '</section>' +
+    '<section class="ayar-bolum" aria-labelledby="anasayfa-ad">' +
+      '<h3 id="anasayfa-ad">Bu sayfayı anasayfa yap</h3>' +
+      '<p class="ayar-not">Tarayıcılar sitelerin kendini anasayfa yapmasına izin vermiyor; adresi kopyalayıp aşağıdaki adımlarla siz ekleyebilirsiniz.</p>' +
+      '<div class="adres-satir">' +
+        '<input type="text" id="site-adres" readonly aria-label="Site adresi">' +
+        '<button type="button" class="kopyala" id="kopyala-btn">Kopyala</button>' +
+      '</div>' +
+      '<p class="ayar-not" id="tarayici-ad"></p>' +
+      '<ol class="adimlar" id="anasayfa-adimlar"></ol>' +
     '</section>';
+
+  // Tarayıcıya göre anasayfa (telefonda ana ekran) adımları; menü adları tarayıcıların Türkçe arayüzünden
+  var ADIMLAR = {
+    edge: ['Edge', ['Sağ üstteki ··· menüsünden Ayarlar\'ı açın.', 'Soldan "Başlat, ana sayfa ve yeni sekmeler"i seçin.', '"Edge başladığında" altında "Bu sayfaları aç"ı işaretleyin.', '"Yeni sayfa ekleyin"e basıp adresi yapıştırın.']],
+    chrome: ['Chrome', ['Sağ üstteki ⋮ menüsünden Ayarlar\'ı açın.', 'Soldan "Başlangıçta"yı seçin.', '"Belirli bir sayfayı veya sayfa grubunu aç"ı işaretleyin.', '"Yeni sayfa ekle"ye basıp adresi yapıştırın.']],
+    firefox: ['Firefox', ['Sağ üstteki ☰ menüsünden Ayarlar\'ı açın.', 'Soldan "Giriş sayfası"nı seçin.', '"Giriş sayfası ve yeni pencereler" altında "Özel adresler"i seçin.', 'Adresi kutuya yapıştırın.']],
+    safari: ['Safari', ['Üst menüden Safari → Ayarlar\'ı açın.', '"Genel" sekmesine geçin.', 'Adresi "Ana sayfa" kutusuna yapıştırın.']],
+    ios: ['iPhone / iPad', ['Safari\'de alttaki Paylaş düğmesine basın.', '"Ana Ekrana Ekle"yi seçin.', '"Ekle"ye basın; site ana ekranda simge olarak durur.']],
+    android: ['Android', ['Chrome\'da sağ üstteki ⋮ menüsünü açın.', '"Ana ekrana ekle"yi seçin.', '"Ekle"ye basın; site ana ekranda simge olarak durur.']]
+  };
+  function tarayici() {
+    var ua = navigator.userAgent;
+    if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'ios';
+    if (/Android/.test(ua)) return 'android';
+    if (/Edg\//.test(ua)) return 'edge';
+    if (/Firefox\//.test(ua)) return 'firefox';
+    if (/Safari\//.test(ua) && !/Chrome\/|Chromium\//.test(ua)) return 'safari';
+    return 'chrome';
+  }
 
   document.addEventListener('DOMContentLoaded', function () {
     var yil = document.getElementById('yil');
@@ -61,7 +90,41 @@
 
     temaKur(panel);
     bildirimKur(panel);
+    anasayfaKur(panel);
   });
+
+  function anasayfaKur(panel) {
+    // Sitenin kök adresi; alt sayfadan açılsa da anasayfa kaydedilir
+    var adres = new URL('./', location.href).href;
+    var kutu = panel.querySelector('#site-adres');
+    var btn = panel.querySelector('#kopyala-btn');
+    kutu.value = adres;
+    kutu.addEventListener('focus', function () { kutu.select(); });
+    btn.addEventListener('click', function () {
+      function oldu() {
+        btn.textContent = 'Kopyalandı';
+        setTimeout(function () { btn.textContent = 'Kopyala'; }, 2000);
+      }
+      // Pano izni yoksa eski yöntem; o da olmazsa adres seçili kalır, Ctrl+C ile kopyalanır
+      function eski() {
+        kutu.focus();
+        kutu.select();
+        try { if (document.execCommand('copy')) oldu(); } catch (e) {}
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(adres).then(oldu, eski);
+      else eski();
+    });
+
+    var t = ADIMLAR[tarayici()];
+    var mobil = t === ADIMLAR.ios || t === ADIMLAR.android;
+    panel.querySelector('#tarayici-ad').textContent = mobil ? t[0] + ' için ana ekrana ekleme:' : t[0] + ' için:';
+    var ol = panel.querySelector('#anasayfa-adimlar');
+    t[1].forEach(function (a) {
+      var li = document.createElement('li');
+      li.textContent = a;
+      ol.appendChild(li);
+    });
+  }
 
   function temaKur(panel) {
     var kutu = panel.querySelector('.tema-sec');
