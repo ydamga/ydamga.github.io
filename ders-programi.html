@@ -244,6 +244,26 @@ body.mo{overflow:hidden}
 .mdays td.sum{font-weight:700;font-variant-numeric:tabular-nums}
 .mdays tfoot td{border-top:1px solid var(--line);border-bottom:0;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
 .mdays tfoot td.all{color:var(--c1b)}
+.mslot th,.mslot td{text-align:center;padding:4px;border-bottom:0;vertical-align:middle}
+.mslot th:first-child,.mslot td:first-child{text-align:left;padding-left:12px}
+.mslot thead th{padding-top:8px}
+.mslot button{font:inherit;font-variant-numeric:tabular-nums;cursor:pointer;border-radius:7px;transition:transform 160ms cubic-bezier(.23,1,.32,1),background-color 150ms ease,box-shadow 150ms ease}
+.mslot button:active{transform:scale(.97)}
+.mslot button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.mslot .hd{background:none;border:0;color:var(--muted);font-weight:700;font-size:13px;padding:4px 6px}
+.mslot .hd:hover{background:var(--hover);color:var(--ink)}
+.mslot .c{width:100%;min-width:64px;font-weight:700;padding:7px 4px;border:0;background:var(--bg);color:var(--muted)}
+.mslot .c.p{background:var(--c0);color:var(--c0b)}
+.mslot .c.f{background:var(--c1);color:var(--c1b)}
+.mslot .c[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--accent)}
+.mslot .c small{font-weight:500;opacity:.8}
+.msum{display:grid;gap:8px;margin:12px 0 0}
+.msum .sel{display:block;margin:0;color:var(--muted);font-size:14px}
+.msum .row{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.msum .row b{font-size:18px;font-variant-numeric:tabular-nums;margin-right:8px}
+.msum .row.all b{color:var(--c1b)}
+.msum .who{margin-top:2px;font-size:14px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.mslot button:active{transform:none}}
 @media print{.searchbox,.sel,.tabs,.back,h1,.pr,.chip .x,.clr{display:none!important}.tt{min-width:0!important}
   body.mo>.wrap,body.mo .mtools,body.mo .x{display:none!important}
   body.mo .ov{position:static;background:none;padding:0}body.mo .modal{max-height:none;box-shadow:none;border:0}body.mo .mb{overflow:visible}}
@@ -303,6 +323,12 @@ body.mo{overflow:hidden}
     <div class="person"><div><h2 data-i="mDays"></h2><p id="mAll"></p></div>
       <button class="btn ghost pr" data-i="print"></button></div>
     <div class="box"><table class="mdays" id="mdays"></table></div>
+    <div id="mslotWrap">
+      <h3 data-i="mSlots"></h3>
+      <p class="tip" data-i="mSlotTip" style="margin:-4px 2px 10px"></p>
+      <div class="box"><table class="mslot" id="mslot"></table></div>
+      <div class="msum" id="msum" aria-live="polite"></div>
+    </div>
     <h3 data-i="mGrid"></h3>
     <div class="box"><div class="tt" id="mtt"></div></div>
   </div>
@@ -320,7 +346,12 @@ var TX={
 tr:{days:["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"],tabOgr:"Öğrenci",tabHoca:"Öğretim elemanı",tabSnv:"Sınavlar",sv:{vOgr:"Öğrenci",vHoca:"Akademisyen",vBol:"Bölüm",phOgr:"Öğrenci numarası veya adı",phHoca:"Ad veya soyad yazın",go:"Göster",selProg:"Bölüm seçin",allY:"Tüm sınıflar",allT:"Tüm sınavlar",date:"Tarih",time:"Saat",course:"Ders",sec:"Şube",year:"Sınıf",type:"Sınav",inst:"Öğretim elemanı",none:"Bu seçim için sınav bulunamadı.",empty:"Bir numara ya da ad yazın.",nf:function(t){return"“"+t+"” ile eşleşen kayıt bulunamadı."},multi:function(n){return n+" kişi eşleşti. Listeden seçin."},cf:"Çakışma",miss:function(n){return n+" dersin sınav bilgisi bulunamadı"},cnt:function(n){return n+" sınav"}},subNum:"Numarayla",subSin:"Bölüm ve sınıfla",subMulti:"Birden fazla öğrenci",
  add:"Ekle",phMulti:"Öğrenci numarası veya adı",mTip:"Birden fazla numarayı virgülle, boşlukla ya da Excel'den alt alta kopyalayıp yapıştırarak tek seferde ekleyebilirsiniz.",
  mDays:"Okulda olduğu günler",mGrid:"Birleşik haftalık program",backMulti:"← Öğrenci listesine dön",
+ mSlots:"Saate göre ders durumu",mSlotTip:"Her hücre o saatte dersi olan öğrenci sayısını gösterir. Hücrelere tıklayarak bir ya da birden fazla gün ve saat seçin; gün adına ya da saate tıklayınca tüm sütun ya da satır seçilir.",
  mu:{stu:"Öğrenci",dCnt:"Gün",present:"Okulda olan",remove:"Listeden çıkar",clear:"Tümünü çıkar",lessons:function(n){return n+" ders"},
+   slTime:"Saat",slNone:"Henüz saat seçilmedi.",slSel:"Seçilen saatler: ",slClr:"Seçimi temizle",slDay:"Bu günün tüm saatlerini seç",slRow:"Bu saati tüm günlerde seç",
+   slAny:function(n){return n===1?"seçilen saatte dersi var":"seçilen saatlerin en az birinde dersi var"},slAll:"seçilen saatlerin hepsinde dersi var",
+   slFree:function(n){return n===1?"seçilen saatte dersi yok":"seçilen saatlerin hiçbirinde dersi yok"},
+   slOf:function(k,n){return k+" / "+n},slCell:function(k,n){return k+" / "+n+" öğrencinin dersi var"},
    all:function(n,d){return(n===1?"Okulda olduğu günler: ":"Hepsinin okulda olduğu günler: ")+(d.length?d.join(", "):"yok")}},
  phNum:"Öğrenci numarası veya adı",phHoca:"Ad veya soyad yazın",go:"Programı göster",print:"Yazdır",list:"Ders listesi",attT:"Devam durumu",
  a:{course:"Ders",wk:"H",week:"Hafta",abs:"Devamsızlık",V:"Var",Y:"Yok",N:"Yoklama açılmadı",other:"Diğer",of:function(y,t){return y+" / "+t},tip:"Yoklama alınan haftalarda gelmediği hafta sayısı"},selProg:"Bölüm seçin",prog:"Bölüm",sin:"Sınıf",
@@ -338,7 +369,12 @@ tr:{days:["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar
 en:{days:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],tabOgr:"Student",tabHoca:"Instructor",tabSnv:"Exams",sv:{vOgr:"Student",vHoca:"Instructor",vBol:"Department",phOgr:"Student number or name",phHoca:"Type a first or last name",go:"Show",selProg:"Select department",allY:"All years",allT:"All exams",date:"Date",time:"Time",course:"Course",sec:"Section",year:"Year",type:"Exam",inst:"Instructor",none:"No exams found for this selection.",empty:"Please type a number or name.",nf:function(t){return"No match for “"+t+"”."},multi:function(n){return n+" people match. Pick one from the list."},cf:"Clash",miss:function(n){return"No exam information for "+n+(n===1?" course":" courses")},cnt:function(n){return n+(n===1?" exam":" exams")}},subNum:"By student number",subSin:"By department & year",subMulti:"Multiple students",
  add:"Add",phMulti:"Student number or name",mTip:"Add several at once: separate numbers with commas or spaces, or paste a column copied from Excel.",
  mDays:"Days on campus",mGrid:"Combined weekly schedule",backMulti:"← Back to student list",
+ mSlots:"Classes by hour",mSlotTip:"Each cell shows how many students have class at that hour. Click cells to pick one or more days and hours; click a day or an hour to select the whole column or row.",
  mu:{stu:"Student",dCnt:"Days",present:"On campus",remove:"Remove from list",clear:"Remove all",lessons:function(n){return n+(n===1?" class":" classes")},
+   slTime:"Time",slNone:"No hours selected yet.",slSel:"Selected hours: ",slClr:"Clear selection",slDay:"Select every hour of this day",slRow:"Select this hour on every day",
+   slAny:function(n){return n===1?"have class at the selected hour":"have class in at least one selected hour"},slAll:"have class in every selected hour",
+   slFree:function(n){return n===1?"have no class at the selected hour":"have no class in any selected hour"},
+   slOf:function(k,n){return k+" / "+n},slCell:function(k,n){return k+" of "+n+(n===1?" student has":" students have")+" class"},
    all:function(n,d){return(n===1?"Days on campus: ":"Days everyone is on campus: ")+(d.length?d.join(", "):"none")}},
  phNum:"Student number or name",phHoca:"Type a first or last name",go:"Show schedule",print:"Print",list:"Course list",attT:"Attendance",
  a:{course:"Course",wk:"W",week:"Week",abs:"Absences",V:"Present",Y:"Absent",N:"Not taken",other:"Other",of:function(y,t){return y+" / "+t},tip:"Weeks absent out of weeks attendance was taken"},selProg:"Select department",prog:"Department",sin:"Year",
@@ -675,12 +711,53 @@ function renderMulti(){
   if(MUL.length>1)h+="<tfoot><tr><td>"+M.present+"</td>"+days.map(function(d){var c=cnt[d]||0;return'<td'+(c===MUL.length?' class="all"':'')+'>'+c+" / "+MUL.length+"</td>"}).join("")+"<td></td></tr></tfoot>";
   $("mdays").innerHTML=h;
   $("mAll").textContent=M.all(MUL.length,days.filter(function(d){return cnt[d]===MUL.length}).map(function(d){return L.days[d]}));
+  mSlots();
   // Birleşik program: her öğrencinin dersleri kendi renginde
   var bl=[];MUL.forEach(function(no,i){P[no].blocks.forEach(function(b){var o={};for(var k in b)o[k]=b[k];o.s=i;o.no=no;bl.push(o)})});
   grid($("mtt"),bl,130,function(b){var p=P[b.no],c=p.courses[b.c],nm=p.name||b.no;
     return{i:b.s%8,tip:[nm,c.code+" "+c.name,fmt(b.a)+"–"+fmt(b.b),b.r].filter(Boolean).join("\n"),
       html:'<b>'+esc(nm)+'</b><div class="n">'+esc(c.code)+(b.lab?' '+L.prac:'')+'</div><div class="m">'+fmt(b.a)+'–'+fmt(b.b)+(b.r?'<br>'+esc(b.r):'')+'</div>'}});
 }
+// Saate göre: gün × saat dilimi hücreleri; seçilen hücreler için en az birinde / hepsinde dersi olan öğrenciler
+var MSEL={},MSL=null;
+function mSlots(){
+  var P=DATA.ogrenci.people,M=L.mu,N=MUL.length,used={},mc={},bl=[];
+  MUL.forEach(function(no){P[no].blocks.forEach(function(b){used[b.d]=1;bl.push(b);mc[b.a%60]=(mc[b.a%60]||0)+1})});
+  $("mslotWrap").classList.toggle("hidden",!bl.length);if(!bl.length){MSL=null;return}
+  var days=[0,1,2,3,4].concat([5,6].filter(function(d){return used[d]}));
+  // Dilimler derslerin en sık başladığı dakikaya hizalanır (08:30–09:20 gibi dersler tek dilime düşsün)
+  var off=0,best=0;Object.keys(mc).forEach(function(m){if(mc[m]>best||(mc[m]===best&&+m<off)){best=mc[m];off=+m}});
+  var st=Math.min.apply(null,bl.map(function(b){return b.a})),en=Math.max.apply(null,bl.map(function(b){return b.b})),slots=[];
+  for(var t=Math.floor((st-off)/60)*60+off;t<en;t+=60)slots.push(t);
+  function busy(no,d,s){return P[no].blocks.some(function(b){var o=Math.min(b.b,s+60)-Math.max(b.a,s);return b.d===d&&o>0&&o>=Math.min(15,(b.b-b.a)/2)})}
+  var who={};days.forEach(function(d){slots.forEach(function(s){who[d+"|"+s]=MUL.filter(function(no){return busy(no,d,s)})})});
+  Object.keys(MSEL).forEach(function(k){if(!who[k])delete MSEL[k]});
+  MSL={days:days,slots:slots,who:who};
+  var nm=function(no){return P[no].name||no},span=function(s){return fmt(s)+"–"+fmt(s+60)};
+  var h='<thead><tr><th>'+M.slTime+'</th>'+days.map(function(d){return'<th><button type="button" class="hd" data-d="'+d+'" title="'+esc(M.slDay)+'">'+L.days[d]+'</button></th>'}).join("")+'</tr></thead><tbody>';
+  slots.forEach(function(s){
+    h+='<tr><td><button type="button" class="hd" data-s="'+s+'" title="'+esc(M.slRow)+'">'+span(s)+'</button></td>';
+    days.forEach(function(d){var k=d+"|"+s,w=who[k],c=w.length;
+      h+='<td><button type="button" class="c'+(c===N?' f':c?' p':'')+'" data-k="'+k+'" aria-pressed="'+!!MSEL[k]+'" title="'+esc(L.days[d]+" "+span(s)+"\n"+M.slCell(c,N)+(c?":\n"+w.map(nm).join("\n"):""))+'">'+c+(N>1?'<small> / '+N+'</small>':'')+'</button></td>'});
+    h+='</tr>'});
+  $("mslot").innerHTML=h+'</tbody>';
+  var sel=Object.keys(MSEL).sort(function(a,b){var x=a.split("|"),y=b.split("|");return x[0]-y[0]||x[1]-y[1]});
+  if(!sel.length){$("msum").innerHTML='<p class="sel">'+esc(M.slNone)+'</p>';return}
+  var byDay={};sel.forEach(function(k){var x=k.split("|");(byDay[x[0]]||(byDay[x[0]]=[])).push(span(+x[1]))});
+  var desc=Object.keys(byDay).map(function(d){return L.days[d]+" "+byDay[d].join(", ")}).join("; ");
+  var any=MUL.filter(function(no){return sel.some(function(k){return who[k].indexOf(no)>-1})}),
+    all=MUL.filter(function(no){return sel.every(function(k){return who[k].indexOf(no)>-1})}),
+    free=MUL.filter(function(no){return any.indexOf(no)<0});
+  var list=function(a){return a.length?'<div class="who">'+a.map(function(no){return'<button type="button" class="hl stu" data-no="'+esc(no)+'" title="'+esc(L.r.stu)+'">'+esc(nm(no))+'</button>'}).join(", ")+'</div>':""};
+  var row=function(a,t,cls){return'<div class="row'+(cls||"")+'"><b>'+M.slOf(a.length,N)+'</b>'+esc(t)+list(a)+'</div>'};
+  $("msum").innerHTML='<p class="sel">'+esc(M.slSel+desc)+' <button type="button" class="clr" id="mslClr">'+esc(M.slClr)+'</button></p>'+
+    row(any,M.slAny(sel.length))+(sel.length>1?row(all,M.slAll," all"):"")+row(free,M.slFree(sel.length));
+}
+$("mslot").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!MSL)return;
+  var ks=b.dataset.k?[b.dataset.k]:b.dataset.d!=null?MSL.slots.map(function(s){return b.dataset.d+"|"+s}):MSL.days.map(function(d){return d+"|"+b.dataset.s});
+  var on=!ks.every(function(k){return MSEL[k]});ks.forEach(function(k){if(on)MSEL[k]=1;else delete MSEL[k]});
+  mSlots();var f=$("mslot").querySelector('button[data-'+(b.dataset.k?'k="'+b.dataset.k:b.dataset.d!=null?'d="'+b.dataset.d:'s="'+b.dataset.s)+'"]');if(f)f.focus()});
+$("msum").addEventListener("click",function(e){if(e.target.id==="mslClr"){MSEL={};mSlots()}});
 /* ---------- Sınavlar ---------- */
 var SNV={v:"",tip:"",prog:"",sin:"",q:"",cur:null},EXK=null,EXC=null,EXH=null,EXHL=null,SNVP=null,SNVT=null;
 function snvInit(){
