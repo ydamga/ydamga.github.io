@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ÖSYM sınav takvimi</title>
+  <meta name="description" content="ÖSYM sınavlarının ve başvuru tarihlerinin aylık görünümü.">
+  <script src="ayarlar.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="ortak.css">
+  <style>
+    main { justify-content: flex-start; }
+
+    /* Sayfa başı yemek.html ile aynı */
+    .ust {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      margin-bottom: clamp(14px, 2.5vh, 24px);
+    }
+    .ust-sol { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
+    .geri {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      color: var(--accent-ink);
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+    }
+    .geri svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .geri:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
+    @media (hover: hover) and (pointer: fine) {
+      .geri:hover { text-decoration: underline; text-underline-offset: 3px; }
+    }
+    h1 { font-size: clamp(1.3rem, 2vw, 1.75rem); font-weight: 800; letter-spacing: -0.025em; }
+    .ust-sag { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .ay-sec { display: flex; align-items: center; gap: 4px; }
+    .ay-sec button {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 1px solid var(--surface-2);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .ay-sec button:disabled { opacity: 0.35; cursor: default; }
+    .ay-sec button svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .ay-sec button:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .ay-sec button:not(:disabled):hover { background: var(--surface); }
+    }
+    .ay-ad { min-width: 9.5ch; text-align: center; font-weight: 700; font-size: 1.05rem; }
+
+    /* Solda ayın sınavları, sağda o ay açılan başvurular */
+    .ikili {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 24px clamp(20px, 2.4vw, 40px);
+      align-items: start;
+    }
+    h2 { font-size: clamp(1.05rem, 1.4vw, 1.3rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 10px; }
+    .liste { list-style: none; display: grid; gap: 6px; }
+    .liste a {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 4px 16px;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--surface);
+      color: inherit;
+      text-decoration: none;
+      border-left: 4px solid transparent;
+      transition: background-color 150ms ease;
+    }
+    .liste a:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
+    @media (hover: hover) and (pointer: fine) {
+      .liste a:hover { background: var(--surface-2); }
+    }
+    .liste .gecmis a { opacity: 0.6; }
+    .liste .yakin a { border-left-color: var(--accent); }
+    /* Tarih kutusu: gün sayısı büyük, ay ve gün adı küçük */
+    .tarih-kutu {
+      grid-row: span 2;
+      width: 56px;
+      padding: 6px 0;
+      text-align: center;
+      border-radius: 8px;
+      background: var(--accent);
+      color: var(--on-accent);
+      font-variant-numeric: tabular-nums;
+    }
+    .tarih-kutu b { display: block; font-size: 1.35rem; font-weight: 800; line-height: 1.05; }
+    .tarih-kutu span { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .gecmis .tarih-kutu { background: var(--surface-2); color: var(--text-2); }
+    .ad { font-weight: 700; font-size: 0.98rem; line-height: 1.25; }
+    .detay { font-size: 0.84rem; color: var(--text-2); font-variant-numeric: tabular-nums; line-height: 1.45; }
+    .detay em { font-style: normal; font-weight: 700; color: var(--accent-ink); }
+    .bos { padding: 16px 18px; background: var(--surface); color: var(--text-2); line-height: 1.5; }
+    .kaynak { margin-top: 16px; font-size: 0.82rem; color: var(--muted); }
+
+    @media (max-width: 860px) {
+      .ikili { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="ust">
+      <div class="ust-sol">
+        <a class="geri" href="./"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Anasayfa</a>
+        <h1>ÖSYM sınav takvimi</h1>
+      </div>
+      <div class="ust-sag">
+      <div class="ay-sec">
+        <button type="button" id="onceki" aria-label="Önceki ay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <span class="ay-ad" id="ay-ad" aria-live="polite"></span>
+        <button type="button" id="sonraki" aria-label="Sonraki ay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+      <button type="button" class="ayarlar-btn" aria-haspopup="dialog" aria-label="Ayarlar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><span>Ayarlar</span></button>
+      </div>
+    </div>
+
+    <div class="ikili">
+      <section aria-labelledby="sinav-baslik">
+        <h2 id="sinav-baslik">Bu ay yapılacak sınavlar</h2>
+        <ul class="liste" id="sinav-liste"></ul>
+      </section>
+      <section aria-labelledby="basvuru-baslik">
+        <h2 id="basvuru-baslik">Bu ay açılan başvurular</h2>
+        <ul class="liste" id="basvuru-liste"></ul>
+      </section>
+    </div>
+    <p class="kaynak" id="kaynak"></p>
+  </main>
+
+  <footer>
+    <span>ÖDHM · <span id="yil"></span></span>
+  </footer>
+
+  <script>
+    (function () {
+      // Tarihler Türkiye saatine göre takvim günü; ?bugun=2026-11-25 ve ?ay=2026-11 ile denenebilir
+      function gun(t) { return new Date(t).toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' }); }
+      function tarih(g) { return new Date(g + 'T12:00:00Z'); }
+      function kisa(g) { return g.split('-').reverse().join('.'); }
+      function ayAdi(ay) { return tarih(ay + '-01').toLocaleDateString('tr-TR', { month: 'long', year: 'numeric', timeZone: 'UTC' }); }
+      var bugun = (location.search.match(/[?&]bugun=(\d{4}-\d{2}-\d{2})/) || [])[1] || gun(Date.now());
+      var istenenAy = (location.search.match(/[?&]ay=(\d{4}-\d{2})/) || [])[1];
+
+      function kalanGun(g) { return Math.round((tarih(g) - tarih(bugun)) / 864e5); }
+      function bos(ul, metin) {
+        var li = document.createElement('li');
+        li.className = 'bos';
+        li.textContent = metin;
+        ul.appendChild(li);
+      }
+      // Bir satır: solda tarih kutusu, sağda ad ve ayrıntı. Ayrıntı parçaları metin ya da vurgulu { em: metin }
+      function satir(s, g, parcalar, durum) {
+        var li = document.createElement('li');
+        if (durum) li.className = durum;
+        var a = document.createElement('a');
+        a.href = s.link;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        var kutu = document.createElement('span');
+        kutu.className = 'tarih-kutu';
+        var no = document.createElement('b');
+        no.textContent = tarih(g).getUTCDate();
+        var alt = document.createElement('span');
+        alt.textContent = tarih(g).toLocaleDateString('tr-TR', { weekday: 'short', timeZone: 'UTC' });
+        kutu.append(no, alt);
+        var ad = document.createElement('span');
+        ad.className = 'ad';
+        ad.textContent = s.ad;
+        var detay = document.createElement('span');
+        detay.className = 'detay';
+        parcalar.forEach(function (p, i) {
+          if (i) detay.append(' · ');
+          if (typeof p === 'string') detay.append(p);
+          else { var em = document.createElement('em'); em.textContent = p.em; detay.appendChild(em); }
+        });
+        a.append(kutu, ad, detay);
+        li.appendChild(a);
+        return li;
+      }
+      function basvuruMetni(s) {
+        if (!s.basvuru_baslangic) return ['Başvuru tarihi açıklanmadı'];
+        var m = ['Başvuru ' + kisa(gun(s.basvuru_baslangic)) + ' – ' + kisa(gun(s.basvuru_bitis))];
+        if (s.gec_basvuru_bitis) m.push('Geç başvuru son gün ' + kisa(gun(s.gec_basvuru_bitis)));
+        return m;
+      }
+
+      fetch('data/osym.json', { cache: 'no-cache' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function (veri) {
+          var sinavlar = veri.sinavlar;
+          // Sınavı ya da başvurusu olan aylar
+          var aylar = {};
+          sinavlar.forEach(function (s) {
+            if (s.sinav_tarihi) aylar[s.sinav_tarihi.slice(0, 7)] = true;
+            if (s.basvuru_baslangic) aylar[gun(s.basvuru_baslangic).slice(0, 7)] = true;
+          });
+          aylar = Object.keys(aylar).sort();
+          var buAy = bugun.slice(0, 7);
+          var ay = aylar.indexOf(istenenAy) > -1 ? istenenAy
+            : aylar.indexOf(buAy) > -1 ? buAy
+            : aylar.filter(function (a) { return a > buAy; })[0] || aylar[aylar.length - 1];
+
+          document.getElementById('kaynak').textContent = 'Kaynak: ÖSYM sınav takvimi. Her sabah güncellenir; son güncelleme ' +
+            new Date(veri.guncellendi).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) +
+            '. Satıra tıklayınca sınavın ÖSYM sayfası açılır.';
+
+          function goster() {
+            document.getElementById('ay-ad').textContent = ayAdi(ay);
+            document.getElementById('onceki').disabled = aylar.indexOf(ay) <= 0;
+            document.getElementById('sonraki').disabled = aylar.indexOf(ay) >= aylar.length - 1;
+
+            var sinavUl = document.getElementById('sinav-liste');
+            sinavUl.textContent = '';
+            sinavlar
+              .filter(function (s) { return s.sinav_tarihi && s.sinav_tarihi.slice(0, 7) === ay; })
+              .sort(function (a, b) { return a.sinav_tarihi < b.sinav_tarihi ? -1 : 1; })
+              .forEach(function (s) {
+                var k = kalanGun(s.sinav_tarihi);
+                var ek = k < 0 ? 'Yapıldı' : { em: k === 0 ? 'Bugün' : k === 1 ? 'Yarın' : k + ' gün kaldı' };
+                sinavUl.appendChild(satir(s, s.sinav_tarihi, basvuruMetni(s).concat(ek), k < 0 ? 'gecmis' : k <= 7 ? 'yakin' : ''));
+              });
+            if (!sinavUl.children.length) bos(sinavUl, 'Bu ay ÖSYM sınavı yok.');
+
+            var basvuruUl = document.getElementById('basvuru-liste');
+            basvuruUl.textContent = '';
+            sinavlar
+              .filter(function (s) { return s.basvuru_baslangic && gun(s.basvuru_baslangic).slice(0, 7) === ay; })
+              .sort(function (a, b) { return a.basvuru_baslangic < b.basvuru_baslangic ? -1 : 1; })
+              .forEach(function (s) {
+                var bas = gun(s.basvuru_baslangic), bit = gun(s.basvuru_bitis);
+                var durum = bit < bugun ? 'gecmis' : bas <= bugun ? 'yakin' : '';
+                var parcalar = [bit < bugun ? 'Başvuru kapandı' : bas <= bugun ? { em: 'Başvuru açık' } : 'Açılış ' + kisa(bas), 'Bitiş ' + kisa(bit)];
+                if (s.sinav_tarihi) parcalar.push('Sınav ' + kisa(s.sinav_tarihi));
+                basvuruUl.appendChild(satir(s, bas, parcalar, durum));
+              });
+            if (!basvuruUl.children.length) bos(basvuruUl, 'Bu ay başvurusu açılan sınav yok.');
+          }
+          function ayDegis(n) {
+            ay = aylar[aylar.indexOf(ay) + n];
+            history.replaceState(null, '', '?ay=' + ay);
+            goster();
+          }
+          document.getElementById('onceki').addEventListener('click', function () { ayDegis(-1); });
+          document.getElementById('sonraki').addEventListener('click', function () { ayDegis(1); });
+          goster();
+        })
+        .catch(function () {
+          bos(document.getElementById('sinav-liste'), 'Sınav takvimi şu anda yüklenemedi. Biraz sonra tekrar deneyin.');
+        });
+    })();
+  </script>
+</body>
+</html>

@@ -5,169 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ÖDHM araçları</title>
   <meta name="description" content="ÖDHM ders programı hazırlayıcısı ve öğrenci ziyaret kaydı.">
-  <script>
-    // Kayıtlı temayı ilk boyamadan önce uygula, sayfa yanlış renkte yanıp sönmesin
-    try {
-      var t = localStorage.getItem('tema');
-      if (['light', 'dark', 'nane', 'lavanta', 'pembe', 'gok', 'gece'].indexOf(t) > -1) document.documentElement.dataset.theme = t;
-      if (localStorage.getItem('desen') === 'acik') document.documentElement.dataset.desen = '';
-    } catch (e) {}
-  </script>
+  <script src="ayarlar.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="ortak.css">
   <style>
-    /* Koyu tema ziyaret aracının paletiyle aynı: lacivert zemin, altın vurgu.
-       Açık temada zemin lacivertin soğuk, açık tonu; altın metinler okunması için koyulaşır. */
-    :root {
-      color-scheme: dark;
-      --bg: #1E2A38;
-      --surface: #263445;
-      --surface-2: #2F4057;
-      --text: #F4F7FB;
-      --text-2: #D9E1EA;
-      --muted: #B4C0CE;
-      --accent: #C9A86A;
-      --accent-hover: #D6B87E;
-      --accent-ink: #C9A86A;
-      --on-accent: #1E2A38;
-      --margin: clamp(20px, 4vw, 56px);
-      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-    }
-    @media (prefers-color-scheme: light) {
-      :root:not([data-theme]) {
-        color-scheme: light;
-        --bg: #EDF1F5;
-        --surface: #FFFFFF;
-        --surface-2: #DAE2EA;
-        --text: #1E2A38;
-        --text-2: #3D4B5C;
-        --muted: #5F6C7B;
-        --accent-ink: #85621F;
-      }
-    }
-    :root[data-theme="light"] {
-      color-scheme: light;
-      --bg: #EDF1F5;
-      --surface: #FFFFFF;
-      --surface-2: #DAE2EA;
-      --text: #1E2A38;
-      --text-2: #3D4B5C;
-      --muted: #5F6C7B;
-      --accent-ink: #85621F;
-    }
-    /* Renkli temalar: zemin vurgu renginin açık tonu, kartlar beyaz */
-    :root[data-theme="nane"] {
-      color-scheme: light;
-      --bg: #E4F4EE; --surface: #FFFFFF; --surface-2: #CBE8DC;
-      --text: #15332A; --text-2: #2D4E44; --muted: #52706A;
-      --accent: #5CC9A7; --accent-hover: #78D4B7; --accent-ink: #1C7458; --on-accent: #0F2E25;
-    }
-    :root[data-theme="lavanta"] {
-      color-scheme: light;
-      --bg: #EEEAFA; --surface: #FFFFFF; --surface-2: #DCD3F4;
-      --text: #2A2140; --text-2: #453A5F; --muted: #685E83;
-      --accent: #AA93EA; --accent-hover: #BBA8EF; --accent-ink: #5D42B5; --on-accent: #21173D;
-    }
-    :root[data-theme="pembe"] {
-      color-scheme: light;
-      --bg: #FCEDF2; --surface: #FFFFFF; --surface-2: #F5D3DE;
-      --text: #3A1F2A; --text-2: #593543; --muted: #7D5A67;
-      --accent: #F29BB5; --accent-hover: #F5B0C5; --accent-ink: #AE3560; --on-accent: #3A1424;
-    }
-    :root[data-theme="gok"] {
-      color-scheme: light;
-      --bg: #E6F2FC; --surface: #FFFFFF; --surface-2: #CCE2F5;
-      --text: #132D44; --text-2: #2C4962; --muted: #536F88;
-      --accent: #6DB8EC; --accent-hover: #88C6F0; --accent-ink: #1C6AA3; --on-accent: #0D2A42;
-    }
-    :root[data-theme="gece"] {
-      color-scheme: dark;
-      --bg: #221A32; --surface: #2D2342; --surface-2: #3A2E54;
-      --text: #F6F1FF; --text-2: #DED4F1; --muted: #B6AACD;
-      --accent: #E9A8D5; --accent-hover: #EFBCE0; --accent-ink: #E9A8D5; --on-accent: #2A1630;
-    }
-    /* İsteğe bağlı desenler: her temanın kendi deseni, alttaki "Desen" düğmesiyle açılır */
-    :root {
-      --desen: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ccircle cx='14' cy='14' r='1.6' fill='%23C9A86A' fill-opacity='.28'/%3E%3C/svg%3E");
-    }
-    @media (prefers-color-scheme: light) {
-      :root:not([data-theme]) {
-        --desen: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ccircle cx='14' cy='14' r='1.6' fill='%2385621F' fill-opacity='.3'/%3E%3C/svg%3E");
-      }
-    }
-    :root[data-theme="light"] {
-      --desen: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ccircle cx='14' cy='14' r='1.6' fill='%2385621F' fill-opacity='.3'/%3E%3C/svg%3E");
-    }
-    :root[data-theme="nane"] {
-      --desen: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cg fill='%235CC9A7' fill-opacity='.3'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Ccircle cx='36' cy='36' r='4'/%3E%3C/g%3E%3C/svg%3E");
-    }
-    :root[data-theme="lavanta"] {
-      --desen: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='%23AA93EA' fill-opacity='.35'%3E%3Cpath d='M14 4l2 8 8 2-8 2-2 8-2-8-8-2 8-2z'/%3E%3Cpath d='M46 38l1.4 5.6 5.6 1.4-5.6 1.4L46 52l-1.4-5.6L39 45l5.6-1.4z'/%3E%3C/g%3E%3C/svg%3E");
-    }
-    :root[data-theme="pembe"] {
-      --desen: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='%23F29BB5' fill-opacity='.35'%3E%3Cpath d='M16 26s-9-5.6-9-11.8A5 5 0 0 1 16 11a5 5 0 0 1 9 3.2C25 20.4 16 26 16 26z'/%3E%3Cpath d='M47 55s-6-3.7-6-7.9A3.3 3.3 0 0 1 47 45a3.3 3.3 0 0 1 6 2.1c0 4.2-6 7.9-6 7.9z'/%3E%3C/g%3E%3C/svg%3E");
-    }
-    :root[data-theme="gok"] {
-      --desen: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='90'%3E%3Cg fill='%236DB8EC' fill-opacity='.22'%3E%3Ccircle cx='20' cy='24' r='8'/%3E%3Ccircle cx='31' cy='19' r='10'/%3E%3Ccircle cx='42' cy='25' r='7'/%3E%3Crect x='20' y='24' width='22' height='8' rx='4'/%3E%3Ccircle cx='80' cy='66' r='6'/%3E%3Ccircle cx='89' cy='62' r='8'/%3E%3Ccircle cx='98' cy='67' r='5'/%3E%3Crect x='80' y='66' width='18' height='6' rx='3'/%3E%3C/g%3E%3C/svg%3E");
-    }
-    :root[data-theme="gece"] {
-      --desen: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cg fill='%23F6F1FF' fill-opacity='.45'%3E%3Ccircle cx='10' cy='14' r='1.2'/%3E%3Ccircle cx='62' cy='8' r='.9'/%3E%3Ccircle cx='38' cy='52' r='1.1'/%3E%3Ccircle cx='80' cy='70' r='1.3'/%3E%3Ccircle cx='18' cy='78' r='.8'/%3E%3C/g%3E%3Cpath d='M70 28l1.2 4.8 4.8 1.2-4.8 1.2L70 40l-1.2-4.8L64 34l4.8-1.2z' fill='%23E9A8D5' fill-opacity='.5'/%3E%3C/svg%3E");
-    }
-    [data-desen] body { background-image: var(--desen); background-attachment: fixed; }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      min-height: 100vh;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      border-top: 6px solid var(--accent);
-    }
-    main, footer {
-      width: 100%;
-      max-width: 1320px;
-      margin: 0 auto;
-      padding-left: var(--margin);
-      padding-right: var(--margin);
-    }
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding-top: clamp(40px, 8vh, 96px);
-      padding-bottom: clamp(48px, 8vh, 96px);
-    }
-
-    h1 {
-      font-size: clamp(2.4rem, 5.5vw, 4.4rem);
-      font-weight: 800;
-      line-height: 0.95;
-      letter-spacing: -0.04em;
-    }
-    .head {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: end;
-      gap: 24px clamp(32px, 6vw, 96px);
-    }
-    .lead {
-      max-width: 40ch;
-      margin-top: 14px;
-      font-size: clamp(1rem, 1.4vw, 1.15rem);
-      line-height: 1.5;
-      color: var(--text-2);
-    }
-
+    /* Üst satır: solda üniversite sistemleri, sağda ayarlar */
+    .ust-satir { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
     /* Üniversite sistemlerine hızlı geçiş */
     .kisayollar {
       list-style: none;
       display: grid;
       grid-template-columns: repeat(4, auto);
+      justify-content: start;
       gap: 8px;
     }
     .kisayollar a {
@@ -195,7 +47,7 @@
 
     /* Üç sütun: solda yemek, ortada araçlar, sağda sınav takvimi */
     .govde {
-      margin-top: clamp(32px, 5vh, 56px);
+      margin-top: clamp(16px, 3vh, 36px);
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.35fr);
       grid-template-areas: "yemek araclar osym";
@@ -209,8 +61,8 @@
       display: flex;
       align-items: center;
       min-height: 36px;
-      margin-bottom: 16px;
-      font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+      margin-bottom: 10px;
+      font-size: clamp(1.1rem, 1.5vw, 1.4rem);
       font-weight: 700;
       letter-spacing: -0.02em;
     }
@@ -224,8 +76,8 @@
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 16px;
       align-items: center;
-      min-height: clamp(96px, 12vh, 132px);
-      padding: clamp(20px, 2.4vw, 32px) clamp(20px, 3vw, 40px);
+      min-height: clamp(64px, 9vh, 104px);
+      padding: clamp(14px, 2vh, 24px) clamp(18px, 2vw, 28px);
       background: var(--surface);
       color: inherit;
       text-decoration: none;
@@ -263,38 +115,14 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px 16px;
-      margin-bottom: 16px;
+      gap: 6px 8px;
+      margin-bottom: 10px;
     }
-    .yemek-head h2 { margin-bottom: 0; }
-    .secici {
-      display: flex;
-      padding: 3px;
-      border-radius: 999px;
-      border: 1px solid var(--surface-2);
-    }
-    .secici button {
-      font: inherit;
-      font-size: 0.9rem;
-      font-weight: 500;
-      min-height: 32px;
-      padding: 0 12px;
-      border: 0;
-      border-radius: 999px;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      transition: background-color 150ms ease, color 150ms ease;
-    }
-    .secici button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
-    .secici button:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
-    @media (hover: hover) and (pointer: fine) {
-      .secici button[aria-pressed="false"]:hover { color: var(--text); }
-    }
-    .yemek-kart { padding: 8px clamp(20px, 3vw, 32px) 16px; background: var(--surface); }
+    .yemek-head h2 { margin-bottom: 0; white-space: nowrap; }
+    .yemek-kart { padding: 4px clamp(16px, 2vw, 24px); background: var(--surface); }
     .yemek-kart ul { list-style: none; }
     .yemek-kart li {
-      padding: 10px 0;
+      padding: clamp(5px, 0.8vh, 9px) 0;
       border-bottom: 1px solid var(--surface-2);
       line-height: 1.35;
     }
@@ -310,16 +138,28 @@
       .yemek-kart li a:hover { color: var(--accent-ink); text-decoration: underline; }
     }
     .yemek-kart .bos { padding: 10px 0; color: var(--text-2); line-height: 1.5; }
-    .yemek-tarih { margin-top: 10px; font-size: 0.9rem; color: var(--muted); }
+    /* Bölüm altı: tarih ve aylık sayfa bağlantısı */
+    .alt-satir {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-top: 6px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .alt-satir a { color: var(--accent-ink); font-weight: 700; text-underline-offset: 3px; }
+    .alt-satir a::after { content: " →"; }
+    .alt-satir a:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
 
     /* ÖSYM başvuruları: data/osym.json'dan, GitHub Actions her sabah günceller */
     .osym[hidden], .osym ul[hidden], .osym .siradaki[hidden] { display: none; }
     /* İlk açılışta göze çarpan: en yakın sınav */
     .siradaki {
       display: grid;
-      gap: 14px;
+      gap: 10px;
       margin-bottom: 8px;
-      padding: clamp(20px, 2.4vw, 32px) clamp(16px, 2vw, 28px);
+      padding: clamp(14px, 2vh, 24px) clamp(16px, 2vw, 24px);
       background: var(--accent);
       color: var(--on-accent);
       text-decoration: none;
@@ -337,11 +177,11 @@
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
     .osym .siradaki .ad {
       display: block;
-      font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+      font-size: clamp(1.15rem, 1.7vw, 1.5rem);
       font-weight: 800;
       line-height: 1.1;
       letter-spacing: -0.025em;
@@ -352,12 +192,12 @@
       align-items: baseline;
       flex-wrap: wrap;
       gap: 4px 14px;
-      padding-top: 14px;
+      padding-top: 10px;
       border-top: 1px solid color-mix(in srgb, var(--on-accent) 20%, transparent);
       font-variant-numeric: tabular-nums;
     }
     .siradaki .zaman b {
-      font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+      font-size: clamp(1.3rem, 1.9vw, 1.7rem);
       font-weight: 800;
       line-height: 1;
       letter-spacing: -0.03em;
@@ -369,46 +209,21 @@
       align-items: baseline;
       flex-wrap: wrap;
       gap: 8px 24px;
-      margin-bottom: 16px;
+      margin-bottom: 10px;
     }
     .osym-head h2 {
-      font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+      font-size: clamp(1.1rem, 1.5vw, 1.4rem);
       font-weight: 700;
       letter-spacing: -0.02em;
     }
-    .osym-head span { font-size: 0.95rem; color: var(--muted); }
-    .osym-arac { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
-    .bildirim-btn {
-      font: inherit;
-      font-size: 0.95rem;
-      font-weight: 500;
-      padding: 6px 14px;
-      border-radius: 999px;
-      border: 1px solid var(--accent-ink);
-      background: transparent;
-      color: var(--accent-ink);
-      cursor: pointer;
-      transition: background-color 150ms ease, color 150ms ease;
-    }
-    .bildirim-btn:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
-    @media (hover: hover) and (pointer: fine) {
-      .bildirim-btn:hover { background: var(--accent); color: var(--on-accent); }
-    }
-    .bildirim-panel {
-      margin-bottom: 16px;
-      padding: 18px clamp(20px, 3vw, 40px);
-      background: var(--surface);
-      color: var(--text-2);
-      line-height: 1.55;
-    }
-    .bildirim-panel[hidden] { display: none; }
-    .osym ul { list-style: none; display: grid; gap: 8px; }
+    .osym-head span { font-size: 0.82rem; color: var(--muted); }
+    .osym ul { list-style: none; display: grid; gap: 6px; }
     .osym li a {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 4px 16px;
       align-items: center;
-      padding: 14px clamp(16px, 2vw, 24px);
+      padding: clamp(7px, 1vh, 12px) clamp(14px, 1.6vw, 20px);
       background: var(--surface);
       color: inherit;
       text-decoration: none;
@@ -418,8 +233,8 @@
     @media (hover: hover) and (pointer: fine) {
       .osym li a:hover { background: var(--surface-2); }
     }
-    .osym .ad { font-weight: 700; font-size: 1rem; line-height: 1.3; }
-    .osym .tarih { grid-column: 1 / -1; grid-row: 2; color: var(--text-2); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+    .osym .ad { font-weight: 700; font-size: 0.94rem; line-height: 1.25; }
+    .osym .tarih { grid-column: 1 / -1; grid-row: 2; color: var(--text-2); font-size: 0.84rem; font-variant-numeric: tabular-nums; }
     .osym .gun {
       justify-self: end;
       padding: 4px 10px;
@@ -432,7 +247,11 @@
       font-variant-numeric: tabular-nums;
     }
     /* Uyarılar yalnızca hatırlatma günlerinde görünür */
-    .osym .uyarilar { margin-bottom: 16px; }
+    .osym .uyarilar { margin-bottom: 10px; }
+    /* Kısa ekranlarda ve telefonda liste 3 sınavla sınırlı, sayfa kaydırmadan sığsın */
+    @media (max-width: 760px), (max-height: 820px) {
+      #osym-liste li:nth-child(n+4) { display: none; }
+    }
     .osym .uyarilar li a { background: var(--accent); color: var(--on-accent); }
     .osym .uyarilar .tarih { color: var(--on-accent); }
     .osym .uyarilar .gun { border-color: var(--on-accent); color: var(--on-accent); }
@@ -441,102 +260,53 @@
     }
     .osym .bos { padding: 18px clamp(20px, 3vw, 40px); background: var(--surface); color: var(--text-2); }
 
-    footer {
-      padding-top: 28px;
-      padding-bottom: 28px;
-      display: flex;
-      justify-content: space-between;
-      gap: 8px 24px;
-      flex-wrap: wrap;
-      font-size: 0.95rem;
-      color: var(--muted);
-    }
-    .tema { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .desen-btn {
-      font: inherit;
-      font-size: 0.9rem;
-      font-weight: 500;
-      min-height: 32px;
-      padding: 0 14px;
-      border-radius: 999px;
-      border: 1px solid var(--accent-ink);
-      background: transparent;
-      color: var(--accent-ink);
-      cursor: pointer;
-      transition: background-color 150ms ease, color 150ms ease;
-    }
-    .desen-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-    .desen-btn:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
-    .tema-sec { display: flex; gap: 6px; flex-wrap: wrap; }
-    /* Her yuvarlak temanın zeminini ve vurgu rengini yarı yarıya gösterir */
-    .tema-sec button {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 1px solid var(--surface-2);
-      background: linear-gradient(135deg, var(--z) 50%, var(--v) 50%);
-      cursor: pointer;
-      transition: transform 160ms var(--ease-out);
-    }
-    .tema-sec button[aria-pressed="true"] { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
-    .tema-sec button:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
-    .tema-sec button:active { transform: scale(0.92); }
-    @media (hover: hover) and (pointer: fine) {
-      .tema-sec button:hover { transform: scale(1.08); }
-    }
-
-    /* Giriş: başlık, cümle, sonra araçlar; 60 ms arayla */
-    h1, .lead, .kisayollar, .tool { animation: rise 600ms var(--ease-out) both; }
-    .lead { animation-delay: 60ms; }
-    .kisayollar { animation-delay: 100ms; }
+    /* Giriş: kısayollar, sonra araçlar; 60 ms arayla */
+    .kisayollar, .tool { animation: rise 600ms var(--ease-out) both; }
     .tools li:nth-child(1) .tool { animation-delay: 140ms; }
     .tools li:nth-child(2) .tool { animation-delay: 200ms; }
-    @keyframes rise { from { opacity: 0; transform: translateY(20px); } }
-    @keyframes fade { from { opacity: 0; } }
 
-    @media (max-width: 1100px) {
+    @media (max-width: 899px) {
       .govde { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "osym osym" "yemek araclar"; }
     }
-    @media (max-width: 1000px) {
-      .head { grid-template-columns: 1fr; align-items: start; }
-    }
     @media (max-width: 760px) {
-      .kisayollar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .govde { grid-template-columns: 1fr; grid-template-areas: "osym" "araclar" "yemek"; }
+      /* Telefonda kısayollar tek satır, araçlar yan yana */
+      .ust-satir nav { flex: 1; min-width: 0; }
+      .kisayollar { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+      .kisayollar a { min-height: 40px; padding: 0 2px; font-size: 0.74rem; }
+      .kisayollar svg { display: none; }
+      .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .tool { min-height: 64px; padding: 12px 14px; gap: 8px; }
+      .tool h2 { font-size: 1.05rem; }
+      .arrow { width: 32px; height: 32px; }
+      .govde { grid-template-columns: 1fr; grid-template-areas: "osym" "araclar" "yemek"; row-gap: 24px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      h1, .lead, .kisayollar, .tool, .siradaki { animation-name: fade; }
+      .kisayollar, .tool, .siradaki { animation-name: fade; }
       .tool:active, .tool:hover .arrow, .siradaki:active, .kisayollar a:active { transform: none; }
     }
   </style>
 </head>
 <body>
   <main>
-    <div class="head">
-      <div>
-        <h1>ÖDHM araçları</h1>
-        <p class="lead">Ders programını hazırlamak ve öğrenci ziyaretlerini kaydetmek için iki araç.</p>
-      </div>
-      <nav aria-label="Üniversite sistemleri">
-        <ul class="kisayollar">
-          <li><a href="https://arelim.arel.edu.tr/login/sign-in" target="_blank" rel="noopener">Arelim <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
-          <li><a href="https://obs.arel.edu.tr/" target="_blank" rel="noopener">OBS <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
-          <li><a href="https://m365.cloud.microsoft/apps/?auth=2" target="_blank" rel="noopener">Office 365 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
-          <li><a href="https://arelebys.arel.edu.tr/enVision/Login.aspx" target="_blank" rel="noopener">EBYS <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
-        </ul>
-      </nav>
+    <h1 class="gizli">ÖDHM araçları</h1>
+    <div class="ust-satir">
+    <nav aria-label="Üniversite sistemleri">
+      <ul class="kisayollar">
+        <li><a href="https://arelim.arel.edu.tr/login/sign-in" target="_blank" rel="noopener">Arelim <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
+        <li><a href="https://obs.arel.edu.tr/" target="_blank" rel="noopener">OBS <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
+        <li><a href="https://m365.cloud.microsoft/apps/?auth=2" target="_blank" rel="noopener">Office 365 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
+        <li><a href="https://arelebys.arel.edu.tr/enVision/Login.aspx" target="_blank" rel="noopener">EBYS <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
+      </ul>
+    </nav>
+    <button type="button" class="ayarlar-btn" aria-haspopup="dialog" aria-label="Ayarlar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><span>Ayarlar</span></button>
     </div>
 
     <div class="govde">
     <section class="osym" id="osym" hidden aria-labelledby="osym-baslik">
       <div class="osym-head">
-        <h2 id="osym-baslik">Sonraki ÖSYM sınavları</h2>
-        <div class="osym-arac">
-          <span id="osym-not"></span>
-          <button type="button" class="bildirim-btn" id="bildirim-btn" hidden>Bildirimleri aç</button>
-        </div>
+        <h2 id="osym-baslik">ÖSYM sınavları</h2>
+        <span id="osym-not"></span>
       </div>
-      <div class="bildirim-panel" id="bildirim-panel" hidden aria-live="polite"></div>
       <ul class="uyarilar" id="osym-uyarilar" aria-label="Bugünün başvuru uyarıları" hidden></ul>
       <a class="siradaki" id="osym-siradaki" target="_blank" rel="noopener" hidden>
         <span>
@@ -547,6 +317,7 @@
         <span class="zaman"><b></b><span></span></span>
       </a>
       <ul id="osym-liste"></ul>
+      <p class="alt-satir"><span></span><a href="sinavlar.html">Aylık sınav takvimi</a></p>
     </section>
 
     <section class="araclar" aria-labelledby="araclar-baslik">
@@ -569,7 +340,7 @@
 
     <section class="yemek" id="yemek" hidden aria-labelledby="yemek-baslik">
       <div class="yemek-head">
-        <h2 id="yemek-baslik">Bugünün menüsü</h2>
+        <h2 id="yemek-baslik">Günün menüsü</h2>
         <div class="secici yerleske-sec" role="group" aria-label="Yerleşke">
           <button type="button" data-yerleske="tepekent" aria-pressed="true">Tepekent</button>
           <button type="button" data-yerleske="cevizlibag" aria-pressed="false">Cevizlibağ</button>
@@ -578,68 +349,16 @@
       <div class="yemek-kart" aria-live="polite">
         <ul id="yemek-liste"></ul>
       </div>
-      <p class="yemek-tarih" id="yemek-tarih"></p>
+      <p class="alt-satir"><span id="yemek-tarih"></span><a href="yemek.html">Aylık liste</a></p>
     </section>
     </div>
   </main>
 
   <footer>
     <span>ÖDHM · <span id="yil"></span></span>
-    <div class="tema">
-      <span id="tema-etiket">Tema</span>
-      <div class="tema-sec" role="group" aria-labelledby="tema-etiket">
-        <button type="button" data-tema="sistem" aria-pressed="true" title="Sistem" aria-label="Sistem" style="--z:#EDF1F5;--v:#1E2A38"></button>
-        <button type="button" data-tema="light" aria-pressed="false" title="Açık" aria-label="Açık" style="--z:#EDF1F5;--v:#C9A86A"></button>
-        <button type="button" data-tema="dark" aria-pressed="false" title="Koyu" aria-label="Koyu" style="--z:#1E2A38;--v:#C9A86A"></button>
-        <button type="button" data-tema="nane" aria-pressed="false" title="Nane" aria-label="Nane" style="--z:#E4F4EE;--v:#5CC9A7"></button>
-        <button type="button" data-tema="lavanta" aria-pressed="false" title="Lavanta" aria-label="Lavanta" style="--z:#EEEAFA;--v:#AA93EA"></button>
-        <button type="button" data-tema="pembe" aria-pressed="false" title="Pembe" aria-label="Pembe" style="--z:#FCEDF2;--v:#F29BB5"></button>
-        <button type="button" data-tema="gok" aria-pressed="false" title="Gökyüzü" aria-label="Gökyüzü" style="--z:#E6F2FC;--v:#6DB8EC"></button>
-        <button type="button" data-tema="gece" aria-pressed="false" title="Gece" aria-label="Gece" style="--z:#221A32;--v:#E9A8D5"></button>
-      </div>
-      <button type="button" class="desen-btn" id="desen-btn" aria-pressed="false">Desen</button>
-    </div>
   </footer>
 
   <script>
-    document.getElementById('yil').textContent = new Date().getFullYear();
-
-    // Tema: Sistem (işletim sistemine uyar), Açık, Koyu. Seçim tarayıcıda hatırlanır.
-    (function () {
-      var butonlar = document.querySelectorAll('.tema-sec button');
-      var secili = document.documentElement.dataset.theme || 'sistem';
-      function goster() {
-        butonlar.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.tema === secili); });
-      }
-      butonlar.forEach(function (b) {
-        b.addEventListener('click', function () {
-          secili = b.dataset.tema;
-          if (secili === 'sistem') delete document.documentElement.dataset.theme;
-          else document.documentElement.dataset.theme = secili;
-          try {
-            if (secili === 'sistem') localStorage.removeItem('tema');
-            else localStorage.setItem('tema', secili);
-          } catch (e) {}
-          goster();
-        });
-      });
-      goster();
-
-      // Desen her temada isteğe bağlı; açıkken temanın kendi deseni görünür
-      var desen = document.getElementById('desen-btn');
-      desen.setAttribute('aria-pressed', 'desen' in document.documentElement.dataset);
-      desen.addEventListener('click', function () {
-        var ac = desen.getAttribute('aria-pressed') !== 'true';
-        if (ac) document.documentElement.dataset.desen = '';
-        else delete document.documentElement.dataset.desen;
-        try {
-          if (ac) localStorage.setItem('desen', 'acik');
-          else localStorage.removeItem('desen');
-        } catch (e) {}
-        desen.setAttribute('aria-pressed', ac);
-      });
-    })();
-
     (function () {
       // Hatırlatma günleri: başvurudan 7 gün önce, başvuru günü, bitişten 3 gün önce
       var ONCE = 7, BITIS = 3;
@@ -779,73 +498,6 @@
         .catch(function () { /* veri yoksa bölüm gizli kalır */ });
     })();
 
-    // Masaüstü bildirimi (Web Push). Abonelik Cloudflare Worker'a (worker/osym-bildirim.js) kaydedilir;
-    // Worker her sabah hatırlatma günlerinde bütün abonelere bildirim gönderir.
-    (function () {
-      var WORKER_URL = 'https://osym-bildirim.ydamga.workers.dev';
-      var VAPID_PUBLIC = 'BCryU_s3mEZYtTRz6WgZd_rwIQDnsBxZxG-1sf9VzB8xOvxlsdea_hcV9vG6QAzY0X2zGIebtH__hDRNTDHm91M';
-      if (!WORKER_URL || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
-      var btn = document.getElementById('bildirim-btn');
-      var panel = document.getElementById('bildirim-panel');
-      var acik = false;
-      btn.hidden = false;
-
-      function anahtar(b64) {
-        var p = (b64 + '='.repeat((4 - b64.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/');
-        return Uint8Array.from(atob(p), function (c) { return c.charCodeAt(0); });
-      }
-      function mesaj(metin) { panel.textContent = metin; panel.hidden = !metin; }
-      function durum(a) { acik = a; btn.textContent = a ? 'Bildirimleri kapat' : 'Bildirimleri aç'; }
-      function postala(yol, govde) {
-        return fetch(WORKER_URL + yol, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(govde) })
-          .then(function (r) { if (!r.ok) throw new Error('sunucu'); });
-      }
-
-      var kayit = navigator.serviceWorker.register('sw.js');
-      kayit.then(function (r) { return r.pushManager.getSubscription(); })
-        .then(function (a) { durum(!!a && Notification.permission === 'granted'); })
-        .catch(function () {});
-
-      function ac() {
-        return Notification.requestPermission()
-          .then(function (izin) {
-            if (izin !== 'granted') throw new Error('izin');
-            return kayit.then(function () { return navigator.serviceWorker.ready; });
-          })
-          .then(function (r) {
-            return r.pushManager.getSubscription().then(function (a) {
-              return a || r.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: anahtar(VAPID_PUBLIC) });
-            });
-          })
-          .then(function (a) { return postala('/abone', a.toJSON()); })
-          .then(function () {
-            durum(true);
-            mesaj('Bildirimler açıldı; bir deneme bildirimi gönderildi. Başvurudan 1 hafta önce, başvuru günü ve bitişe 3 gün kala haber vereceğiz.');
-          });
-      }
-      function kapat() {
-        return navigator.serviceWorker.ready
-          .then(function (r) { return r.pushManager.getSubscription(); })
-          .then(function (a) {
-            if (!a) return;
-            return postala('/iptal', { endpoint: a.endpoint }).then(function () { return a.unsubscribe(); });
-          })
-          .then(function () { durum(false); mesaj('Bildirimler kapatıldı.'); });
-      }
-
-      btn.addEventListener('click', function () {
-        btn.disabled = true;
-        (acik ? kapat() : ac())
-          .catch(function (h) {
-            mesaj(h && h.message === 'izin'
-              ? 'Bildirim izni verilmedi. Tarayıcının adres çubuğundaki site ayarlarından bildirimlere izin verip tekrar deneyin.'
-              : h && h.message === 'sunucu'
-                ? 'Bildirim servisine ulaşılamadı. Biraz sonra tekrar deneyin.'
-                : 'Bu tarayıcıda bildirim aboneliği açılamadı. Chrome, Edge ya da Firefox ile deneyin.');
-          })
-          .then(function () { btn.disabled = false; });
-      });
-    })();
   </script>
 </body>
 </html>

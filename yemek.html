@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aylık yemek listesi</title>
+  <meta name="description" content="Tepekent ve Cevizlibağ yerleşkelerinin aylık yemek listesi.">
+  <script src="ayarlar.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="ortak.css">
+  <style>
+    main { justify-content: flex-start; }
+
+    /* Sayfa başı: geri bağlantısı, başlık, ay ve yerleşke seçimi */
+    .ust {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      margin-bottom: clamp(14px, 2.5vh, 24px);
+    }
+    .ust-sol { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
+    .geri {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      color: var(--accent-ink);
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+    }
+    .geri svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .geri:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
+    @media (hover: hover) and (pointer: fine) {
+      .geri:hover { text-decoration: underline; text-underline-offset: 3px; }
+    }
+    h1 { font-size: clamp(1.3rem, 2vw, 1.75rem); font-weight: 800; letter-spacing: -0.025em; }
+    .ust-sag { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+    .ay-sec { display: flex; align-items: center; gap: 4px; }
+    .ay-sec button {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 1px solid var(--surface-2);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .ay-sec button:disabled { opacity: 0.35; cursor: default; }
+    .ay-sec button svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .ay-sec button:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .ay-sec button:not(:disabled):hover { background: var(--surface); }
+    }
+    .ay-ad { min-width: 9.5ch; text-align: center; font-weight: 700; font-size: 1.05rem; }
+
+    /* Hafta günleri sütun, haftalar satır */
+    .gun-adlari, .takvim {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .gun-adlari { margin-bottom: 8px; }
+    .gun-adlari span { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding-left: 2px; }
+    .gun {
+      min-height: 120px;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 2px solid transparent;
+    }
+    .gun.bos-hucre { background: transparent; }
+    .gun.gecmis { opacity: 0.6; }
+    .gun.bugun { border-color: var(--accent); }
+    .gun-bas {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .gun-bas b { font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .gun-bas span { font-size: 0.78rem; color: var(--muted); }
+    .gun-bas .rozet {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: var(--on-accent);
+      font-weight: 700;
+    }
+    .gun ul { list-style: none; display: grid; gap: 3px; }
+    .gun li { font-size: 0.84rem; line-height: 1.3; color: var(--text-2); }
+    .gun li a { color: inherit; text-decoration: none; text-underline-offset: 2px; }
+    .gun li a:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .gun li a:hover { color: var(--accent-ink); text-decoration: underline; }
+    }
+    .gun .yok { font-size: 0.84rem; color: var(--muted); }
+    .bilgi { grid-column: 1 / -1; padding: 18px 20px; background: var(--surface); color: var(--text-2); line-height: 1.5; }
+    .kaynak { margin-top: 12px; font-size: 0.82rem; color: var(--muted); }
+
+    /* Geniş ekranda gün adı sütun başlığında yazılı */
+    @media (min-width: 901px) {
+      .gun-bas span:not(.rozet) { display: none; }
+    }
+    /* Dar ekranda günler alt alta */
+    @media (max-width: 900px) {
+      .gun-adlari { display: none; }
+      .takvim { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .gun.bos-hucre { display: none; }
+    }
+    @media (max-width: 560px) {
+      .takvim { grid-template-columns: 1fr; }
+      .gun { min-height: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="ust">
+      <div class="ust-sol">
+        <a class="geri" href="./"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Anasayfa</a>
+        <h1>Aylık yemek listesi</h1>
+      </div>
+      <div class="ust-sag">
+        <div class="ay-sec">
+          <button type="button" id="onceki" aria-label="Önceki ay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+          <span class="ay-ad" id="ay-ad" aria-live="polite"></span>
+          <button type="button" id="sonraki" aria-label="Sonraki ay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+        </div>
+        <div class="secici yerleske-sec" role="group" aria-label="Yerleşke">
+          <button type="button" data-yerleske="tepekent" aria-pressed="true">Tepekent</button>
+          <button type="button" data-yerleske="cevizlibag" aria-pressed="false">Cevizlibağ</button>
+        </div>
+        <button type="button" class="ayarlar-btn" aria-haspopup="dialog" aria-label="Ayarlar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><span>Ayarlar</span></button>
+      </div>
+    </div>
+
+    <div class="gun-adlari" aria-hidden="true">
+      <span>Pazartesi</span><span>Salı</span><span>Çarşamba</span><span>Perşembe</span><span>Cuma</span>
+    </div>
+    <div class="takvim" id="takvim"></div>
+    <p class="kaynak">Liste Arelim'deki aylık yemek listesinden aktarılır. Yemek adına tıklayınca Google'da aranır.</p>
+  </main>
+
+  <footer>
+    <span>ÖDHM · <span id="yil"></span></span>
+  </footer>
+
+  <script>
+    (function () {
+      // ?bugun=2026-10-15 ile denenebilir; ?ay=2026-10 ay seçimini paylaşılabilir yapar
+      var bugun = (location.search.match(/[?&]bugun=(\d{4}-\d{2}-\d{2})/) || [])[1] ||
+        new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' });
+      var istenenAy = (location.search.match(/[?&]ay=(\d{4}-\d{2})/) || [])[1];
+      var takvim = document.getElementById('takvim');
+      var butonlar = document.querySelectorAll('.yerleske-sec button');
+      var secili = 'tepekent';
+      try { secili = localStorage.getItem('yerleske') || secili; } catch (e) {}
+
+      // Anasayfadakiyle aynı: "PİLİÇ ROTİ" → "Piliç Roti"
+      function duzelt(s) {
+        return s.toLocaleLowerCase('tr').replace(/(^|[\s.\/-])(\S)/g, function (m, a, b) { return a + b.toLocaleUpperCase('tr'); });
+      }
+      function tarih(g) { return new Date(g + 'T12:00:00Z'); }
+      function ayAdi(ay) { return tarih(ay + '-01').toLocaleDateString('tr-TR', { month: 'long', year: 'numeric', timeZone: 'UTC' }); }
+
+      fetch('data/yemek.json', { cache: 'no-cache' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function (veri) {
+          if (!veri.yerleskeler[secili]) secili = 'tepekent';
+          // Listede bulunan aylar; açılışta bugünün ayı, yoksa en yakın ay
+          var aylar = {};
+          Object.keys(veri.yerleskeler).forEach(function (y) {
+            Object.keys(veri.yerleskeler[y].gunler).forEach(function (g) { aylar[g.slice(0, 7)] = true; });
+          });
+          aylar = Object.keys(aylar).sort();
+          var ay = aylar.indexOf(istenenAy) > -1 ? istenenAy
+            : aylar.indexOf(bugun.slice(0, 7)) > -1 ? bugun.slice(0, 7)
+            : aylar.filter(function (a) { return a > bugun.slice(0, 7); })[0] || aylar[aylar.length - 1];
+
+          function hucre(g, gunler) {
+            var div = document.createElement('div');
+            div.className = 'gun' + (g === bugun ? ' bugun' : g < bugun ? ' gecmis' : '');
+            var bas = document.createElement('div');
+            bas.className = 'gun-bas';
+            var no = document.createElement('b');
+            no.textContent = tarih(g).getUTCDate();
+            var ad = document.createElement('span');
+            if (g === bugun) { ad.className = 'rozet'; ad.textContent = 'Bugün'; }
+            else ad.textContent = tarih(g).toLocaleDateString('tr-TR', { weekday: 'long', timeZone: 'UTC' });
+            bas.append(no, ad);
+            div.appendChild(bas);
+            var menu = gunler[g];
+            if (menu) {
+              var ul = document.createElement('ul');
+              menu.forEach(function (y) {
+                var li = document.createElement('li');
+                var a = document.createElement('a');
+                a.textContent = duzelt(y);
+                a.href = 'https://www.google.com/search?q=' + encodeURIComponent(a.textContent + ' yemek');
+                a.target = '_blank';
+                a.rel = 'noopener';
+                li.appendChild(a);
+                ul.appendChild(li);
+              });
+              div.appendChild(ul);
+            } else {
+              var yok = document.createElement('p');
+              yok.className = 'yok';
+              yok.textContent = 'Menü yok';
+              div.appendChild(yok);
+            }
+            return div;
+          }
+
+          function goster() {
+            butonlar.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.yerleske === secili); });
+            document.getElementById('ay-ad').textContent = ayAdi(ay);
+            document.getElementById('onceki').disabled = aylar.indexOf(ay) <= 0;
+            document.getElementById('sonraki').disabled = aylar.indexOf(ay) >= aylar.length - 1;
+            takvim.textContent = '';
+            var gunler = veri.yerleskeler[secili].gunler;
+            // Ayın hafta içi günleri; ilk haftanın boş günleri hizalama için boş hücre
+            var d = tarih(ay + '-01'), ilk = true;
+            while (d.toISOString().slice(0, 7) === ay) {
+              var hg = d.getUTCDay();
+              if (hg >= 1 && hg <= 5) {
+                if (ilk) {
+                  for (var i = 1; i < hg; i++) {
+                    var b = document.createElement('div');
+                    b.className = 'gun bos-hucre';
+                    takvim.appendChild(b);
+                  }
+                  ilk = false;
+                }
+                takvim.appendChild(hucre(d.toISOString().slice(0, 10), gunler));
+              }
+              d.setUTCDate(d.getUTCDate() + 1);
+            }
+            var bugunHucre = takvim.querySelector('.bugun');
+            if (bugunHucre && window.innerWidth <= 900) bugunHucre.scrollIntoView({ block: 'start' });
+          }
+
+          function ayDegis(n) {
+            ay = aylar[aylar.indexOf(ay) + n];
+            history.replaceState(null, '', '?ay=' + ay);
+            goster();
+          }
+          document.getElementById('onceki').addEventListener('click', function () { ayDegis(-1); });
+          document.getElementById('sonraki').addEventListener('click', function () { ayDegis(1); });
+          butonlar.forEach(function (b) {
+            b.addEventListener('click', function () {
+              secili = b.dataset.yerleske;
+              try { localStorage.setItem('yerleske', secili); } catch (e) {}
+              goster();
+            });
+          });
+          goster();
+        })
+        .catch(function () {
+          takvim.innerHTML = '<p class="bilgi">Yemek listesi şu anda yüklenemedi. Biraz sonra tekrar deneyin.</p>';
+        });
+    })();
+  </script>
+</body>
+</html>
