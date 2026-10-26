@@ -98,35 +98,51 @@
       .kisayollar a:hover { background: var(--gold); color: var(--navy); }
     }
 
+    /* Solda araçlar, sağda sınav takvimi */
+    .govde {
+      margin-top: clamp(32px, 5vh, 56px);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
+      grid-template-areas: "araclar osym";
+      align-items: start;
+      gap: 40px clamp(24px, 3vw, 48px);
+    }
+    .govde .osym { grid-area: osym; }
+    .araclar { grid-area: araclar; }
+    .araclar h2 {
+      display: flex;
+      align-items: center;
+      min-height: 36px;
+      margin-bottom: 16px;
+      font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
     .tools {
       list-style: none;
-      margin-top: clamp(40px, 6vh, 72px);
       display: grid;
       gap: 8px;
     }
     .tool {
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto;
-      gap: 16px clamp(24px, 4vw, 64px);
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
       align-items: center;
-      padding: clamp(24px, 3vw, 40px) clamp(20px, 3vw, 40px);
+      min-height: clamp(96px, 12vh, 132px);
+      padding: clamp(20px, 2.4vw, 32px) clamp(20px, 3vw, 40px);
       background: var(--navy-2);
       color: inherit;
       text-decoration: none;
       transition: background-color 150ms ease, transform 160ms var(--ease-out);
     }
-    .tool h2 {
-      font-size: clamp(1.6rem, 3.2vw, 2.6rem);
+    .araclar .tool h2 {
+      margin: 0;
+      min-height: 0;
+      font-size: clamp(1.5rem, 2.4vw, 2.2rem);
       font-weight: 700;
       line-height: 1.05;
       letter-spacing: -0.025em;
     }
-    .tool p {
-      font-size: 1.05rem;
-      line-height: 1.55;
-      color: var(--ink-2);
-    }
-    .tool p b { color: var(--ink); font-weight: 500; }
     .arrow {
       width: clamp(44px, 4vw, 56px);
       height: clamp(44px, 4vw, 56px);
@@ -147,7 +163,6 @@
     }
 
     /* ÖSYM başvuruları: data/osym.json'dan, GitHub Actions her sabah günceller */
-    .osym { margin-top: clamp(32px, 5vh, 56px); }
     .osym[hidden], .osym ul[hidden], .osym .siradaki[hidden] { display: none; }
     /* İlk açılışta göze çarpan: en yakın sınav */
     .siradaki {
@@ -187,7 +202,7 @@
     .siradaki .zaman { text-align: right; font-variant-numeric: tabular-nums; }
     .siradaki .zaman b {
       display: block;
-      font-size: clamp(2.4rem, 6vw, 4.6rem);
+      font-size: clamp(2.2rem, 4vw, 3.6rem);
       font-weight: 800;
       line-height: 0.95;
       letter-spacing: -0.04em;
@@ -301,12 +316,10 @@
 
     @media (max-width: 1000px) {
       .head { grid-template-columns: 1fr; align-items: start; }
+      .govde { grid-template-columns: 1fr; grid-template-areas: "osym" "araclar"; }
     }
     @media (max-width: 760px) {
       .kisayollar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .tool { grid-template-columns: minmax(0, 1fr) auto; }
-      .tool p { grid-column: 1 / -1; grid-row: 2; }
-      .arrow { grid-column: 2; grid-row: 1; }
     }
     @media (prefers-reduced-motion: reduce) {
       h1, .lead, .kisayollar, .tool, .siradaki { animation-name: fade; }
@@ -331,6 +344,7 @@
       </nav>
     </div>
 
+    <div class="govde">
     <section class="osym" id="osym" hidden aria-labelledby="osym-baslik">
       <div class="osym-head">
         <h2 id="osym-baslik">Sonraki ÖSYM sınavları</h2>
@@ -352,22 +366,24 @@
       <ul id="osym-liste"></ul>
     </section>
 
-    <ul class="tools">
-      <li>
-        <a class="tool" href="ders-programi.html">
-          <h2>Ders programı</h2>
-          <p>Öğrenci, öğretim elemanı, yoklama ve sınav Excel'lerinden <b>tek bir paylaşılabilir dosya</b> hazırlayın. Dosyalar bilgisayarınızdan çıkmaz.</p>
-          <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-        </a>
-      </li>
-      <li>
-        <a class="tool" href="ziyaret.html">
-          <h2>Öğrenci ziyareti</h2>
-          <p>Öğrenciyi numara ya da adla bulun, ziyareti <b>nedeni ve notuyla</b> SharePoint listesine ekleyin. Tampermonkey scripti gerekir.</p>
-          <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-        </a>
-      </li>
-    </ul>
+    <section class="araclar" aria-labelledby="araclar-baslik">
+      <h2 id="araclar-baslik">Araçlar</h2>
+      <ul class="tools">
+        <li>
+          <a class="tool" href="ders-programi.html">
+            <h2>Ders programı</h2>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </a>
+        </li>
+        <li>
+          <a class="tool" href="ziyaret.html">
+            <h2>Öğrenci ziyareti</h2>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </a>
+        </li>
+      </ul>
+    </section>
+    </div>
   </main>
 
   <footer>
