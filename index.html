@@ -103,13 +103,13 @@
       margin-top: clamp(32px, 5vh, 56px);
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
-      grid-template-areas: "araclar osym";
+      grid-template-areas: "sol osym";
       align-items: start;
       gap: 40px clamp(24px, 3vw, 48px);
     }
     .govde .osym { grid-area: osym; }
-    .araclar { grid-area: araclar; }
-    .araclar h2 {
+    .sol { grid-area: sol; display: grid; gap: clamp(32px, 5vh, 48px); }
+    .araclar > h2, .yemek-head h2 {
       display: flex;
       align-items: center;
       min-height: 36px;
@@ -135,9 +135,7 @@
       text-decoration: none;
       transition: background-color 150ms ease, transform 160ms var(--ease-out);
     }
-    .araclar .tool h2 {
-      margin: 0;
-      min-height: 0;
+    .tool h2 {
       font-size: clamp(1.5rem, 2.4vw, 2.2rem);
       font-weight: 700;
       line-height: 1.05;
@@ -161,6 +159,52 @@
       .tool:hover { background: var(--navy-3); }
       .tool:hover .arrow { transform: translateX(6px); }
     }
+
+    /* Günün yemeği: data/yemek.json'dan, ay başında Arelim'den aktarılır */
+    .yemek[hidden] { display: none; }
+    .yemek-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin-bottom: 16px;
+    }
+    .yemek-head h2 { margin-bottom: 0; }
+    .yerleske-sec {
+      display: flex;
+      padding: 3px;
+      border-radius: 999px;
+      border: 1px solid var(--navy-3);
+    }
+    .yerleske-sec button {
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 500;
+      min-height: 32px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background-color 150ms ease, color 150ms ease;
+    }
+    .yerleske-sec button[aria-pressed="true"] { background: var(--gold); color: var(--navy); }
+    .yerleske-sec button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .yerleske-sec button[aria-pressed="false"]:hover { color: var(--ink); }
+    }
+    .yemek-kart { padding: 8px clamp(20px, 3vw, 32px) 16px; background: var(--navy-2); }
+    .yemek-kart ul { list-style: none; }
+    .yemek-kart li {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--navy-3);
+      line-height: 1.35;
+    }
+    .yemek-kart li:last-child { border-bottom: 0; }
+    .yemek-kart .bos { padding: 10px 0; color: var(--ink-2); line-height: 1.5; }
+    .yemek-tarih { margin-top: 10px; font-size: 0.9rem; color: var(--muted); }
 
     /* ÖSYM başvuruları: data/osym.json'dan, GitHub Actions her sabah günceller */
     .osym[hidden], .osym ul[hidden], .osym .siradaki[hidden] { display: none; }
@@ -316,7 +360,7 @@
 
     @media (max-width: 1000px) {
       .head { grid-template-columns: 1fr; align-items: start; }
-      .govde { grid-template-columns: 1fr; grid-template-areas: "osym" "araclar"; }
+      .govde { grid-template-columns: 1fr; grid-template-areas: "osym" "sol"; }
     }
     @media (max-width: 760px) {
       .kisayollar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -366,6 +410,7 @@
       <ul id="osym-liste"></ul>
     </section>
 
+    <div class="sol">
     <section class="araclar" aria-labelledby="araclar-baslik">
       <h2 id="araclar-baslik">Araçlar</h2>
       <ul class="tools">
@@ -383,6 +428,21 @@
         </li>
       </ul>
     </section>
+
+    <section class="yemek" id="yemek" hidden aria-labelledby="yemek-baslik">
+      <div class="yemek-head">
+        <h2 id="yemek-baslik">Bugünün menüsü</h2>
+        <div class="yerleske-sec" role="group" aria-label="Yerleşke">
+          <button type="button" data-yerleske="tepekent" aria-pressed="true">Tepekent</button>
+          <button type="button" data-yerleske="cevizlibag" aria-pressed="false">Cevizlibağ</button>
+        </div>
+      </div>
+      <div class="yemek-kart" aria-live="polite">
+        <ul id="yemek-liste"></ul>
+      </div>
+      <p class="yemek-tarih" id="yemek-tarih"></p>
+    </section>
+    </div>
     </div>
   </main>
 
@@ -471,6 +531,59 @@
           document.getElementById('osym-not').textContent =
             'Güncellendi: ' + new Date(veri.guncellendi).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
           document.getElementById('osym').hidden = false;
+        })
+        .catch(function () { /* veri yoksa bölüm gizli kalır */ });
+    })();
+
+    // Günün yemeği. Seçilen yerleşke tarayıcıda hatırlanır; varsayılan Tepekent.
+    (function () {
+      var bugun = (location.search.match(/[?&]bugun=(\d{4}-\d{2}-\d{2})/) || [])[1] ||
+        new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' });
+      var butonlar = document.querySelectorAll('.yerleske-sec button');
+      var liste = document.getElementById('yemek-liste');
+      var secili = 'tepekent';
+      try { secili = localStorage.getItem('yerleske') || secili; } catch (e) {}
+
+      // Arelim listesi büyük harfle geliyor: "PİLİÇ ROTİ" → "Piliç Roti"
+      function duzelt(s) {
+        return s.toLocaleLowerCase('tr').replace(/(^|[\s.\/-])(\S)/g, function (m, a, b) { return a + b.toLocaleUpperCase('tr'); });
+      }
+
+      fetch('data/yemek.json', { cache: 'no-cache' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function (veri) {
+          if (!veri.yerleskeler[secili]) secili = 'tepekent';
+          function goster() {
+            butonlar.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.yerleske === secili); });
+            liste.textContent = '';
+            var gunler = veri.yerleskeler[secili].gunler;
+            var menu = gunler[bugun];
+            if (menu) {
+              menu.forEach(function (y) {
+                var li = document.createElement('li');
+                li.textContent = duzelt(y);
+                liste.appendChild(li);
+              });
+            } else {
+              var bos = document.createElement('li');
+              bos.className = 'bos';
+              // Listede bugünden sonra gün yoksa ayın listesi henüz eklenmemiştir
+              var ileri = Object.keys(gunler).some(function (g) { return g > bugun; });
+              bos.textContent = ileri ? 'Bugün yemekhane menüsü yok.' : 'Bu dönemin yemek listesi henüz eklenmedi.';
+              liste.appendChild(bos);
+            }
+          }
+          butonlar.forEach(function (b) {
+            b.addEventListener('click', function () {
+              secili = b.dataset.yerleske;
+              try { localStorage.setItem('yerleske', secili); } catch (e) {}
+              goster();
+            });
+          });
+          document.getElementById('yemek-tarih').textContent =
+            new Date(bugun + 'T12:00:00Z').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long', timeZone: 'UTC' });
+          goster();
+          document.getElementById('yemek').hidden = false;
         })
         .catch(function () { /* veri yoksa bölüm gizli kalır */ });
     })();
