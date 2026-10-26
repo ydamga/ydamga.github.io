@@ -49,28 +49,58 @@
     }
 
     h1 {
-      font-size: clamp(3.4rem, 11vw, 9.5rem);
+      font-size: clamp(2.4rem, 5.5vw, 4.4rem);
       font-weight: 800;
-      line-height: 0.92;
-      letter-spacing: -0.045em;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
     }
     .head {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: end;
       gap: 24px clamp(32px, 6vw, 96px);
     }
     .lead {
-      justify-self: end;
-      max-width: 30ch;
-      padding-bottom: 0.4em;
-      font-size: clamp(1.15rem, 2vw, 1.5rem);
-      line-height: 1.45;
+      max-width: 40ch;
+      margin-top: 14px;
+      font-size: clamp(1rem, 1.4vw, 1.15rem);
+      line-height: 1.5;
+      color: var(--ink-2);
+    }
+
+    /* Üniversite sistemlerine hızlı geçiş */
+    .kisayollar {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(4, auto);
+      gap: 8px;
+    }
+    .kisayollar a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 0 20px;
+      border-radius: 999px;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 1rem;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background-color 150ms ease, color 150ms ease, transform 160ms var(--ease-out);
+    }
+    .kisayollar svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .kisayollar a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+    .kisayollar a:active { transform: scale(0.97); }
+    @media (hover: hover) and (pointer: fine) {
+      .kisayollar a:hover { background: var(--gold); color: var(--navy); }
     }
 
     .tools {
       list-style: none;
-      margin-top: clamp(48px, 8vh, 96px);
+      margin-top: clamp(40px, 6vh, 72px);
       display: grid;
       gap: 8px;
     }
@@ -117,8 +147,52 @@
     }
 
     /* ÖSYM başvuruları: data/osym.json'dan, GitHub Actions her sabah günceller */
-    .osym { margin-top: clamp(48px, 8vh, 96px); }
-    .osym[hidden], .osym ul[hidden] { display: none; }
+    .osym { margin-top: clamp(32px, 5vh, 56px); }
+    .osym[hidden], .osym ul[hidden], .osym .siradaki[hidden] { display: none; }
+    /* İlk açılışta göze çarpan: en yakın sınav */
+    .siradaki {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px clamp(24px, 4vw, 64px);
+      align-items: center;
+      margin-bottom: 8px;
+      padding: clamp(24px, 3.4vw, 44px) clamp(20px, 3vw, 40px);
+      background: var(--gold);
+      color: var(--navy);
+      text-decoration: none;
+      transition: background-color 150ms ease, transform 160ms var(--ease-out);
+      animation: rise 600ms var(--ease-out) both;
+    }
+    .siradaki:focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; }
+    .siradaki:active { transform: scale(0.99); }
+    @media (hover: hover) and (pointer: fine) {
+      .siradaki:hover { background: #D6B87E; }
+    }
+    .siradaki .etiket {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .osym .siradaki .ad {
+      display: block;
+      font-size: clamp(1.6rem, 3.4vw, 2.6rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+    }
+    .siradaki .basvuru { display: block; margin-top: 10px; font-size: 1rem; font-variant-numeric: tabular-nums; }
+    .siradaki .zaman { text-align: right; font-variant-numeric: tabular-nums; }
+    .siradaki .zaman b {
+      display: block;
+      font-size: clamp(2.4rem, 6vw, 4.6rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+    .siradaki .zaman span { display: block; margin-top: 6px; font-size: 1.05rem; font-weight: 700; }
     .osym-head {
       display: flex;
       justify-content: space-between;
@@ -199,6 +273,8 @@
     @media (max-width: 760px) {
       .osym li a { grid-template-columns: minmax(0, 1fr) auto; }
       .osym .tarih { grid-column: 1 / -1; grid-row: 2; }
+      .siradaki { grid-template-columns: 1fr; }
+      .siradaki .zaman { text-align: left; }
     }
 
     footer {
@@ -215,32 +291,66 @@
     footer a { color: var(--gold); font-weight: 500; text-underline-offset: 3px; }
 
     /* Giriş: başlık, cümle, sonra araçlar; 60 ms arayla */
-    h1, .lead, .tool { animation: rise 600ms var(--ease-out) both; }
+    h1, .lead, .kisayollar, .tool { animation: rise 600ms var(--ease-out) both; }
     .lead { animation-delay: 60ms; }
+    .kisayollar { animation-delay: 100ms; }
     .tools li:nth-child(1) .tool { animation-delay: 140ms; }
     .tools li:nth-child(2) .tool { animation-delay: 200ms; }
     @keyframes rise { from { opacity: 0; transform: translateY(20px); } }
     @keyframes fade { from { opacity: 0; } }
 
+    @media (max-width: 1000px) {
+      .head { grid-template-columns: 1fr; align-items: start; }
+    }
     @media (max-width: 760px) {
-      .head { grid-template-columns: 1fr; }
-      .lead { justify-self: start; padding-bottom: 0; }
+      .kisayollar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .tool { grid-template-columns: minmax(0, 1fr) auto; }
       .tool p { grid-column: 1 / -1; grid-row: 2; }
       .arrow { grid-column: 2; grid-row: 1; }
     }
     @media (prefers-reduced-motion: reduce) {
-      h1, .lead, .tool { animation-name: fade; }
-      .tool:active, .tool:hover .arrow { transform: none; }
+      h1, .lead, .kisayollar, .tool, .siradaki { animation-name: fade; }
+      .tool:active, .tool:hover .arrow, .siradaki:active, .kisayollar a:active { transform: none; }
     }
   </style>
 </head>
 <body>
   <main>
     <div class="head">
-      <h1>ÖDHM<br>araçları</h1>
-      <p class="lead">Ders programını hazırlamak ve öğrenci ziyaretlerini kaydetmek için iki araç.</p>
+      <div>
+        <h1>ÖDHM araçları</h1>
+        <p class="lead">Ders programını hazırlamak ve öğrenci ziyaretlerini kaydetmek için iki araç.</p>
+      </div>
+      <nav aria-label="Üniversite sistemleri">
+        <ul class="kisayollar">
+          <li><a href="https://arelim.arel.edu.tr/login/sign-in" target="_blank" rel="noopener">Arelim <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
+          <li><a href="https://obs.arel.edu.tr/" target="_blank" rel="noopener">OBS <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
+          <li><a href="https://m365.cloud.microsoft/apps/?auth=2" target="_blank" rel="noopener">Office 365 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
+          <li><a href="https://arelebys.arel.edu.tr/enVision/Login.aspx" target="_blank" rel="noopener">EBYS <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
+        </ul>
+      </nav>
     </div>
+
+    <section class="osym" id="osym" hidden aria-labelledby="osym-baslik">
+      <div class="osym-head">
+        <h2 id="osym-baslik">Sonraki ÖSYM sınavları</h2>
+        <div class="osym-arac">
+          <span id="osym-not"></span>
+          <button type="button" class="bildirim-btn" id="bildirim-btn" hidden>Bildirimleri aç</button>
+        </div>
+      </div>
+      <div class="bildirim-panel" id="bildirim-panel" hidden aria-live="polite"></div>
+      <ul class="uyarilar" id="osym-uyarilar" aria-label="Bugünün başvuru uyarıları" hidden></ul>
+      <a class="siradaki" id="osym-siradaki" target="_blank" rel="noopener" hidden>
+        <span>
+          <span class="etiket">En yakın sınav</span>
+          <span class="ad"></span>
+          <span class="basvuru"></span>
+        </span>
+        <span class="zaman"><b></b><span></span></span>
+      </a>
+      <ul id="osym-liste"></ul>
+    </section>
 
     <ul class="tools">
       <li>
@@ -258,19 +368,6 @@
         </a>
       </li>
     </ul>
-
-    <section class="osym" id="osym" hidden aria-labelledby="osym-baslik">
-      <div class="osym-head">
-        <h2 id="osym-baslik">Sonraki ÖSYM sınavları</h2>
-        <div class="osym-arac">
-          <span id="osym-not"></span>
-          <button type="button" class="bildirim-btn" id="bildirim-btn" hidden>Bildirimleri aç</button>
-        </div>
-      </div>
-      <div class="bildirim-panel" id="bildirim-panel" hidden aria-live="polite"></div>
-      <ul class="uyarilar" id="osym-uyarilar" aria-label="Bugünün başvuru uyarıları" hidden></ul>
-      <ul id="osym-liste"></ul>
-    </section>
   </main>
 
   <footer>
@@ -332,11 +429,24 @@
           uyarilar.hidden = !uyarilar.children.length;
 
           var liste = document.getElementById('osym-liste');
-          veri.sinavlar
+          var yaklasan = veri.sinavlar
             .filter(function (s) { return s.sinav_tarihi && s.sinav_tarihi >= bugun; })
-            .slice(0, 5)
-            .forEach(function (s) { liste.appendChild(satir(s, s.ad, basvuruMetni(s), 'Sınav ' + kisa(s.sinav_tarihi))); });
-          if (!liste.children.length) {
+            .slice(0, 6);
+
+          // En yakın sınav büyük kartta, kalan gün sayısıyla
+          var ilk = yaklasan.shift();
+          if (ilk) {
+            var kart = document.getElementById('osym-siradaki');
+            var kalan = Math.round((new Date(ilk.sinav_tarihi + 'T12:00:00Z') - new Date(bugun + 'T12:00:00Z')) / 864e5);
+            kart.href = ilk.link;
+            kart.querySelector('.ad').textContent = ilk.ad;
+            kart.querySelector('.basvuru').textContent = basvuruMetni(ilk);
+            kart.querySelector('.zaman b').textContent = kisa(ilk.sinav_tarihi);
+            kart.querySelector('.zaman span').textContent = kalan === 0 ? 'Bugün' : kalan === 1 ? 'Yarın' : kalan + ' gün kaldı';
+            kart.hidden = false;
+          }
+          yaklasan.forEach(function (s) { liste.appendChild(satir(s, s.ad, basvuruMetni(s), 'Sınav ' + kisa(s.sinav_tarihi))); });
+          if (!ilk) {
             var bos = document.createElement('li');
             bos.className = 'bos';
             bos.textContent = 'Takvimde yaklaşan sınav yok. Yeni takvim yayımlanınca burada görünür.';
