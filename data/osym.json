@@ -1,5 +1,5 @@
 {
-  "guncellendi": "2026-10-26T11:22+03:00",
+  "guncellendi": "2026-10-26T11:30+03:00",
   "sinavlar": [
     {
       "kod": "Sayıştay Eleme",
@@ -136,5 +136,6 @@
       "gec_basvuru_bitis": null,
       "sinav_tarihi": "2026-12-27"
     }
-  ]
+  ],
+  "bildirilen": []
 }

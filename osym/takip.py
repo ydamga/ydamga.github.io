@@ -2,9 +2,15 @@
 
 Ana sayfa bu dosyadan sonraki sınavları ve o güne düşen başvuru uyarılarını gösterir.
 Yalnızca tarihi geçmemiş sınavlar (başvurusu ya da sınavı ileride olanlar) yazılır.
+
+Hatırlatma günlerinde (başvurudan 7 gün önce, başvuru günü, bitişten 3 gün önce) Web Push ile
+masaüstü bildirimi de gönderilir. Ortam değişkenleri: VAPID_PRIVATE_KEY ve PUSH_SUBSCRIPTIONS
+(sitedeki "Bildirimleri aç" düğmesinin verdiği JSON; her abonelik ayrı satırda).
+Gönderilen bildirimler osym.json içinde tutulur; görev aynı gün tekrar çalışırsa yeniden gönderilmez.
 """
 
 import json
+import os
 import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -14,6 +20,8 @@ from pathlib import Path
 TAKVIM_URL = "https://www.osym.gov.tr/Sayfa/SinavTakvimi"
 VERI = Path(__file__).resolve().parent.parent / "data" / "osym.json"
 TR = timezone(timedelta(hours=3))  # Türkiye yaz saati uygulamıyor
+ONCE_GUN, BITIS_GUN = 7, 3  # index.html'deki ONCE/BITIS ile aynı olmalı
+SITE = "https://ydamga.github.io"
 
 
 class TakvimParser(HTMLParser):
@@ -121,19 +129,81 @@ def sinavlari_ayikla(satirlar, simdi):
     return sinavlar
 
 
+def bugunun_hatirlatmalari(sinavlar, bugun):
+    for s in sinavlar:
+        if not s["basvuru_baslangic"]:
+            continue
+        bas = datetime.fromisoformat(s["basvuru_baslangic"]).date()
+        bit_t = datetime.fromisoformat(s["basvuru_bitis"])
+        bitis = bit_t.strftime("%d.%m.%Y %H:%M")
+        if bas - timedelta(days=ONCE_GUN) == bugun:
+            yield s, "once", f"Başvuru 1 hafta sonra başlıyor: {bas:%d.%m.%Y}"
+        elif bas == bugun:
+            yield s, "basladi", f"Başvuru bugün başladı. Son gün: {bitis}"
+        elif bit_t.date() - timedelta(days=BITIS_GUN) == bugun:
+            yield s, "bitiyor", f"Başvurunun bitmesine {BITIS_GUN} gün kaldı. Son gün: {bitis}"
+
+
+def abonelikleri_oku():
+    ham = os.environ.get("PUSH_SUBSCRIPTIONS", "").strip()
+    if not ham:
+        return []
+    if ham.startswith("["):
+        return json.loads(ham)
+    return [json.loads(satir) for satir in ham.splitlines() if satir.strip()]
+
+
+def bildirim_gonder(abonelikler, baslik, govde, url, etiket):
+    from pywebpush import WebPushException, webpush
+
+    veri = json.dumps({"baslik": baslik, "govde": govde, "url": url, "etiket": etiket}, ensure_ascii=False)
+    basarili = 0
+    for a in abonelikler:
+        try:
+            webpush(a, veri, vapid_private_key=os.environ["VAPID_PRIVATE_KEY"], vapid_claims={"sub": SITE})
+            basarili += 1
+        except (WebPushException, OSError) as h:
+            # 404/410: abonelik iptal edilmiş; secret'tan silinmeli
+            yanit = getattr(h, "response", None)
+            kod = yanit.status_code if yanit is not None else type(h).__name__
+            print(f"Bildirim gönderilemedi ({kod}): {a.get('endpoint', '')[:60]}…")
+    return basarili
+
+
 def main():
     satirlar = takvimi_cek()
     if not satirlar:
         sys.exit("ÖSYM takvim tablosu okunamadı; sayfa yapısı değişmiş olabilir.")
 
     simdi = datetime.now(TR)
+    bugun = simdi.date()
     sinavlar = sinavlari_ayikla(satirlar, simdi)
+    eski = json.loads(VERI.read_text(encoding="utf-8")) if VERI.exists() else {}
+    # yalnızca son bir haftanın kayıtları tutulur
+    sinir = (bugun - timedelta(days=7)).isoformat()
+    bildirilen = {k for k in eski.get("bildirilen", []) if k[:10] >= sinir}
+
+    abonelikler = abonelikleri_oku()
+    gonderilen = 0
+    for s, tur, govde in bugunun_hatirlatmalari(sinavlar, bugun):
+        k = f"{bugun.isoformat()}|{s['kod']}|{s['ad']}|{tur}"
+        if k in bildirilen:
+            continue
+        print(f"Hatırlatma: {s['ad']} — {govde}")
+        if not abonelikler or not os.environ.get("VAPID_PRIVATE_KEY"):
+            continue
+        if bildirim_gonder(abonelikler, s["ad"], govde, s["link"], k):
+            bildirilen.add(k)
+            gonderilen += 1
+
     VERI.parent.mkdir(exist_ok=True)
     VERI.write_text(json.dumps({
         "guncellendi": simdi.isoformat(timespec="minutes"),
         "sinavlar": sinavlar,
+        "bildirilen": sorted(bildirilen),
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"{len(satirlar)} satır okundu, {len(sinavlar)} güncel sınav yazıldı.")
+    print(f"{len(satirlar)} satır okundu, {len(sinavlar)} güncel sınav yazıldı, "
+          f"{gonderilen} bildirim gönderildi ({len(abonelikler)} abonelik).")
 
 
 if __name__ == "__main__":

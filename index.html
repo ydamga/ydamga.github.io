@@ -133,6 +133,45 @@
       letter-spacing: -0.02em;
     }
     .osym-head span { font-size: 0.95rem; color: var(--muted); }
+    .osym-arac { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+    .bildirim-btn {
+      font: inherit;
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--gold);
+      background: transparent;
+      color: var(--gold);
+      cursor: pointer;
+      transition: background-color 150ms ease, color 150ms ease;
+    }
+    .bildirim-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+    @media (hover: hover) and (pointer: fine) {
+      .bildirim-btn:hover { background: var(--gold); color: var(--navy); }
+    }
+    .bildirim-panel {
+      margin-bottom: 16px;
+      padding: 18px clamp(20px, 3vw, 40px);
+      background: var(--navy-2);
+      color: var(--ink-2);
+      line-height: 1.55;
+    }
+    .bildirim-panel[hidden] { display: none; }
+    .bildirim-panel p + p, .bildirim-panel textarea, .bildirim-panel .bildirim-btn { margin-top: 12px; }
+    .bildirim-panel b { color: var(--ink); font-weight: 500; }
+    .bildirim-panel code { color: var(--gold); }
+    .bildirim-panel textarea {
+      display: block;
+      width: 100%;
+      min-height: 7.5em;
+      padding: 10px 12px;
+      font: 0.85rem/1.45 ui-monospace, Consolas, monospace;
+      color: var(--ink);
+      background: var(--navy);
+      border: 1px solid var(--navy-3);
+      resize: vertical;
+    }
     .osym ul { list-style: none; display: grid; gap: 8px; }
     .osym li a {
       display: grid;
@@ -237,8 +276,12 @@
     <section class="osym" id="osym" hidden aria-labelledby="osym-baslik">
       <div class="osym-head">
         <h2 id="osym-baslik">Sonraki ÖSYM sınavları</h2>
-        <span id="osym-not"></span>
+        <div class="osym-arac">
+          <span id="osym-not"></span>
+          <button type="button" class="bildirim-btn" id="bildirim-btn" hidden>Bildirimleri aç</button>
+        </div>
       </div>
+      <div class="bildirim-panel" id="bildirim-panel" hidden aria-live="polite"></div>
       <ul class="uyarilar" id="osym-uyarilar" aria-label="Bugünün başvuru uyarıları" hidden></ul>
       <ul id="osym-liste"></ul>
     </section>
@@ -318,6 +361,64 @@
           document.getElementById('osym').hidden = false;
         })
         .catch(function () { /* veri yoksa bölüm gizli kalır */ });
+    })();
+
+    // Masaüstü bildirimi (Web Push). Abonelik bilgisi GitHub'daki PUSH_SUBSCRIPTIONS secret'ına eklenir;
+    // her sabah çalışan görev, hatırlatma günlerinde bu aboneliklere bildirim gönderir.
+    (function () {
+      var VAPID_PUBLIC = 'BCryU_s3mEZYtTRz6WgZd_rwIQDnsBxZxG-1sf9VzB8xOvxlsdea_hcV9vG6QAzY0X2zGIebtH__hDRNTDHm91M';
+      var SECRETS_URL = 'https://github.com/ydamga/ydamga.github.io/settings/secrets/actions';
+      if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+      var btn = document.getElementById('bildirim-btn');
+      var panel = document.getElementById('bildirim-panel');
+      btn.hidden = false;
+
+      function anahtar(b64) {
+        var p = (b64 + '='.repeat((4 - b64.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+        return Uint8Array.from(atob(p), function (c) { return c.charCodeAt(0); });
+      }
+      function mesaj(html) { panel.innerHTML = html; panel.hidden = false; }
+      function aboneligiGoster(abonelik) {
+        btn.textContent = 'Bildirimler açık';
+        mesaj('<p>Bu tarayıcı bildirim almaya hazır. Bildirimlerin gelmesi için aşağıdaki satırı bir kez ' +
+          '<a href="' + SECRETS_URL + '" target="_blank" rel="noopener" style="color:var(--gold)">GitHub Secrets</a> sayfasında ' +
+          '<code>PUSH_SUBSCRIPTIONS</code> değerine ekleyin. Birden çok cihaz için her birini ayrı satıra yazın.</p>' +
+          '<textarea id="abonelik" readonly></textarea>' +
+          '<button type="button" class="bildirim-btn" id="kopyala">Kopyala</button>');
+        var alan = document.getElementById('abonelik');
+        alan.value = JSON.stringify(abonelik);
+        document.getElementById('kopyala').onclick = function () {
+          alan.select();
+          (navigator.clipboard ? navigator.clipboard.writeText(alan.value) : Promise.reject())
+            .catch(function () { document.execCommand('copy'); })
+            .then(function () { document.getElementById('kopyala').textContent = 'Kopyalandı'; });
+        };
+      }
+
+      var kayit = navigator.serviceWorker.register('sw.js');
+      kayit.then(function (r) { return r.pushManager.getSubscription(); })
+        .then(function (a) { if (a && Notification.permission === 'granted') btn.textContent = 'Bildirimler açık'; })
+        .catch(function () {});
+
+      btn.addEventListener('click', function () {
+        if (!panel.hidden && btn.textContent === 'Bildirimler açık') { panel.hidden = true; return; }
+        Notification.requestPermission()
+          .then(function (izin) {
+            if (izin !== 'granted') throw new Error('izin');
+            return kayit.then(function () { return navigator.serviceWorker.ready; });
+          })
+          .then(function (r) {
+            return r.pushManager.getSubscription().then(function (a) {
+              return a || r.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: anahtar(VAPID_PUBLIC) });
+            });
+          })
+          .then(aboneligiGoster)
+          .catch(function (h) {
+            mesaj(h && h.message === 'izin'
+              ? '<p>Bildirim izni verilmedi. Tarayıcının adres çubuğundaki site ayarlarından bildirimlere izin verip tekrar deneyin.</p>'
+              : '<p>Bu tarayıcıda bildirim aboneliği açılamadı. Chrome, Edge ya da Firefox ile deneyin.</p>');
+          });
+      });
     })();
   </script>
 </body>

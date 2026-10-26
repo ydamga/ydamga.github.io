@@ -22,7 +22,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Takvimi oku
+      - run: pip install pywebpush
+
+      - name: Takvimi oku, hatırlatma günündeyse bildirim gönder
+        env:
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          PUSH_SUBSCRIPTIONS: ${{ secrets.PUSH_SUBSCRIPTIONS }}
         run: python osym/takip.py
 
       - name: data/osym.json değiştiyse kaydet
