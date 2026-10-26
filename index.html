@@ -203,6 +203,16 @@
       line-height: 1.35;
     }
     .yemek-kart li:last-child { border-bottom: 0; }
+    .yemek-kart li a {
+      color: inherit;
+      text-decoration: none;
+      text-underline-offset: 3px;
+      transition: color 150ms ease;
+    }
+    .yemek-kart li a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+    @media (hover: hover) and (pointer: fine) {
+      .yemek-kart li a:hover { color: var(--gold); text-decoration: underline; }
+    }
     .yemek-kart .bos { padding: 10px 0; color: var(--ink-2); line-height: 1.5; }
     .yemek-tarih { margin-top: 10px; font-size: 0.9rem; color: var(--muted); }
 
@@ -561,7 +571,12 @@
             if (menu) {
               menu.forEach(function (y) {
                 var li = document.createElement('li');
-                li.textContent = duzelt(y);
+                var a = document.createElement('a');
+                a.textContent = duzelt(y);
+                a.href = 'https://www.google.com/search?q=' + encodeURIComponent(a.textContent + ' yemek');
+                a.target = '_blank';
+                a.rel = 'noopener';
+                li.appendChild(a);
                 liste.appendChild(li);
               });
             } else {
