@@ -263,7 +263,16 @@ body.mo{overflow:hidden}
 .msum .row b{font-size:18px;font-variant-numeric:tabular-nums;margin-right:8px}
 .msum .row.all b{color:var(--c1b)}
 .msum .who{margin-top:2px;font-size:14px;color:var(--muted)}
-@media (prefers-reduced-motion:reduce){.mslot button:active{transform:none}}
+.mdy{display:flex;flex-wrap:wrap;gap:6px}
+.mdy button{font:inherit;font-size:14px;font-weight:600;padding:7px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);cursor:pointer;transition:transform 160ms cubic-bezier(.23,1,.32,1),background-color 150ms ease}
+.mdy button small{color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+.mdy button:hover{background:var(--hover)}
+.mdy button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.mdy button[aria-pressed="true"] small{color:inherit;opacity:.8}
+.mdy button:active{transform:scale(.97)}
+.mdy button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.msum .row.cf b{color:var(--warn)}
+@media (prefers-reduced-motion:reduce){.mslot button:active,.mdy button:active{transform:none}}
 @media print{.searchbox,.sel,.tabs,.back,h1,.pr,.chip .x,.clr{display:none!important}.tt{min-width:0!important}
   body.mo>.wrap,body.mo .mtools,body.mo .x{display:none!important}
   body.mo .ov{position:static;background:none;padding:0}body.mo .modal{max-height:none;box-shadow:none;border:0}body.mo .mb{overflow:visible}}
@@ -329,6 +338,12 @@ body.mo{overflow:hidden}
       <div class="box"><table class="mslot" id="mslot"></table></div>
       <div class="msum" id="msum" aria-live="polite"></div>
     </div>
+    <div id="mcfWrap">
+      <h3 data-i="mConf"></h3>
+      <p class="tip" data-i="mConfTip" style="margin:-4px 2px 10px"></p>
+      <div class="mdy" id="mdy" role="group"></div>
+      <div class="msum" id="mcf" aria-live="polite"></div>
+    </div>
     <h3 data-i="mGrid"></h3>
     <div class="box"><div class="tt" id="mtt"></div></div>
   </div>
@@ -347,7 +362,10 @@ tr:{days:["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar
  add:"Ekle",phMulti:"Öğrenci numarası veya adı",mTip:"Birden fazla numarayı virgülle, boşlukla ya da Excel'den alt alta kopyalayıp yapıştırarak tek seferde ekleyebilirsiniz.",
  mDays:"Okulda olduğu günler",mGrid:"Birleşik haftalık program",backMulti:"← Öğrenci listesine dön",
  mSlots:"Saate göre ders durumu",mSlotTip:"Her hücre o saatte dersi olan öğrenci sayısını gösterir. Hücrelere tıklayarak bir ya da birden fazla gün ve saat seçin; gün adına ya da saate tıklayınca tüm sütun ya da satır seçilir.",
+ mConf:"Çakışan öğrenciler",mConfTip:"İki ya da daha fazla gün seçin. Seçilen günlerin her birinde, herhangi bir saatte dersi olan öğrenciler çakışan olarak gösterilir.",
  mu:{stu:"Öğrenci",dCnt:"Gün",present:"Okulda olan",remove:"Listeden çıkar",clear:"Tümünü çıkar",lessons:function(n){return n+" ders"},
+   cfNone:"Çakışmayı görmek için en az iki gün seçin.",cfSel:"Seçilen günler: ",cfYes:"çakışan: seçilen günlerin hepsinde dersi var",cfNo:"çakışmayan: seçilen günlerden en az birinde dersi yok",
+   cfDay:function(k,n){return k+" / "+n+" öğrencinin bu gün dersi var"},
    slTime:"Saat",slNone:"Henüz saat seçilmedi.",slSel:"Seçilen saatler: ",slClr:"Seçimi temizle",slDay:"Bu günün tüm saatlerini seç",slRow:"Bu saati tüm günlerde seç",
    slAny:function(n){return n===1?"seçilen saatte dersi var":"seçilen saatlerin en az birinde dersi var"},slAll:"seçilen saatlerin hepsinde dersi var",
    slFree:function(n){return n===1?"seçilen saatte dersi yok":"seçilen saatlerin hiçbirinde dersi yok"},
@@ -370,7 +388,10 @@ en:{days:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"
  add:"Add",phMulti:"Student number or name",mTip:"Add several at once: separate numbers with commas or spaces, or paste a column copied from Excel.",
  mDays:"Days on campus",mGrid:"Combined weekly schedule",backMulti:"← Back to student list",
  mSlots:"Classes by hour",mSlotTip:"Each cell shows how many students have class at that hour. Click cells to pick one or more days and hours; click a day or an hour to select the whole column or row.",
+ mConf:"Overlapping students",mConfTip:"Pick two or more days. Students who have class at any hour on each of the selected days are shown as overlapping.",
  mu:{stu:"Student",dCnt:"Days",present:"On campus",remove:"Remove from list",clear:"Remove all",lessons:function(n){return n+(n===1?" class":" classes")},
+   cfNone:"Pick at least two days to see overlaps.",cfSel:"Selected days: ",cfYes:"overlapping: have class on every selected day",cfNo:"not overlapping: no class on at least one selected day",
+   cfDay:function(k,n){return k+" of "+n+(n===1?" student has":" students have")+" class this day"},
    slTime:"Time",slNone:"No hours selected yet.",slSel:"Selected hours: ",slClr:"Clear selection",slDay:"Select every hour of this day",slRow:"Select this hour on every day",
    slAny:function(n){return n===1?"have class at the selected hour":"have class in at least one selected hour"},slAll:"have class in every selected hour",
    slFree:function(n){return n===1?"have no class at the selected hour":"have no class in any selected hour"},
@@ -711,7 +732,7 @@ function renderMulti(){
   if(MUL.length>1)h+="<tfoot><tr><td>"+M.present+"</td>"+days.map(function(d){var c=cnt[d]||0;return'<td'+(c===MUL.length?' class="all"':'')+'>'+c+" / "+MUL.length+"</td>"}).join("")+"<td></td></tr></tfoot>";
   $("mdays").innerHTML=h;
   $("mAll").textContent=M.all(MUL.length,days.filter(function(d){return cnt[d]===MUL.length}).map(function(d){return L.days[d]}));
-  mSlots();
+  mSlots();mConf();
   // Birleşik program: her öğrencinin dersleri kendi renginde
   var bl=[];MUL.forEach(function(no,i){P[no].blocks.forEach(function(b){var o={};for(var k in b)o[k]=b[k];o.s=i;o.no=no;bl.push(o)})});
   grid($("mtt"),bl,130,function(b){var p=P[b.no],c=p.courses[b.c],nm=p.name||b.no;
@@ -758,6 +779,27 @@ $("mslot").addEventListener("click",function(e){var b=e.target.closest("button")
   var on=!ks.every(function(k){return MSEL[k]});ks.forEach(function(k){if(on)MSEL[k]=1;else delete MSEL[k]});
   mSlots();var f=$("mslot").querySelector('button[data-'+(b.dataset.k?'k="'+b.dataset.k:b.dataset.d!=null?'d="'+b.dataset.d:'s="'+b.dataset.s)+'"]');if(f)f.focus()});
 $("msum").addEventListener("click",function(e){if(e.target.id==="mslClr"){MSEL={};mSlots()}});
+// Çakışan: seçilen günlerin her birinde herhangi bir saatte dersi olan öğrenciler
+var MCF={};
+function mConf(){
+  var P=DATA.ogrenci.people,M=L.mu,N=MUL.length,on={};
+  MUL.forEach(function(no){on[no]={};P[no].blocks.forEach(function(b){on[no][b.d]=1})});
+  var days=[0,1,2,3,4].concat([5,6].filter(function(d){return MUL.some(function(no){return on[no][d]})}));
+  Object.keys(MCF).forEach(function(d){if(days.indexOf(+d)<0)delete MCF[d]});
+  $("mdy").setAttribute("aria-label",L.mConf);
+  $("mdy").innerHTML=days.map(function(d){var k=MUL.filter(function(no){return on[no][d]}).length;
+    return'<button type="button" data-d="'+d+'" aria-pressed="'+!!MCF[d]+'" title="'+esc(M.cfDay(k,N))+'">'+L.days[d]+' <small>'+k+' / '+N+'</small></button>'}).join("");
+  var sel=Object.keys(MCF).map(Number).sort();
+  if(sel.length<2){$("mcf").innerHTML='<p class="sel">'+esc(M.cfNone)+'</p>';return}
+  var yes=MUL.filter(function(no){return sel.every(function(d){return on[no][d]})}),no_=MUL.filter(function(no){return yes.indexOf(no)<0});
+  var nm=function(no){return P[no].name||no};
+  var list=function(a){return a.length?'<div class="who">'+a.map(function(no){return'<button type="button" class="hl stu" data-no="'+esc(no)+'" title="'+esc(L.r.stu)+'">'+esc(nm(no))+'</button>'}).join(", ")+'</div>':""};
+  $("mcf").innerHTML='<p class="sel">'+esc(M.cfSel+sel.map(function(d){return L.days[d]}).join(", "))+'</p>'+
+    '<div class="row cf"><b>'+M.slOf(yes.length,N)+'</b>'+esc(M.cfYes)+list(yes)+'</div>'+
+    '<div class="row"><b>'+M.slOf(no_.length,N)+'</b>'+esc(M.cfNo)+list(no_)+'</div>';
+}
+$("mdy").addEventListener("click",function(e){var b=e.target.closest("button[data-d]");if(!b)return;
+  var d=b.dataset.d;if(MCF[d])delete MCF[d];else MCF[d]=1;mConf();var f=$("mdy").querySelector('[data-d="'+d+'"]');if(f)f.focus()});
 /* ---------- Sınavlar ---------- */
 var SNV={v:"",tip:"",prog:"",sin:"",q:"",cur:null},EXK=null,EXC=null,EXH=null,EXHL=null,SNVP=null,SNVT=null;
 function snvInit(){
