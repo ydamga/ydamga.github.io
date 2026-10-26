@@ -118,7 +118,7 @@
 
     /* ÖSYM başvuruları: data/osym.json'dan, GitHub Actions her sabah günceller */
     .osym { margin-top: clamp(48px, 8vh, 96px); }
-    .osym[hidden] { display: none; }
+    .osym[hidden], .osym ul[hidden] { display: none; }
     .osym-head {
       display: flex;
       justify-content: space-between;
@@ -151,7 +151,7 @@
     }
     .osym .ad { font-weight: 700; font-size: 1.1rem; }
     .osym .tarih { color: var(--ink-2); font-size: 0.98rem; font-variant-numeric: tabular-nums; }
-    .osym .durum {
+    .osym .gun {
       justify-self: end;
       padding: 6px 12px;
       border-radius: 999px;
@@ -160,9 +160,16 @@
       font-size: 0.9rem;
       font-weight: 500;
       white-space: nowrap;
+      font-variant-numeric: tabular-nums;
     }
-    .osym .durum.yakin { border-color: var(--gold); color: var(--gold); }
-    .osym .durum.acil { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+    /* Uyarılar yalnızca hatırlatma günlerinde görünür */
+    .osym .uyarilar { margin-bottom: 16px; }
+    .osym .uyarilar li a { background: var(--gold); color: var(--navy); }
+    .osym .uyarilar .tarih { color: var(--navy); }
+    .osym .uyarilar .gun { border-color: var(--navy); color: var(--navy); }
+    @media (hover: hover) and (pointer: fine) {
+      .osym .uyarilar li a:hover { background: #D6B87E; }
+    }
     .osym .bos { padding: 18px clamp(20px, 3vw, 40px); background: var(--navy-2); color: var(--ink-2); }
     @media (max-width: 760px) {
       .osym li a { grid-template-columns: minmax(0, 1fr) auto; }
@@ -229,9 +236,10 @@
 
     <section class="osym" id="osym" hidden aria-labelledby="osym-baslik">
       <div class="osym-head">
-        <h2 id="osym-baslik">ÖSYM başvuruları</h2>
+        <h2 id="osym-baslik">Sonraki ÖSYM sınavları</h2>
         <span id="osym-not"></span>
       </div>
+      <ul class="uyarilar" id="osym-uyarilar" aria-label="Bugünün başvuru uyarıları" hidden></ul>
       <ul id="osym-liste"></ul>
     </section>
   </main>
@@ -245,65 +253,64 @@
     document.getElementById('yil').textContent = new Date().getFullYear();
 
     (function () {
-      var GUN = 86400000;
-      function gunFarki(a, b) {
-        // takvim günü farkı; saatten bağımsız
-        var g = function (d) { return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); };
-        return Math.round((g(b) - g(a)) / GUN);
+      // Hatırlatma günleri: başvurudan 7 gün önce, başvuru günü, bitişten 3 gün önce
+      var ONCE = 7, BITIS = 3;
+      // Tarihler Türkiye saatine göre takvim günü olarak karşılaştırılır; ?bugun=2026-11-25 ile denenebilir
+      function gun(t) { return new Date(t).toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' }); }
+      function kaydir(g, n) {
+        var d = new Date(g + 'T12:00:00Z');
+        d.setUTCDate(d.getUTCDate() + n);
+        return d.toISOString().slice(0, 10);
       }
-      function kisa(d) {
-        return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      function kisa(g) { return g.split('-').reverse().join('.'); }
+      var bugun = (location.search.match(/[?&]bugun=(\d{4}-\d{2}-\d{2})/) || [])[1] || gun(Date.now());
+
+      function satir(s, ust, alt, etiket) {
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.href = s.link;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        var ad = document.createElement('span');
+        ad.className = 'ad';
+        ad.textContent = ust;
+        var tarih = document.createElement('span');
+        tarih.className = 'tarih';
+        tarih.textContent = alt;
+        var g = document.createElement('span');
+        g.className = 'gun';
+        g.textContent = etiket;
+        a.append(ad, tarih, g);
+        li.appendChild(a);
+        return li;
       }
-      function durum(s, simdi, veri) {
-        var bas = new Date(s.basvuru_baslangic), bit = new Date(s.basvuru_bitis);
-        var gec = s.gec_basvuru_bitis ? new Date(s.gec_basvuru_bitis) : null;
-        if (simdi < bas) {
-          var n = gunFarki(simdi, bas);
-          return { metin: n === 1 ? 'Yarın başlıyor' : n + ' gün sonra başlıyor', sinif: n <= veri.basvurudan_once_gun ? 'yakin' : '' };
-        }
-        if (simdi <= bit) {
-          var k = gunFarki(simdi, bit);
-          return { metin: k === 0 ? 'Bugün son gün' : 'Açık · ' + k + ' gün kaldı', sinif: k <= veri.bitisten_once_gun ? 'acil' : 'yakin' };
-        }
-        if (gec && simdi <= gec) {
-          return { metin: 'Geç başvuru · ' + kisa(gec) + ' son', sinif: 'acil' };
-        }
-        return null;
+      function basvuruMetni(s) {
+        return s.basvuru_baslangic ? 'Başvuru ' + kisa(gun(s.basvuru_baslangic)) + ' – ' + kisa(gun(s.basvuru_bitis)) : 'Başvuru tarihi yok';
       }
 
       fetch('data/osym.json', { cache: 'no-cache' })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function (veri) {
-          var simdi = new Date();
-          var liste = document.getElementById('osym-liste');
-          var gosterilen = 0;
+          var uyarilar = document.getElementById('osym-uyarilar');
           veri.sinavlar.forEach(function (s) {
-            var d = durum(s, simdi, veri);
-            if (!d) return;
-            var li = document.createElement('li');
-            var a = document.createElement('a');
-            a.href = s.link;
-            a.target = '_blank';
-            a.rel = 'noopener';
-            var ad = document.createElement('span');
-            ad.className = 'ad';
-            ad.textContent = s.ad;
-            var tarih = document.createElement('span');
-            tarih.className = 'tarih';
-            tarih.textContent = 'Başvuru ' + kisa(new Date(s.basvuru_baslangic)) + ' – ' + kisa(new Date(s.basvuru_bitis)) +
-              (s.sinav_tarihi ? ' · Sınav ' + kisa(new Date(s.sinav_tarihi + 'T00:00:00+03:00')) : '');
-            var etiket = document.createElement('span');
-            etiket.className = 'durum ' + d.sinif;
-            etiket.textContent = d.metin;
-            a.append(ad, tarih, etiket);
-            li.appendChild(a);
-            liste.appendChild(li);
-            gosterilen++;
+            if (!s.basvuru_baslangic) return;
+            var bas = gun(s.basvuru_baslangic), bit = gun(s.basvuru_bitis), etiket = null;
+            if (kaydir(bas, -ONCE) === bugun) etiket = 'Başvuru 1 hafta sonra';
+            else if (bas === bugun) etiket = 'Başvuru bugün başladı';
+            else if (kaydir(bit, -BITIS) === bugun) etiket = 'Bitişe ' + BITIS + ' gün kaldı';
+            if (etiket) uyarilar.appendChild(satir(s, s.ad, basvuruMetni(s), etiket));
           });
-          if (!gosterilen) {
+          uyarilar.hidden = !uyarilar.children.length;
+
+          var liste = document.getElementById('osym-liste');
+          veri.sinavlar
+            .filter(function (s) { return s.sinav_tarihi && s.sinav_tarihi >= bugun; })
+            .slice(0, 5)
+            .forEach(function (s) { liste.appendChild(satir(s, s.ad, basvuruMetni(s), 'Sınav ' + kisa(s.sinav_tarihi))); });
+          if (!liste.children.length) {
             var bos = document.createElement('li');
             bos.className = 'bos';
-            bos.textContent = 'Takip edilen sınavlarda açık ya da yaklaşan başvuru yok. Yeni takvim yayımlanınca burada görünür.';
+            bos.textContent = 'Takvimde yaklaşan sınav yok. Yeni takvim yayımlanınca burada görünür.';
             liste.appendChild(bos);
           }
           document.getElementById('osym-not').textContent =

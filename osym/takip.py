@@ -1,30 +1,19 @@
-"""ÖSYM sınav takviminden seçili sınavların başvuru tarihlerini çeker,
-data/osym.json dosyasını günceller ve zamanı gelen hatırlatmaları e-postayla gönderir.
+"""ÖSYM sınav takvimindeki bütün sınavları çeker ve data/osym.json dosyasına yazar.
 
-Hatırlatmalar: başvurudan N gün önce, başvuru günü, bitişten M gün önce.
-Gönderilen hatırlatmalar osym.json içinde tutulur; aynı hatırlatma iki kez gitmez.
-ÖSYM tarihi değiştirirse yeni tarih için yeni hatırlatma oluşur.
-
-E-posta için ortam değişkenleri: GMAIL_USER, GMAIL_APP_PASSWORD, isteğe bağlı MAIL_TO.
-Bunlar yoksa hatırlatmalar yalnızca ekrana yazılır.
+Ana sayfa bu dosyadan sonraki sınavları ve o güne düşen başvuru uyarılarını gösterir.
+Yalnızca tarihi geçmemiş sınavlar (başvurusu ya da sınavı ileride olanlar) yazılır.
 """
 
 import json
-import os
-import smtplib
 import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
-from email.message import EmailMessage
 from html.parser import HTMLParser
 from pathlib import Path
 
 TAKVIM_URL = "https://www.osym.gov.tr/Sayfa/SinavTakvimi"
-KOK = Path(__file__).resolve().parent.parent
-CONFIG = KOK / "osym" / "config.json"
-VERI = KOK / "data" / "osym.json"
+VERI = Path(__file__).resolve().parent.parent / "data" / "osym.json"
 TR = timezone(timedelta(hours=3))  # Türkiye yaz saati uygulamıyor
-GECIKME_TOLERANSI = 3  # görev birkaç gün çalışamazsa kaçan hatırlatmaları yine de gönder
 
 
 class TakvimParser(HTMLParser):
@@ -90,9 +79,11 @@ def aralik_oku(hucre):
     parcalar = [p.strip() for p in (hucre or "").split("\n") if p.strip() and p.strip() != "-"]
     if not parcalar:
         return None, None
-    bas = tarih_oku(parcalar[0], gun_sonu=False)
-    bit = tarih_oku(parcalar[-1], gun_sonu=True)
-    return bas, bit
+    return tarih_oku(parcalar[0], gun_sonu=False), tarih_oku(parcalar[-1], gun_sonu=True)
+
+
+def iso(t):
+    return t.isoformat() if t else None
 
 
 def takvimi_cek():
@@ -104,109 +95,45 @@ def takvimi_cek():
     return p.satirlar
 
 
-def sinavlari_ayikla(satirlar, takip):
-    takip = {s.strip().casefold() for s in takip}
+def sinavlari_ayikla(satirlar, simdi):
     sinavlar = []
     for s in satirlar:
-        kod = s["attrs"].get("data-sinavad", "").strip()
-        if kod.casefold() not in takip or s["attrs"].get("data-has-basvuru") != "1":
-            continue
         h = s["hucreler"]
         bas, bit = aralik_oku(h.get("Başvuru Tarihi"))
-        if not bas:
+        _, gec_bit = aralik_oku(h.get("Geç Başvuru Tarihi"))
+        sinav, _ = aralik_oku(h.get("Sınav Tarihi"))
+        if not bas and not sinav:
+            continue  # yalnızca tercih/yerleştirme satırı
+        son = max(t for t in (bit, gec_bit, sinav) if t)
+        if son.date() < simdi.date():
             continue
-        gec_bas, gec_bit = aralik_oku(h.get("Geç Başvuru Tarihi"))
-        sinav_bas, _ = aralik_oku(h.get("Sınav Tarihi"))
+        kod = s["attrs"].get("data-sinavad", "").strip()
         sinavlar.append({
             "kod": kod,
             "ad": s["baslik"] or kod,
             "link": "https://www.osym.gov.tr" + s["link"] if s["link"] else TAKVIM_URL,
-            "basvuru_baslangic": bas.isoformat(),
-            "basvuru_bitis": bit.isoformat(),
-            "gec_basvuru_bitis": gec_bit.isoformat() if gec_bit else None,
-            "sinav_tarihi": sinav_bas.date().isoformat() if sinav_bas else None,
+            "basvuru_baslangic": iso(bas),
+            "basvuru_bitis": iso(bit),
+            "gec_basvuru_bitis": iso(gec_bit),
+            "sinav_tarihi": sinav.date().isoformat() if sinav else None,
         })
-    sinavlar.sort(key=lambda x: x["basvuru_baslangic"])
+    sinavlar.sort(key=lambda x: x["sinav_tarihi"] or x["basvuru_baslangic"])
     return sinavlar
 
 
-def hatirlatmalar(sinav, once_gun, bitis_gun):
-    bas = datetime.fromisoformat(sinav["basvuru_baslangic"]).date()
-    bit = datetime.fromisoformat(sinav["basvuru_bitis"]).date()
-    return [
-        ("once", bas - timedelta(days=once_gun), f"{sinav['ad']}: başvuru {once_gun} gün sonra başlıyor"),
-        ("basladi", bas, f"{sinav['ad']}: başvuru bugün başladı"),
-        ("bitiyor", bit - timedelta(days=bitis_gun), f"{sinav['ad']}: başvurunun bitmesine {bitis_gun} gün kaldı"),
-    ]
-
-
-def tarih_yaz(iso):
-    t = datetime.fromisoformat(iso)
-    return t.strftime("%d.%m.%Y %H:%M")
-
-
-def mail_gonder(konu, govde):
-    kullanici = os.environ.get("GMAIL_USER")
-    sifre = os.environ.get("GMAIL_APP_PASSWORD")
-    if not kullanici or not sifre:
-        print("[mail yok, GMAIL_USER/GMAIL_APP_PASSWORD tanımlı değil]\n" + konu + "\n" + govde)
-        return False
-    msg = EmailMessage()
-    msg["Subject"] = konu
-    msg["From"] = kullanici
-    msg["To"] = os.environ.get("MAIL_TO") or kullanici
-    msg.set_content(govde)
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(kullanici, sifre)
-        smtp.send_message(msg)
-    return True
-
-
 def main():
-    ayar = json.loads(CONFIG.read_text(encoding="utf-8"))
-    once_gun = ayar.get("basvurudan_once_gun", 7)
-    bitis_gun = ayar.get("bitisten_once_gun", 3)
-
     satirlar = takvimi_cek()
     if not satirlar:
         sys.exit("ÖSYM takvim tablosu okunamadı; sayfa yapısı değişmiş olabilir.")
 
-    sinavlar = sinavlari_ayikla(satirlar, ayar["sinavlar"])
-    eski = json.loads(VERI.read_text(encoding="utf-8")) if VERI.exists() else {}
-    gonderilen = set(eski.get("gonderilen", []))
-
     simdi = datetime.now(TR)
-    bugun = simdi.date()
-    yeni = []
-    for s in sinavlar:
-        for tur, gun, mesaj in hatirlatmalar(s, once_gun, bitis_gun):
-            anahtar = f"{s['kod']}|{s['ad']}|{tur}|{gun.isoformat()}"
-            if anahtar in gonderilen or not (0 <= (bugun - gun).days <= GECIKME_TOLERANSI):
-                continue
-            yeni.append((anahtar, mesaj, s))
-
-    if yeni:
-        konu = "ÖSYM hatırlatma: " + "; ".join(m for _, m, _ in yeni)
-        govde = "\n\n".join(
-            f"{m}\nBaşvuru: {tarih_yaz(s['basvuru_baslangic'])} – {tarih_yaz(s['basvuru_bitis'])}"
-            + (f"\nSınav: {s['sinav_tarihi']}" if s["sinav_tarihi"] else "")
-            + f"\n{s['link']}"
-            for _, m, s in yeni
-        ) + f"\n\nTakvim: {TAKVIM_URL}"
-        if mail_gonder(konu[:200], govde):
-            gonderilen.update(a for a, _, _ in yeni)
-
-    # Sitede yalnızca başvurusu bitmemiş sınavlar gösterilir
-    gorunur = [s for s in sinavlar if datetime.fromisoformat(s["gec_basvuru_bitis"] or s["basvuru_bitis"]) >= simdi]
+    sinavlar = sinavlari_ayikla(satirlar, simdi)
     VERI.parent.mkdir(exist_ok=True)
     VERI.write_text(json.dumps({
         "guncellendi": simdi.isoformat(timespec="minutes"),
-        "basvurudan_once_gun": once_gun,
-        "bitisten_once_gun": bitis_gun,
-        "sinavlar": gorunur,
-        "gonderilen": sorted(gonderilen),
+        "sinavlar": sinavlar,
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"{len(sinavlar)} sınav bulundu, {len(gorunur)} tanesi gösteriliyor, {len(yeni)} hatırlatma gönderildi.")
+    print(f"{len(satirlar)} satır okundu, {len(sinavlar)} güncel sınav yazıldı.")
 
 
 if __name__ == "__main__":

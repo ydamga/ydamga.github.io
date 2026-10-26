@@ -1,7 +1,140 @@
 {
-  "guncellendi": "2026-10-26T09:28+03:00",
-  "basvurudan_once_gun": 7,
-  "bitisten_once_gun": 3,
-  "sinavlar": [],
-  "gonderilen": []
+  "guncellendi": "2026-10-26T11:22+03:00",
+  "sinavlar": [
+    {
+      "kod": "Sayıştay Eleme",
+      "ad": "2026-Sayıştay Eleme",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/32",
+      "basvuru_baslangic": "2026-09-09T10:30:00+03:00",
+      "basvuru_bitis": "2026-09-17T23:59:00+03:00",
+      "gec_basvuru_bitis": "2026-09-24T23:59:00+03:00",
+      "sinav_tarihi": "2026-10-31"
+    },
+    {
+      "kod": "DUS",
+      "ad": "2026-DUS 2.Dönem",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/9",
+      "basvuru_baslangic": "2026-09-16T00:00:00+03:00",
+      "basvuru_bitis": "2026-09-24T23:59:00+03:00",
+      "gec_basvuru_bitis": "2026-10-01T23:59:00+03:00",
+      "sinav_tarihi": "2026-11-01"
+    },
+    {
+      "kod": "STS Diş Hekimliği",
+      "ad": "2026-STS Diş Hekimliği 2.Dönem",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/39",
+      "basvuru_baslangic": "2026-09-16T00:00:00+03:00",
+      "basvuru_bitis": "2026-09-24T23:59:00+03:00",
+      "gec_basvuru_bitis": "2026-10-01T23:59:00+03:00",
+      "sinav_tarihi": "2026-11-01"
+    },
+    {
+      "kod": "KPSS",
+      "ad": "2026-KPSS Din Hizmetleri Alan Bilgisi Testi (DHBT)",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/3",
+      "basvuru_baslangic": "2026-09-22T10:40:00+03:00",
+      "basvuru_bitis": "2026-09-30T23:59:00+03:00",
+      "gec_basvuru_bitis": "2026-10-05T23:59:00+03:00",
+      "sinav_tarihi": "2026-11-01"
+    },
+    {
+      "kod": "EUS",
+      "ad": "2026-EUS",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/11",
+      "basvuru_baslangic": "2026-09-23T10:30:00+03:00",
+      "basvuru_bitis": "2026-10-01T23:59:00+03:00",
+      "gec_basvuru_bitis": "2026-10-08T23:59:00+03:00",
+      "sinav_tarihi": "2026-11-07"
+    },
+    {
+      "kod": "STS Eczacılık",
+      "ad": "2026-STS Eczacılık",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/22",
+      "basvuru_baslangic": "2026-09-23T10:30:00+03:00",
+      "basvuru_bitis": "2026-10-01T23:59:00+03:00",
+      "gec_basvuru_bitis": "2026-10-08T23:59:00+03:00",
+      "sinav_tarihi": "2026-11-07"
+    },
+    {
+      "kod": "e-TEP",
+      "ad": "e-TEP 2026/4 İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/1",
+      "basvuru_baslangic": "2026-10-27T00:00:00+03:00",
+      "basvuru_bitis": "2026-11-05T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2026-11-14"
+    },
+    {
+      "kod": "GUY",
+      "ad": "2026-GUY/2",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/37",
+      "basvuru_baslangic": "2026-10-30T00:00:00+03:00",
+      "basvuru_bitis": "2026-11-03T23:59:00+03:00",
+      "gec_basvuru_bitis": "2026-11-06T23:59:00+03:00",
+      "sinav_tarihi": "2026-11-21"
+    },
+    {
+      "kod": "YDS",
+      "ad": "2026-YDS/2",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2026-09-30T10:00:00+03:00",
+      "basvuru_bitis": "2026-10-08T23:59:00+03:00",
+      "gec_basvuru_bitis": "2026-10-14T23:59:00+03:00",
+      "sinav_tarihi": "2026-11-22"
+    },
+    {
+      "kod": "YÖK-YKDS",
+      "ad": "2026-YÖK-YKDS",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/56",
+      "basvuru_baslangic": "2026-10-01T15:30:00+03:00",
+      "basvuru_bitis": "2026-10-14T23:59:00+03:00",
+      "gec_basvuru_bitis": "2026-10-22T23:59:00+03:00",
+      "sinav_tarihi": "2026-11-28"
+    },
+    {
+      "kod": "ALES",
+      "ad": "2026-ALES/3",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/5",
+      "basvuru_baslangic": "2026-10-07T16:00:00+03:00",
+      "basvuru_bitis": "2026-10-15T23:59:00+03:00",
+      "gec_basvuru_bitis": "2026-10-21T23:59:00+03:00",
+      "sinav_tarihi": "2026-11-29"
+    },
+    {
+      "kod": "İCRA",
+      "ad": "2026-İcra",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/24",
+      "basvuru_baslangic": "2026-10-20T10:00:00+03:00",
+      "basvuru_bitis": "2026-10-26T23:59:00+03:00",
+      "gec_basvuru_bitis": "2026-11-05T23:59:00+03:00",
+      "sinav_tarihi": "2026-12-05"
+    },
+    {
+      "kod": "e-YDS",
+      "ad": "e-YDS 2026/12 İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2026-12-02T00:00:00+03:00",
+      "basvuru_bitis": "2026-12-10T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2026-12-19"
+    },
+    {
+      "kod": "Sayıştay Yazılı",
+      "ad": "2026-Sayıştay Yazılı 1.Gün",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/29",
+      "basvuru_baslangic": null,
+      "basvuru_bitis": null,
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2026-12-26"
+    },
+    {
+      "kod": "Sayıştay Yazılı",
+      "ad": "2026-Sayıştay Yazılı 2.Gün",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/29",
+      "basvuru_baslangic": null,
+      "basvuru_bitis": null,
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2026-12-27"
+    }
+  ]
 }
