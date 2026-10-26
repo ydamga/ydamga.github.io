@@ -352,7 +352,7 @@
     // Masaüstü bildirimi (Web Push). Abonelik Cloudflare Worker'a (worker/osym-bildirim.js) kaydedilir;
     // Worker her sabah hatırlatma günlerinde bütün abonelere bildirim gönderir.
     (function () {
-      var WORKER_URL = ''; // Cloudflare'a yüklendikten sonra: https://osym-bildirim.<hesap>.workers.dev
+      var WORKER_URL = 'https://osym-bildirim.ydamga.workers.dev';
       var VAPID_PUBLIC = 'BCryU_s3mEZYtTRz6WgZd_rwIQDnsBxZxG-1sf9VzB8xOvxlsdea_hcV9vG6QAzY0X2zGIebtH__hDRNTDHm91M';
       if (!WORKER_URL || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
       var btn = document.getElementById('bildirim-btn');
