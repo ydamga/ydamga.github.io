@@ -1,0 +1,185 @@
+/* Ekip kedisi: karakter, pozlar ve animasyonlar (kedi/karakter.js kurar).
+   Yalnızca transform ve opacity hareket eder; sürekli animasyonlar küçük SVG parçalarındadır. */
+.kedi {
+  --k-tuy: #E39B5B;
+  --k-tuy-koyu: #C47A3E;
+  --k-krem: #F8E4CB;
+  --k-murekkep: #2B2420;
+  --k-pembe: #E7808F;
+  --k-kulak: #F3AAB4;
+  --kedi-en: 64px;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: var(--kedi-en);
+  transition-property: transform;
+  transition-timing-function: linear;
+  will-change: transform;
+  -webkit-tap-highlight-color: transparent;
+}
+a.kedi { display: block; border-radius: 12px; }
+a.kedi:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+.kedi-yon { transition: transform 180ms var(--ease-out); }
+.kedi[data-yon="sol"] .kedi-yon { transform: scaleX(-1); }
+.kedi-svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+.k-golge { fill: rgba(0, 0, 0, 0.16); }
+.k-tuy { fill: var(--k-tuy); }
+.k-krem { fill: var(--k-krem); }
+.k-cizgi { fill: none; stroke: var(--k-tuy-koyu); stroke-width: 3; stroke-linecap: round; }
+.k-kuyruk-c { fill: none; stroke: var(--k-tuy); stroke-width: 7; stroke-linecap: round; }
+.k-kuyruk-uc { fill: none; stroke: var(--k-tuy-koyu); stroke-width: 7; stroke-linecap: round; }
+.k-bacak { fill: var(--k-tuy); }
+.k-uzak { fill: var(--k-tuy-koyu); }
+.k-kulak-ic { fill: var(--k-kulak); }
+.k-goz-acik { fill: var(--k-murekkep); }
+.k-isilti { fill: #fff; }
+.k-goz-kapali, .k-goz-mutlu, .k-agiz, .k-agiz-uzgun, .k-kas {
+  fill: none; stroke: var(--k-murekkep); stroke-width: 1.6; stroke-linecap: round;
+}
+.k-burun { fill: var(--k-pembe); }
+.k-agiz-acik { fill: #7A3442; }
+.k-dil { fill: var(--k-pembe); }
+.k-biyik { stroke: var(--k-murekkep); stroke-width: 0.8; stroke-linecap: round; opacity: 0.55; }
+.k-leke { fill: #8A6A4F; opacity: 0; transition: opacity 400ms ease; }
+
+/* Gizli parçalar; pozlar açar */
+.k-goz-kapali, .k-goz-mutlu, .k-agiz-uzgun, .k-agiz-acik, .k-dil, .k-kas { display: none; }
+
+/* Dönme noktaları kendi kutularına göre */
+.k-kuyruk, .k-bacak, .k-bas, .k-vucut, .k-goz-acik, .k-kulak, .k-dil { transform-box: fill-box; }
+.k-kuyruk { transform-origin: 100% 100%; animation: k-kuyruk 3.2s ease-in-out infinite alternate; }
+.k-bacak { transform-origin: 50% 0; }
+.k-bas { transform-origin: 30% 70%; transition: transform 300ms var(--ease-out); }
+.k-vucut { transform-origin: 50% 100%; transition: transform 300ms var(--ease-out); }
+.k-goz-acik { transform-origin: 50% 50%; animation: k-kirp var(--kirpma, 5s) infinite; }
+.k-kulak-sol { transform-origin: 80% 100%; }
+.k-kulak-sag { transform-origin: 20% 100%; }
+.k-kulak { transition: transform 300ms var(--ease-out); }
+
+@keyframes k-kuyruk { from { transform: rotate(-7deg); } to { transform: rotate(9deg); } }
+@keyframes k-kirp { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.1); } }
+@keyframes k-adim { 0%, 100% { transform: rotate(16deg); } 50% { transform: rotate(-16deg); } }
+@keyframes k-sallan { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.4px); } }
+@keyframes k-bak { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-10deg); } 65% { transform: rotate(9deg); } }
+@keyframes k-nefes { 0%, 100% { transform: translateY(9px) scaleY(1); } 50% { transform: translateY(9px) scaleY(0.96); } }
+@keyframes k-yalan { 0%, 100% { transform: rotate(24deg) translate(-3px, 4px); } 50% { transform: rotate(30deg) translate(-3px, 5px); } }
+@keyframes k-dil { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(1.2px); } }
+@keyframes k-zipla { 0%, 100% { transform: translateY(0); } 30% { transform: translateY(-16%); } 55% { transform: translateY(0); } 75% { transform: translateY(-6%); } }
+@keyframes k-hayir { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+
+/* Yürüme: bacaklar çapraz çiftler hâlinde, gövde hafif iner kalkar */
+.kedi.yuruyor .k-bacak { animation: k-adim 520ms ease-in-out infinite; }
+.kedi.yuruyor .k-bacak.k-b { animation-delay: -260ms; }
+.kedi.yuruyor .k-vucut { animation: k-sallan 260ms ease-in-out infinite; }
+.kedi.yuruyor .k-kuyruk { animation-duration: 1.4s; }
+
+.kedi.bakiyor .k-bas { animation: k-bak 2.4s ease-in-out; }
+
+.kedi.esniyor .k-bas { transform: rotate(-9deg); }
+.kedi.esniyor .k-goz-acik, .kedi.esniyor .k-agiz { display: none; }
+.kedi.esniyor .k-goz-kapali, .kedi.esniyor .k-agiz-acik { display: inline; }
+
+.kedi.yalaniyor .k-bas { animation: k-yalan 700ms ease-in-out infinite; }
+.kedi.yalaniyor .k-goz-acik, .kedi.yalaniyor .k-agiz { display: none; }
+.kedi.yalaniyor .k-goz-kapali, .kedi.yalaniyor .k-dil { display: inline; }
+.kedi.yalaniyor .k-dil { animation: k-dil 350ms ease-in-out infinite; }
+
+/* Uyku: bacaklar gövdenin altına, gövde yere iner, nefes alır */
+.kedi.uyuyor .k-bacak { opacity: 0; }
+.kedi.uyuyor .k-vucut { transform: translateY(9px); animation: k-nefes 3.4s ease-in-out infinite; }
+.kedi.uyuyor .k-bas { transform: rotate(8deg); }
+.kedi.uyuyor .k-goz-acik, .kedi.uyuyor .k-agiz, .kedi.uyuyor .k-agiz-uzgun, .kedi.uyuyor .k-kas { display: none; }
+.kedi.uyuyor .k-goz-kapali { display: inline; }
+.kedi.uyuyor .k-kuyruk { animation: none; transform: rotate(-58deg) translate(4px, 6px); }
+
+.kedi.zipliyor .kedi-yon { animation: k-zipla 700ms var(--ease-out) 2; }
+.kedi.zipliyor .k-goz-acik, .kedi.zipliyor .k-agiz-uzgun { display: none; }
+.kedi.zipliyor .k-goz-mutlu { display: inline; }
+
+.kedi.hayir .k-bas { animation: k-hayir 300ms ease-in-out 3; }
+
+/* Ruh hâli: üzgünken kulaklar düşer, kaşlar ve ağız değişir, kuyruk iner */
+.kedi.uzgun .k-kulak-sol { transform: rotate(-22deg); }
+.kedi.uzgun .k-kulak-sag { transform: rotate(22deg); }
+.kedi.uzgun .k-agiz { display: none; }
+.kedi.uzgun .k-agiz-uzgun, .kedi.uzgun .k-kas { display: inline; }
+.kedi.uzgun .k-kuyruk { animation: none; transform: rotate(-38deg) translate(2px, 8px); }
+.kedi.uzgun.yuruyor .k-kuyruk { animation: none; }
+.kedi.uzgun.esniyor .k-agiz-uzgun, .kedi.uzgun.yalaniyor .k-agiz-uzgun { display: none; }
+.kedi.kirli .k-leke { opacity: 0.85; }
+.kedi.neseli .k-kuyruk { animation-duration: 1.6s; }
+
+/* Düşünce balonu: başın üstünde, yöne göre başın tarafında */
+.kedi-balon {
+  position: absolute;
+  bottom: 70%;
+  left: 56%;
+  display: grid;
+  place-items: center;
+  width: calc(var(--kedi-en) * 0.42);
+  height: calc(var(--kedi-en) * 0.42);
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  animation: k-balon 240ms var(--ease-out);
+}
+.kedi[data-yon="sol"] .kedi-balon { left: auto; right: 56%; }
+.kedi-balon[hidden] { display: none; }
+.kedi-balon svg { width: 64%; height: 64%; fill: var(--k-murekkep); }
+.kedi-balon .i-dolu { fill: var(--accent); }
+.kedi-balon[data-ikon="kalp"] .i-dolu { fill: var(--k-pembe); }
+.kedi-balon .i-cizgi { fill: none; stroke: var(--on-accent); stroke-width: 1.6; }
+.kedi-balon[data-ikon="zzz"] { background: transparent; box-shadow: none; }
+.i-zzz { font-weight: 800; font-size: calc(var(--kedi-en) * 0.16); color: var(--text-2); line-height: 1; white-space: nowrap; }
+.i-zzz span:nth-child(1) { font-size: 1.25em; }
+.i-zzz span:nth-child(2) { font-size: 1.55em; }
+.i-zzz span { display: inline-block; animation: k-zzz 2.4s ease-in-out infinite; }
+.i-zzz span:nth-child(2) { animation-delay: 400ms; }
+.i-soru { font-weight: 800; color: var(--muted); }
+@keyframes k-balon { from { opacity: 0; transform: translateY(4px) scale(0.85); } }
+@keyframes k-zzz { 0%, 100% { transform: translateY(0); opacity: 0.6; } 50% { transform: translateY(-3px); opacity: 1; } }
+
+/* Bakım sonrası kalpler */
+.kedi-kalp {
+  position: absolute;
+  bottom: 55%;
+  left: 50%;
+  width: calc(var(--kedi-en) * 0.22);
+  min-width: 14px;
+  pointer-events: none;
+  opacity: 0;
+  animation: k-kalp 1.5s var(--ease-out) var(--gecikme, 0ms) forwards;
+}
+.kedi-kalp svg { display: block; width: 100%; fill: var(--k-pembe); }
+.kedi-kalp .i-dolu { fill: var(--k-pembe); }
+@keyframes k-kalp {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--sapma, 0px)), calc(var(--kedi-en) * -0.7)) scale(1); }
+}
+
+/* Anasayfa: alt bilgideki kedi şeridi. İçinde başka içerik yok; kedi metinlerin üstüne çıkmaz. */
+.kedi-serit {
+  position: relative;
+  flex: 1 1 120px;
+  min-width: 0;
+  height: 58px;
+  max-width: 760px;
+}
+.kedi-serit .kedi { --kedi-en: 60px; }
+@media (max-width: 760px) {
+  .kedi-serit { height: 50px; }
+  .kedi-serit .kedi { --kedi-en: 52px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kedi, .kedi-yon, .k-bas, .k-vucut, .k-kulak { transition: none; }
+  .kedi *, .kedi-balon, .kedi-kalp { animation: none !important; }
+  .kedi-kalp { opacity: 1; transform: translate(-50%, calc(var(--kedi-en) * -0.35)); }
+  .kedi.uyuyor .k-vucut { transform: translateY(9px); }
+}

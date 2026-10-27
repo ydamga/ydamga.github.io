@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="ortak.css">
+  <link rel="stylesheet" href="kedi/kedi.css">
   <style>
 
     /* Üst satır: solda üniversite sistemleri, sağda ayarlar */
@@ -264,6 +265,7 @@
     .kisayollar, .tool { animation: rise 600ms var(--ease-out) both; }
     .tools li:nth-child(1) .tool { animation-delay: 140ms; }
     .tools li:nth-child(2) .tool { animation-delay: 200ms; }
+    .tools li:nth-child(3) .tool { animation-delay: 260ms; }
 
     @media (max-width: 899px) {
       .govde { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "osym osym" "yemek araclar"; }
@@ -275,11 +277,16 @@
       .kisayollar a { min-height: 40px; padding: 0 2px; font-size: 0.74rem; }
       .kisayollar svg { display: none; }
       .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .tools li:nth-child(3) { grid-column: 1 / -1; }
       .tool { min-height: 64px; padding: 12px 14px; gap: 8px; }
       .tool h2 { font-size: 1.05rem; }
       .arrow { width: 32px; height: 32px; }
       .govde { grid-template-columns: 1fr; grid-template-areas: "osym" "araclar" "yemek"; row-gap: 24px; }
     }
+    /* Alt bilgi: solda yazı, sağda kedinin dolaştığı şerit */
+    footer.kedili { align-items: flex-end; flex-wrap: nowrap; padding-top: 4px; padding-bottom: 6px; }
+    footer.kedili > span { padding-bottom: 6px; white-space: nowrap; }
+
     @media (prefers-reduced-motion: reduce) {
       .kisayollar, .tool, .siradaki { animation-name: fade; }
       .tool:active, .tool:hover .arrow, .siradaki:active, .kisayollar a:active { transform: none; }
@@ -335,6 +342,12 @@
             <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
           </a>
         </li>
+        <li>
+          <a class="tool" href="kedi-odasi.html">
+            <h2>Kedi Odası</h2>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </a>
+        </li>
       </ul>
     </section>
 
@@ -354,8 +367,9 @@
     </div>
   </main>
 
-  <footer>
+  <footer class="kedili">
     <span>ÖDHM · <span id="yil"></span></span>
+    <div class="kedi-serit" id="kedi-serit"></div>
   </footer>
 
   <script>
@@ -499,5 +513,11 @@
     })();
 
   </script>
+  <script src="kedi/ayar.js" defer></script>
+  <script src="kedi/baglanti.js" defer></script>
+  <script src="kedi/kurallar.js" defer></script>
+  <script src="kedi/durum.js" defer></script>
+  <script src="kedi/karakter.js" defer></script>
+  <script src="kedi/ana.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,5 @@
+# Gizli değerler depoya girmez (Supabase service_role / secret anahtarı vb.)
+.env
+.env.*
+supabase/.temp/
+node_modules/

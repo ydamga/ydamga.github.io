@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kedi Odası</title>
+  <meta name="description" content="Ekibin ortak kedisine bakım yapın: besleyin, oynatın, dinlendirin, temizleyin.">
+  <script src="ayarlar.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="ortak.css">
+  <link rel="stylesheet" href="kedi/kedi.css">
+  <style>
+    main { justify-content: flex-start; }
+
+    /* Sayfa başı: geri bağlantısı, başlık, mod rozeti, ayarlar */
+    .ust {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      margin-bottom: clamp(14px, 2.5vh, 24px);
+    }
+    .ust-sol { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
+    .ust-sag { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .geri {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      color: var(--accent-ink);
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+    }
+    .geri svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .geri:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
+    @media (hover: hover) and (pointer: fine) {
+      .geri:hover { text-decoration: underline; text-underline-offset: 3px; }
+    }
+    h1 { font-size: clamp(1.3rem, 2vw, 1.75rem); font-weight: 800; letter-spacing: -0.025em; }
+    .mod-rozet {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-2);
+      color: var(--text-2);
+      font-size: 0.82rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .mod-rozet::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .mod-rozet[data-durum="acik"]::before { background: #3FB37F; }
+    .mod-rozet[data-durum="kopuk"]::before { background: #E0605E; }
+
+    .uyari {
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      border-left: 4px solid #E0605E;
+      background: var(--surface);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .uyari[hidden], .not[hidden], .giris[hidden] { display: none; }
+
+    /* Gövde: solda oda, sağda bakım; altta geçmiş */
+    .oda-govde {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+      grid-template-areas: "sahne bakim" "gecmis bakim";
+      grid-template-rows: auto 1fr;
+      align-items: start;
+      gap: clamp(16px, 2vw, 28px);
+    }
+    .sahne-kart { grid-area: sahne; background: var(--surface); }
+    .bakim { grid-area: bakim; display: grid; gap: 16px; }
+    .gecmis { grid-area: gecmis; }
+    h2 { font-size: clamp(1.05rem, 1.4vw, 1.25rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 10px; }
+
+    /* Oda: duvar, zemin, mama kabı ve minder. Kedi yalnızca zemin şeridinde dolaşır. */
+    .oda {
+      position: relative;
+      height: clamp(220px, 36vh, 340px);
+      overflow: hidden;
+      background: linear-gradient(to bottom, transparent 72%, var(--surface-2) 72%);
+    }
+    .oda-pencere {
+      position: absolute;
+      top: 14%;
+      left: 50%;
+      width: clamp(80px, 14vw, 130px);
+      aspect-ratio: 1.25;
+      transform: translateX(-50%);
+      border: 5px solid var(--surface-2);
+      border-radius: 6px;
+      background:
+        linear-gradient(var(--surface-2), var(--surface-2)) center / 4px 100% no-repeat,
+        linear-gradient(var(--surface-2), var(--surface-2)) center / 100% 4px no-repeat,
+        color-mix(in srgb, var(--accent) 22%, var(--surface));
+    }
+    .oda-esya { position: absolute; bottom: 9%; }
+    .oda-esya svg { display: block; width: 100%; height: auto; }
+    .oda-kap { left: 4%; width: clamp(38px, 5vw, 54px); }
+    .oda-minder { right: 3%; width: clamp(90px, 13vw, 140px); bottom: 7%; }
+    .oda-zemin { position: absolute; left: 4%; right: 4%; bottom: 7%; height: 70%; }
+    .oda-zemin .kedi { --kedi-en: clamp(120px, 17vw, 190px); }
+    .ruh {
+      display: grid;
+      gap: 4px;
+      padding: clamp(14px, 2vh, 20px) clamp(16px, 2vw, 24px);
+      border-top: 1px solid var(--surface-2);
+    }
+    .ruh-ad { font-size: clamp(1.2rem, 1.8vw, 1.5rem); font-weight: 800; letter-spacing: -0.02em; }
+    .ruh p { color: var(--text-2); line-height: 1.45; }
+    .ruh .son { font-size: 0.85rem; color: var(--muted); }
+
+    /* İhtiyaç göstergeleri: simge, ad, değer ve durum metni; renk tek başına anlam taşımaz */
+    .olcerler { list-style: none; display: grid; gap: 6px; }
+    .olcer {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) auto;
+      grid-template-areas: "ikon ad metin" "ikon bar bar";
+      align-items: center;
+      gap: 4px 10px;
+      padding: 10px 14px;
+      background: var(--surface);
+    }
+    .olcer-ikon { grid-area: ikon; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--surface-2); }
+    .olcer-ikon svg { width: 16px; height: 16px; fill: none; stroke: var(--text); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .olcer-ad { grid-area: ad; font-weight: 700; font-size: 0.95rem; }
+    .olcer-metin { grid-area: metin; font-size: 0.88rem; color: var(--text-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .olcer-metin b { font-weight: 700; color: var(--text); }
+    .olcer-bar { grid-area: bar; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+    .olcer-bar i { display: block; height: 100%; width: var(--d, 0%); border-radius: inherit; background: var(--renk); transition: width 500ms var(--ease-out); }
+    .olcer[data-seviye="iyi"] { --renk: #3FB37F; }
+    .olcer[data-seviye="orta"] { --renk: #E3A63B; }
+    .olcer[data-seviye="dusuk"] { --renk: #E0605E; }
+    /* Düşük seviyede ünlem ve çizgili çubuk da var */
+    .olcer[data-seviye="dusuk"] .olcer-metin b::after { content: " !"; color: #E0605E; }
+    .olcer[data-seviye="dusuk"] .olcer-bar i {
+      background: repeating-linear-gradient(-45deg, var(--renk) 0 6px, color-mix(in srgb, var(--renk) 70%, #fff) 6px 10px);
+    }
+
+    /* Bakım düğmeleri */
+    .eylemler { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .eylem {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 56px;
+      padding: 0 12px;
+      border: 0;
+      background: var(--accent);
+      color: var(--on-accent);
+      font: inherit;
+      font-size: 1.02rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 150ms ease, transform 160ms var(--ease-out), opacity 150ms ease;
+    }
+    .eylem svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    .eylem:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
+    .eylem:active:not(:disabled) { transform: scale(0.97); }
+    .eylem:disabled { opacity: 0.45; cursor: not-allowed; }
+    @media (hover: hover) and (pointer: fine) {
+      .eylem:not(:disabled):hover { background: var(--accent-hover); }
+    }
+    .eylem-mesaj { min-height: 1.5em; line-height: 1.5; color: var(--text); }
+    .eylem-mesaj[data-tur="red"] { color: var(--text-2); }
+    .eylem-mesaj[data-tur="hata"] { padding: 10px 12px; border-left: 4px solid #E0605E; background: var(--surface); }
+
+    /* Mod notu ve giriş kutusu */
+    .not, .giris { padding: 14px 16px; background: var(--surface); line-height: 1.5; font-size: 0.9rem; color: var(--text-2); }
+    .not b, .giris b { color: var(--text); }
+    .not button, .giris button.ikincil {
+      margin-top: 8px;
+      min-height: 36px;
+      padding: 0 14px;
+      border: 1px solid var(--surface-2);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .not button:focus-visible, .giris button:focus-visible, .giris input:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+    .giris form { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .giris input {
+      flex: 1 1 180px;
+      min-width: 0;
+      min-height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--surface-2);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 16px;
+    }
+    .giris button[type="submit"] {
+      min-height: 40px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: var(--on-accent);
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .giris button:disabled { opacity: 0.5; cursor: default; }
+    .giris-mesaj { margin-top: 8px; }
+    .giris-mesaj:empty { display: none; }
+
+    /* Aktivite geçmişi */
+    .gecmis ol { list-style: none; display: grid; gap: 4px; }
+    .gecmis li {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 2px 12px;
+      padding: 9px 14px;
+      background: var(--surface);
+      font-size: 0.92rem;
+      line-height: 1.35;
+    }
+    .gecmis li.red { color: var(--text-2); }
+    .gecmis time { color: var(--muted); font-size: 0.82rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .gecmis .bos { color: var(--text-2); grid-template-columns: 1fr; }
+
+    @media (max-width: 900px) {
+      .oda-govde { grid-template-columns: minmax(0, 1fr); grid-template-areas: "sahne" "bakim" "gecmis"; }
+    }
+    @media (max-width: 560px) {
+      .oda { height: 210px; }
+      .oda-zemin .kedi { --kedi-en: 120px; }
+      .oda-minder { width: 84px; }
+      .eylem { min-height: 52px; font-size: 0.96rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .eylem, .olcer-bar i { transition: none; }
+      .eylem:active:not(:disabled) { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="ust">
+      <div class="ust-sol">
+        <a class="geri" href="./"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Anasayfa</a>
+        <h1>Kedi Odası</h1>
+        <span class="mod-rozet" id="mod-rozet" data-durum="yukleniyor">Yükleniyor</span>
+      </div>
+      <div class="ust-sag">
+        <button type="button" class="ayarlar-btn" aria-haspopup="dialog" aria-label="Ayarlar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><span>Ayarlar</span></button>
+      </div>
+    </div>
+
+    <p class="uyari" id="baglanti-uyari" role="alert" hidden></p>
+
+    <div class="oda-govde">
+      <section class="sahne-kart" aria-labelledby="ruh-ad">
+        <div class="oda" id="oda" role="img" aria-label="Kedi odası">
+          <div class="oda-pencere" aria-hidden="true"></div>
+          <div class="oda-esya oda-kap" aria-hidden="true"><svg viewBox="0 0 40 20"><path d="M2 6h36l-4 13H6z" fill="var(--accent)"/><ellipse cx="20" cy="6" rx="18" ry="3" fill="color-mix(in srgb, var(--accent) 70%, #000)"/></svg></div>
+          <div class="oda-esya oda-minder" aria-hidden="true"><svg viewBox="0 0 100 24"><ellipse cx="50" cy="15" rx="49" ry="9" fill="color-mix(in srgb, var(--accent) 55%, var(--surface))"/><ellipse cx="50" cy="12" rx="40" ry="6" fill="color-mix(in srgb, var(--accent) 35%, var(--surface))"/></svg></div>
+          <div class="oda-zemin" id="oda-zemin"></div>
+        </div>
+        <div class="ruh">
+          <span class="ruh-ad" id="ruh-ad">…</span>
+          <p id="ruh-mesaj"></p>
+          <p class="son" id="son-bakan"></p>
+        </div>
+      </section>
+
+      <section class="bakim" aria-labelledby="bakim-baslik">
+        <div>
+          <h2 id="bakim-baslik">İhtiyaçlar</h2>
+          <ul class="olcerler" id="olcerler"></ul>
+        </div>
+        <div class="eylemler" role="group" aria-label="Bakım">
+          <button type="button" class="eylem" data-eylem="feed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18l-2 7H5zM8 9h.01M12 8h.01M16 9h.01"/></svg>Besle</button>
+          <button type="button" class="eylem" data-eylem="play"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M5 9c4 2 10 2 14 0M5 15c4-2 10-2 14 0"/></svg>Oynat</button>
+          <button type="button" class="eylem" data-eylem="rest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Dinlendir</button>
+          <button type="button" class="eylem" data-eylem="clean"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg>Temizle</button>
+        </div>
+        <p class="eylem-mesaj" id="eylem-mesaj" aria-live="polite"></p>
+        <div class="not" id="demo-not" hidden>
+          <b>Yerel deneme modu.</b> Bakımlar yalnızca bu tarayıcıda saklanır; ekipteki başka kimse bu kediyi görmez.
+          Ortak kedi için Supabase bağlantısı kurulmalı (README.md).
+          <br><button type="button" id="sifirla">Denemeyi sıfırla</button>
+        </div>
+        <div class="giris" id="giris" hidden></div>
+      </section>
+
+      <section class="gecmis" aria-labelledby="gecmis-baslik">
+        <h2 id="gecmis-baslik">Son bakımlar</h2>
+        <ol id="gecmis-liste"></ol>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <span>ÖDHM · <span id="yil"></span></span>
+  </footer>
+
+  <script src="kedi/ayar.js" defer></script>
+  <script src="kedi/baglanti.js" defer></script>
+  <script src="kedi/kurallar.js" defer></script>
+  <script src="kedi/durum.js" defer></script>
+  <script src="kedi/karakter.js" defer></script>
+  <script src="kedi/oda.js" defer></script>
+</body>
+</html>
