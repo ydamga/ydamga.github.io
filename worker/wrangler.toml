@@ -7,7 +7,7 @@ compatibility_date = "2025-09-01"
 crons = ["0 7 * * *"]
 
 [vars]
-SITE = "https://ydamga.github.io"
+SITE = "https://ysndmg.me"
 VAPID_PUBLIC_KEY = "BCryU_s3mEZYtTRz6WgZd_rwIQDnsBxZxG-1sf9VzB8xOvxlsdea_hcV9vG6QAzY0X2zGIebtH__hDRNTDHm91M"
 # VAPID_PRIVATE_KEY bir secret'tır: npx wrangler secret put VAPID_PRIVATE_KEY
 

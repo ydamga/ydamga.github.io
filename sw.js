@@ -8,7 +8,7 @@ self.addEventListener('push', function (e) {
   e.waitUntil(self.registration.showNotification(veri.baslik || 'ÖSYM hatırlatma', {
     body: veri.govde || '',
     tag: veri.etiket || 'osym',
-    data: { url: veri.url || 'https://ydamga.github.io/' }
+    data: { url: veri.url || 'https://ysndmg.me/' }
   }));
 });
 

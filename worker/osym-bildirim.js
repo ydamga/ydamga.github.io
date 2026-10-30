@@ -120,7 +120,7 @@ function hatirlatmalar(sinavlar, bugun) {
 
 // ---- Worker ----
 
-const IZINLI_KOKENLER = ['https://ydamga.github.io', 'http://localhost:8765'];
+const IZINLI_KOKENLER = ['https://ysndmg.me', 'https://ydamga.github.io', 'http://localhost:8765'];
 
 function cors(istek) {
   const koken = istek.headers.get('Origin');
