@@ -1,15 +1,6 @@
 {
-  "guncellendi": "2026-10-31T14:41+03:00",
+  "guncellendi": "2026-11-01T15:41+03:00",
   "sinavlar": [
-    {
-      "kod": "Sayıştay Eleme",
-      "ad": "2026-Sayıştay Eleme",
-      "link": "https://www.osym.gov.tr/SinavGrubu/Index/32",
-      "basvuru_baslangic": "2026-09-09T10:30:00+03:00",
-      "basvuru_bitis": "2026-09-17T23:59:00+03:00",
-      "gec_basvuru_bitis": "2026-09-24T23:59:00+03:00",
-      "sinav_tarihi": "2026-10-31"
-    },
     {
       "kod": "DUS",
       "ad": "2026-DUS 2.Dönem",
