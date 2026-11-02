@@ -1,33 +1,6 @@
 {
-  "guncellendi": "2026-11-01T15:41+03:00",
+  "guncellendi": "2026-11-02T17:47+03:00",
   "sinavlar": [
-    {
-      "kod": "DUS",
-      "ad": "2026-DUS 2.Dönem",
-      "link": "https://www.osym.gov.tr/SinavGrubu/Index/9",
-      "basvuru_baslangic": "2026-09-16T00:00:00+03:00",
-      "basvuru_bitis": "2026-09-24T23:59:00+03:00",
-      "gec_basvuru_bitis": "2026-10-01T23:59:00+03:00",
-      "sinav_tarihi": "2026-11-01"
-    },
-    {
-      "kod": "STS Diş Hekimliği",
-      "ad": "2026-STS Diş Hekimliği 2.Dönem",
-      "link": "https://www.osym.gov.tr/SinavGrubu/Index/39",
-      "basvuru_baslangic": "2026-09-16T00:00:00+03:00",
-      "basvuru_bitis": "2026-09-24T23:59:00+03:00",
-      "gec_basvuru_bitis": "2026-10-01T23:59:00+03:00",
-      "sinav_tarihi": "2026-11-01"
-    },
-    {
-      "kod": "KPSS",
-      "ad": "2026-KPSS Din Hizmetleri Alan Bilgisi Testi (DHBT)",
-      "link": "https://www.osym.gov.tr/SinavGrubu/Index/3",
-      "basvuru_baslangic": "2026-09-22T10:40:00+03:00",
-      "basvuru_bitis": "2026-09-30T23:59:00+03:00",
-      "gec_basvuru_bitis": "2026-10-05T23:59:00+03:00",
-      "sinav_tarihi": "2026-11-01"
-    },
     {
       "kod": "EUS",
       "ad": "2026-EUS",
