@@ -266,6 +266,12 @@
     .tools li:nth-child(1) .tool { animation-delay: 140ms; }
     .tools li:nth-child(2) .tool { animation-delay: 200ms; }
     .tools li:nth-child(3) .tool { animation-delay: 260ms; }
+    .tools li:nth-child(4) .tool { animation-delay: 320ms; }
+
+    /* Akademik takvim kartında dönemin kaçıncı haftası olduğu */
+    .tool .donem { display: block; margin-top: 6px; color: var(--text-2); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+    .tool .donem:empty { display: none; }
+    .tool .donem b { color: var(--accent-ink); font-weight: 800; }
 
     @media (max-width: 899px) {
       .govde { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "osym osym" "yemek araclar"; }
@@ -277,7 +283,7 @@
       .kisayollar a { min-height: 40px; padding: 0 2px; font-size: 0.74rem; }
       .kisayollar svg { display: none; }
       .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .tools li:nth-child(3) { grid-column: 1 / -1; }
+      .tool .donem { font-size: 0.78rem; margin-top: 4px; }
       .tool { min-height: 64px; padding: 12px 14px; gap: 8px; }
       .tool h2 { font-size: 1.05rem; }
       .arrow { width: 32px; height: 32px; }
@@ -346,6 +352,15 @@
           <a class="tool" href="kedi-odasi.html">
             <h2>Kedi Odası</h2>
             <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </a>
+        </li>
+        <li>
+          <a class="tool" href="https://arel.edu.tr/2026-2027-akademik-takvim-llisans-onlisans/" target="_blank" rel="noopener">
+            <div>
+              <h2>Akademik takvim</h2>
+              <span class="donem" id="donem-hafta"></span>
+            </div>
+            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
           </a>
         </li>
       </ul>
@@ -452,6 +467,39 @@
           document.getElementById('osym').hidden = false;
         })
         .catch(function () { /* veri yoksa bölüm gizli kalır */ });
+    })();
+
+    // Dönemin kaçıncı haftası: hafta, derslerin başladığı haftanın pazartesisinden sayılır.
+    // Tarihler arel.edu.tr 2026-2027 lisans/ön lisans akademik takviminden; yeni yıl gelince güncellenmeli.
+    (function () {
+      var DONEMLER = [
+        { ad: 'Güz', bas: '2026-09-22', bit: '2026-12-16' },
+        { ad: 'Bahar', bas: '2027-01-18', bit: '2027-04-16' }
+      ];
+      var bugun = (location.search.match(/[?&]bugun=(\d{4}-\d{2}-\d{2})/) || [])[1] ||
+        new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' });
+      function utc(g) { return new Date(g + 'T12:00:00Z'); }
+      function uzun(g) { return utc(g).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', timeZone: 'UTC' }); }
+      var el = document.getElementById('donem-hafta');
+
+      for (var i = 0; i < DONEMLER.length; i++) {
+        var d = DONEMLER[i];
+        if (bugun < d.bas) {
+          el.textContent = d.ad + ' dönemi başlangıcı: ' + uzun(d.bas);
+          return;
+        }
+        if (bugun <= d.bit) {
+          var pazartesi = utc(d.bas);
+          pazartesi.setUTCDate(pazartesi.getUTCDate() - (pazartesi.getUTCDay() + 6) % 7);
+          var gecen = Math.floor((utc(bugun) - pazartesi) / (7 * 864e5));
+          el.innerHTML = '';
+          var b = document.createElement('b');
+          b.textContent = (gecen + 1) + '. hafta';
+          el.append(d.ad + ' dönemi · ', b, ' · ' + gecen + ' hafta geçti');
+          return;
+        }
+      }
+      el.textContent = 'Dönem dersleri sona erdi';
     })();
 
     // Günün yemeği. Seçilen yerleşke tarayıcıda hatırlanır; varsayılan Tepekent.
