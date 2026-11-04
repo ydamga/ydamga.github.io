@@ -109,7 +109,7 @@ body.g-done{overflow:hidden}
 
   <section class="card" style="margin-top:16px">
     <h2>Yoklama</h2>
-    <p class="sub">Öğrenci programının altında haftalık devam durumu</p>
+    <p class="sub">Öğrenci programının altında haftalık devam durumu; "Devam raporu" sekmesinde akademisyen ve ders bazlı QR açılmama ve devamsızlık oranları</p>
     <div class="step"><b>Yoklama Excel dosyası</b>
       <input type="file" id="aFile" accept=".xlsx,.xls,.csv,.xlsm"><div class="info" id="aInfo"></div><div class="info" id="aStatus"></div></div>
     <p class="note">Öğrenci numarası ve "Ders Har. ID" ile öğrenci Excel'indeki derslere bağlanır; ID eşleşmezse ders adına bakılır. Öğrenci Excel'inde olmayan öğrenciler de numarayla aranabilir. Ad gösterimi öğrenci bölümündeki seçime uyar.</p>
@@ -234,6 +234,24 @@ body.mo{overflow:hidden}
 #dnow[aria-pressed="true"]{background:var(--hover)}
 #der td.r,#der span.r{color:var(--muted)}
 .tip{margin:6px 2px 0;color:var(--muted);font-size:13px}
+/* Devam raporu */
+#dvm .tabs.small{margin-bottom:12px}
+#dvm .sel{align-items:center}
+#dvm .sel input[type=search]{flex:1 1 260px;max-width:420px}
+#dvm .sel label{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+#dvm .sel input[type=number]{width:76px}
+#dvm td.r,#dvm th.r{text-align:right;font-variant-numeric:tabular-nums}
+#dvm td.n{color:var(--muted);font-variant-numeric:tabular-nums}
+#dvm td.w{white-space:normal;min-width:200px}
+#dvm th button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+#dvm th button:hover{color:var(--ink)}
+#dvm th[aria-sort="descending"] button{color:var(--ink);font-weight:800}
+#dvm th[aria-sort="descending"] button::after{content:" ↓"}
+#dvm th button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.rt{display:inline-flex;align-items:center;justify-content:flex-end;gap:8px;min-width:118px}
+.rt i{display:block;width:56px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.rt i b{display:block;height:100%;background:var(--c2b)}
+.rt.hi{color:var(--warn);font-weight:700}.rt.hi i b{background:var(--warn)}
 @media print{.searchbox,.sel,.tabs,.back,h1,.pr{display:none!important}.tt{min-width:0!important}
   body.mo>.wrap,body.mo .mtools,body.mo .x{display:none!important}
   body.mo .ov{position:static;background:none;padding:0}body.mo .modal{max-height:none;box-shadow:none;border:0}body.mo .mb{overflow:visible}}
@@ -251,6 +269,7 @@ body.mo{overflow:hidden}
     <button type="button" role="tab" data-t="hoca" data-i="tabHoca"></button>
     <button type="button" role="tab" data-t="sinav" data-i="tabSnv"></button>
     <button type="button" role="tab" data-t="derslik" data-i="tabDer"></button>
+    <button type="button" role="tab" data-t="devam" data-i="tabDvm"></button>
   </div>
   <div class="tabs small" id="subtabs" role="tablist">
     <button type="button" role="tab" data-m="ogrenci" data-i="subNum"></button>
@@ -268,6 +287,7 @@ body.mo{overflow:hidden}
   <p class="back hidden" id="back"><button type="button" id="backBtn"></button></p>
   <p class="msg hidden" id="msg"></p>
   <div id="snv" class="hidden"></div>
+  <div id="dvm" class="hidden"></div>
   <div id="der" class="hidden">
     <div class="searchbox">
       <div class="search"><input id="dq" autocomplete="off"><button class="btn" id="dgo" data-i="dGo"></button></div>
@@ -316,7 +336,12 @@ tr:{days:["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar
  der:{ph:"Derslik adı yazın",day:"Gün",time:"Saat",room:"Derslik",cap:"Kapasite",next:"Sonraki ders",noMore:"Bu gün başka ders yok",open:"Derslik programını aç",back:"← Boş derslik listesine dön",
    none:"Bu gün ve saatte boş derslik yok.",isFree:"Boş",capV:function(n){return"Kapasite: "+n},nextAt:function(t){return"sonraki ders "+t},
    busy:function(c,t){return"Dolu ("+c+", bitiş "+t+")"},sub:function(w,n,N){return w+" itibarıyla "+N+" derslikten "+n+" tanesi boş"}},
-subSin:"Bölüm ve sınıfla",
+subSin:"Bölüm ve sınıfla",tabDvm:"Devam raporu",backDvm:"← Devam raporuna dön",
+ dv:{vHoca:"Akademisyen",vDers:"Ders",ph:"Ad, ders kodu veya ders adıyla filtrele",th:"Devamsızlık eşiği",inst:"Öğretim elemanı",course:"Ders",sec:"Şube",stu:"Öğrenci",
+   nC:"Ders",qW:"QR açılmayan hafta",qR:"QR açılmama oranı",abs:"Devamsızlık oranı",hiN:"Devamsızlığı yüksek ders",hiR:"Devamsızlığı yüksek ders oranı",none:"Eşleşen kayıt yok.",unk:"Öğretim elemanı bilinmiyor",
+   pct:function(n){return"%"+n},of:function(a,b){return a+" / "+b},list:function(n){return n+" dersini listele"},
+   noteH:function(t){return"QR açılmama oranı: öğretim elemanının derslerinde yoklama haftalarının kaçında QR açılmadığı. Devamsızlığı yüksek ders: öğrencilerin ortalama devamsızlığı %"+t+" ve üzeri olan dersler. Sütun başlığına basınca o sütuna göre büyükten küçüğe sıralanır."},
+   noteD:function(t){return"Devamsızlık oranı: QR açılan haftalarda “Yok” kayıtlarının “Var” ve “Yok” toplamına oranı; %"+t+" ve üzeri kırmızı. Sütun başlığına basınca o sütuna göre büyükten küçüğe sıralanır."}},
  phNum:"Öğrenci numarası veya adı",phHoca:"Ad veya soyad yazın",go:"Programı göster",print:"Yazdır",list:"Ders listesi",attT:"Devam durumu",
  a:{course:"Ders",wk:"H",week:"Hafta",abs:"Devamsızlık",V:"Var",Y:"Yok",N:"Yoklama açılmadı",other:"Diğer",of:function(y,t){return y+" / "+t},tip:"Yoklama alınan haftalarda gelmediği hafta sayısı"},selProg:"Bölüm seçin",prog:"Bölüm",sin:"Sınıf",
  year:function(s){return/^\d+$/.test(s)?s+". sınıf":s},
@@ -334,7 +359,12 @@ en:{days:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"
  der:{ph:"Type a classroom name",day:"Day",time:"Time",room:"Classroom",cap:"Capacity",next:"Next class",noMore:"No more classes this day",open:"Open classroom schedule",back:"← Back to free classrooms",
    none:"No free classrooms at this day and time.",isFree:"Free",capV:function(n){return"Capacity: "+n},nextAt:function(t){return"next class "+t},
    busy:function(c,t){return"In use ("+c+", until "+t+")"},sub:function(w,n,N){return n+" of "+N+(N===1?" classroom":" classrooms")+" free at "+w}},
-subSin:"By department & year",
+subSin:"By department & year",tabDvm:"Attendance report",backDvm:"← Back to attendance report",
+ dv:{vHoca:"Instructor",vDers:"Course",ph:"Filter by name, course code or title",th:"Absence threshold",inst:"Instructor",course:"Course",sec:"Section",stu:"Students",
+   nC:"Courses",qW:"Weeks without QR",qR:"No-QR rate",abs:"Absence rate",hiN:"High-absence courses",hiR:"High-absence course rate",none:"No matching records.",unk:"Instructor unknown",
+   pct:function(n){return n+"%"},of:function(a,b){return a+" / "+b},list:function(n){return"List courses of "+n},
+   noteH:function(t){return"No-QR rate: share of attendance weeks in the instructor's courses where the QR code was not opened. High-absence course: average student absence of "+t+"% or more. Click a column header to sort by it, highest first."},
+   noteD:function(t){return"Absence rate: “Absent” records divided by “Present” + “Absent” in weeks the QR was opened; "+t+"% or more is shown in red. Click a column header to sort by it, highest first."}},
  phNum:"Student number or name",phHoca:"Type a first or last name",go:"Show schedule",print:"Print",list:"Course list",attT:"Attendance",
  a:{course:"Course",wk:"W",week:"Week",abs:"Absences",V:"Present",Y:"Absent",N:"Not taken",other:"Other",of:function(y,t){return y+" / "+t},tip:"Weeks absent out of weeks attendance was taken"},selProg:"Select department",prog:"Department",sin:"Year",
  year:function(s){return/^\d+$/.test(s)?"Year "+s:s},
@@ -363,9 +393,9 @@ if(DATA.ogrenci&&!DATA.ogrenci.list){var SP=DATA.ogrenci.people;
   DATA.ogrenci.list=Object.keys(SP).filter(function(k){return SP[k].name}).map(function(k){var P=SP[k];
     return{k:k,label:P.name+(P.info&&P.info.length?" — "+P.info.join(", "):""),s:norm(P.name)}}).sort(function(a,b){return a.s.localeCompare(b.s,"tr")})}
 [].forEach.call($("tabs").children,function(b){var t=b.dataset.t;
-  if(t==="ogr"?!hasOgr:t==="hoca"?!DATA.hoca:t==="derslik"?!DATA.derslik:!DATA.sinav)b.classList.add("hidden");
-  b.onclick=function(){setMode(t==="hoca"||t==="sinav"||t==="derslik"?t:(lastOgr||(DATA.ogrenci?"ogrenci":"sinif")))}});
-if([hasOgr,!!DATA.hoca,!!DATA.sinav,!!DATA.derslik].filter(Boolean).length<2)$("tabs").classList.add("hidden");
+  if(t==="ogr"?!hasOgr:t==="hoca"?!DATA.hoca:t==="derslik"?!DATA.derslik:t==="devam"?!DATA.devam:!DATA.sinav)b.classList.add("hidden");
+  b.onclick=function(){setMode(t==="hoca"||t==="sinav"||t==="derslik"||t==="devam"?t:(lastOgr||(DATA.ogrenci?"ogrenci":"sinif")))}});
+if([hasOgr,!!DATA.hoca,!!DATA.sinav,!!DATA.derslik,!!DATA.devam].filter(Boolean).length<2)$("tabs").classList.add("hidden");
 [].forEach.call($("subtabs").children,function(b){b.onclick=function(){setMode(b.dataset.m)};
   if(b.dataset.m==="sinif"?!DATA.sinif:!DATA.ogrenci)b.classList.add("hidden")});
 [].forEach.call($("lang").children,function(b){b.onclick=function(){setLang(b.dataset.l)}});
@@ -386,6 +416,7 @@ function applyLang(){
   $("backBtn").textContent=backLabel(backTo);
   if(MODE==="sinav")renderSinav();
   if(MODE==="derslik")renderDer();
+  if(MODE==="devam")renderDvm();
   if(CUR)render(CUR.p,CUR.kind,CUR.no,true);
   if(RC)drawRoster();
   if(MSG)msg(MSG[0],MSG[1]);
@@ -417,15 +448,15 @@ function showSinif(){var p=$("prog").value,s=$("sin").value;msg("");
   if(p&&s&&DATA.sinif[p][s])render(sinView(DATA.sinif[p][s]),"sinif","");else $("minorBox").classList.add("hidden")}
 $("minor").addEventListener("change",showSinif);
 
-var PANEL={sinav:"snv",derslik:"der"};
+var PANEL={sinav:"snv",derslik:"der",devam:"dvm"};
 function setMode(m){
-  $("snv").classList.add("hidden");$("der").classList.add("hidden");
+  $("snv").classList.add("hidden");$("der").classList.add("hidden");$("dvm").classList.add("hidden");
   if(!PANEL[m])return setMode0(m);
   if(MODE&&!PANEL[MODE])STATE[MODE]={q:q.value,prog:$("prog").value,sin:$("sin").value,cur:CUR,msg:MSG};
   MODE=m;CUR=null;MSG=null;
   [].forEach.call($("tabs").children,function(b){b.setAttribute("aria-selected",b.dataset.t===m)});
   ["subtabs","numbox","selbox","back","msg","res"].forEach(function(i){$(i).classList.add("hidden")});
-  sug.classList.add("hidden");$(PANEL[m]).classList.remove("hidden");if(m==="sinav")renderSinav();else renderDer();
+  sug.classList.add("hidden");$(PANEL[m]).classList.remove("hidden");if(m==="sinav")renderSinav();else if(m==="devam")renderDvm();else renderDer();
 }
 function setMode0(m){
   $("back").classList.add("hidden");
@@ -481,7 +512,7 @@ $("res").addEventListener("click",function(e){var b=e.target.closest(".hl[data-k
   setMode("hoca");q.value=p.name;msg("");render(p,"hoca","");
   showBack(from);
   try{window.scrollTo(0,0)}catch(e){}});
-function backLabel(m){return m==="sinif"?L.backSin:m==="hoca"?L.backHoca:m==="derslik"?L.backDer:L.backStu}
+function backLabel(m){return m==="sinif"?L.backSin:m==="hoca"?L.backHoca:m==="derslik"?L.backDer:m==="devam"?L.backDvm:L.backStu}
 function showBack(from){backTo=from;$("backBtn").textContent=backLabel(from);$("back").classList.remove("hidden")}
 $("backBtn").onclick=function(){var m=backTo;backTo="";$("back").classList.add("hidden");setMode(m)};
 
@@ -703,6 +734,65 @@ function renderSinav(){
     else if(i==="snvProg"){SNV.prog=e.target.value;SNV.sin="";snvFillSin();snvRefresh()}
     else if(i==="snvSin"){SNV.sin=e.target.value;snvRefresh()}});
 })();
+/* ---------- Devam raporu ---------- */
+// Akademisyen ve ders bazlı QR açılmama oranı ve devamsızlık; sütun başlığıyla büyükten küçüğe sıralanır
+var DV={v:"hoca",sh:"q",sd:"q",th:30,q:""};
+try{var dvt=+localStorage.getItem("dp-dvth");if(dvt>0&&dvt<=100)DV.th=dvt}catch(e){}
+function dvRate(a,b){return b?a/b:null}
+function dvCourses(){return DATA.devam.d.map(function(c){return{c:c,qr:dvRate(c.q,c.a+c.q),ab:dvRate(c.y,c.v+c.y)}})}
+function dvHocas(cs){var M={},T=DV.th/100;
+  cs.forEach(function(x){var ks=x.c.k||[""],ns=x.c.h||[L.dv.unk];
+    ks.forEach(function(k,i){var e=M[k]||(M[k]={k:k,n:ns[i],cs:[],a:0,q:0,hi:0,nd:0});
+      e.cs.push(x);e.a+=x.c.a;e.q+=x.c.q;if(x.ab!=null){e.nd++;if(x.ab>=T)e.hi++}})});
+  return Object.keys(M).map(function(k){var e=M[k];e.qr=dvRate(e.q,e.a+e.q);e.hr=dvRate(e.hi,e.nd);return e})}
+// Büyükten küçüğe; oranı olmayanlar sonda, eşitlikte sayı ve ad
+function dvSort(rows,key,cnt,name){return rows.sort(function(x,y){var a=x[key],b=y[key];
+  if(a==null||b==null)return(a==null)-(b==null)||name(x).localeCompare(name(y),"tr");
+  return b-a||cnt(y)-cnt(x)||name(x).localeCompare(name(y),"tr")})}
+function dvPct(r,hi){if(r==null)return'<span class="kmeta">–</span>';var p=Math.round(r*100);
+  return'<span class="rt'+(hi?' hi':'')+'"><i><b style="width:'+p+'%"></b></i>'+esc(L.dv.pct(p))+'</span>'}
+function dvTh(key,label,cur){return'<th class="r"'+(key===cur?' aria-sort="descending"':'')+'><button type="button" data-sort="'+key+'">'+esc(label)+'</button></th>'}
+function dvMatch(txt){var w=norm(DV.q).split(" ").filter(Boolean),t=norm(txt);return w.every(function(x){return t.indexOf(x)>-1})}
+function renderDvm(){
+  var V=L.dv,cs=dvCourses(),T=DV.th/100,h;
+  h='<div class="tabs small" role="tablist">'+[["hoca",V.vHoca],["ders",V.vDers]].map(function(x){return'<button type="button" role="tab" data-dv="'+x[0]+'" aria-selected="'+(x[0]===DV.v)+'">'+esc(x[1])+'</button>'}).join("")+'</div>'+
+    '<div class="sel"><input type="search" id="dvQ" autocomplete="off" placeholder="'+esc(V.ph)+'" aria-label="'+esc(V.ph)+'">'+
+    '<label>'+esc(V.th)+' <input type="number" id="dvTh" min="1" max="100" step="1"> %</label></div>'+
+    '<p class="kmeta">'+esc(DV.v==="hoca"?V.noteH(DV.th):V.noteD(DV.th))+'</p>';
+  var t='<div class="box"><table>';
+  if(DV.v==="hoca"){
+    var rows=dvHocas(cs).filter(function(e){return dvMatch(e.n+" "+e.cs.map(function(x){return x.c.c+" "+x.c.n}).join(" "))});
+    dvSort(rows,DV.sh==="h"?"hr":"qr",function(e){return DV.sh==="h"?e.hi:e.q},function(e){return e.n});
+    t+='<tr><th>#</th><th>'+esc(V.inst)+'</th><th class="r">'+esc(V.nC)+'</th>'+dvTh("qw",V.qW,"")+dvTh("q",V.qR,DV.sh)+dvTh("hw",V.hiN,"")+dvTh("h",V.hiR,DV.sh)+'</tr>';
+    rows.forEach(function(e,i){
+      t+='<tr><td class="n">'+(i+1)+'</td><td class="w">'+(e.k?'<button type="button" class="hl" data-dvh="'+esc(e.n)+'" title="'+esc(V.list(e.n))+'">'+esc(e.n)+'</button>':'<span class="kmeta">'+esc(e.n)+'</span>')+'</td>'+
+        '<td class="r">'+e.cs.length+'</td><td class="r">'+esc(V.of(e.q,e.a+e.q))+'</td><td class="r">'+dvPct(e.qr,e.q>0)+'</td>'+
+        '<td class="r">'+esc(V.of(e.hi,e.nd))+'</td><td class="r">'+dvPct(e.hr,e.hi>0)+'</td></tr>'});
+    if(!rows.length)t+='<tr><td colspan="7" class="n">'+esc(V.none)+'</td></tr>';
+  }else{
+    var rs=cs.filter(function(x){return dvMatch([x.c.c,x.c.n,x.c.s].concat(x.c.h||[]).join(" "))});
+    dvSort(rs,DV.sd==="y"?"ab":"qr",function(x){return DV.sd==="y"?x.c.y:x.c.q},function(x){return x.c.c+" "+x.c.s});
+    t+='<tr><th>#</th><th>'+esc(V.course)+'</th><th>'+esc(V.sec)+'</th><th>'+esc(V.inst)+'</th><th class="r">'+esc(V.stu)+'</th>'+dvTh("qw",V.qW,"")+dvTh("q",V.qR,DV.sd)+dvTh("y",V.abs,DV.sd)+'</tr>';
+    rs.forEach(function(x,i){var c=x.c;
+      t+='<tr><td class="n">'+(i+1)+'</td><td class="w"><b>'+esc(c.c)+'</b> '+esc(c.n)+'</td><td>'+esc(c.s)+'</td><td class="w">'+(c.h?hl({hn:c.h,hk:c.k},"<br>"):'<span class="kmeta">'+esc(V.unk)+'</span>')+'</td>'+
+        '<td class="r">'+c.o+'</td><td class="r">'+esc(V.of(c.q,c.a+c.q))+'</td><td class="r">'+dvPct(x.qr,c.q>0)+'</td><td class="r">'+dvPct(x.ab,x.ab!=null&&x.ab>=T)+'</td></tr>'});
+    if(!rs.length)t+='<tr><td colspan="8" class="n">'+esc(V.none)+'</td></tr>';
+  }
+  $("dvm").innerHTML=h+t+'</table></div>';
+  $("dvQ").value=DV.q;$("dvTh").value=DV.th;
+}
+(function(){var E=$("dvm");
+  E.addEventListener("click",function(e){var t=e.target,b;
+    if((b=t.closest("[data-dv]"))){DV.v=b.dataset.dv;renderDvm();return}
+    if((b=t.closest("[data-sort]"))){var k=b.dataset.sort;if(k==="qw")k="q";if(k==="hw")k="h";
+      if(DV.v==="hoca")DV.sh=k;else DV.sd=k;renderDvm();return}
+    if((b=t.closest("[data-dvh]"))){DV.v="ders";DV.q=b.dataset.dvh;renderDvm();try{window.scrollTo(0,0)}catch(x){}return}
+    if((b=t.closest(".hl[data-k]"))){var p=DATA.hoca.people[b.dataset.k];setMode("hoca");q.value=p.name;msg("");render(p,"hoca","");showBack("devam");try{window.scrollTo(0,0)}catch(x){}}});
+  E.addEventListener("input",function(e){var t=e.target;if(t.id!=="dvQ")return;
+    DV.q=t.value;var pos=t.selectionStart;renderDvm();var n=$("dvQ");n.focus();try{n.setSelectionRange(pos,pos)}catch(x){}});
+  E.addEventListener("change",function(e){if(e.target.id!=="dvTh")return;var v=Math.round(+e.target.value);
+    if(v>0&&v<=100){DV.th=v;try{localStorage.setItem("dp-dvth",v)}catch(x){}}renderDvm()});
+})();
 /* ---------- Derslikler ---------- */
 var DER=DATA.derslik||null,DLIST=null,DROOM="",DNOW=true,dhits=[],dact=-1;
 if(DER)DLIST=Object.keys(DER).sort(function(a,b){return a.localeCompare(b,"tr",{numeric:true})}).map(function(r){return{k:r,label:r+(DER[r].cap?" — "+DER[r].cap:""),s:norm(r)}});
@@ -903,6 +993,37 @@ function addAttendance(people){
   return {matched,extra};
 }
 
+// Devam raporu: ders (şube) başına QR'ın açılıp açılmadığı haftalar ve var/yok sayıları.
+// Bir haftada en az bir öğrencide Var/Yok/başka bir değer varsa QR o hafta açılmış sayılır;
+// hiç açılmamış ve en az bir hücrede "açılmadı" yazıyorsa açılmamış sayılır; boş haftalar sayılmaz.
+function buildDevam(){
+  const idx={};sRows.forEach(x=>{const id=str(x.dh_id);if(id&&!idx[id])idx[id]={code:str(x.dh_kodu),name:str(x.dh_adi),sube:str(x.dh_sube_kodu)}});
+  const hk={},hc={};
+  hRows.forEach(x=>{const n=hocaName(x),c=str(x.dh_kodu),k=c+"|"+str(x.dh_sube_kodu);
+    (hk[k]||(hk[k]=new Map())).set(norm(n.adsoyad),fullName(n));(hc[c]||(hc[c]=new Set())).add(k)});
+  const C={};
+  aRows.forEach(x=>{
+    const id=str(x.ders_har_id),nm=str(x.ders),inf=idx[id]||{};
+    const code=inf.code||str(x.ders_kodu)||str(x.dh_kodu),sube=inf.sube||str(x.sube)||str(x.sube_kodu)||str(x.dh_sube_kodu);
+    const key=id||norm(code+"|"+nm+"|"+sube);
+    const c=C[key]||(C[key]={code,name:inf.name||nm,sube,st:new Set(),w:[],V:0,Y:0,h:new Map()});
+    c.st.add(str(x.ogrenci_no).toLocaleUpperCase("tr"));
+    const rh=str(x.ogretim_elemani)||str(x.ogretim_uyesi)||str(x.ogretim_elemani_adi_soyadi)||str(x.ders_sorumlusu);
+    if(rh)c.h.set(norm(rh),rh);
+    for(let i=0;i<aWeeks;i++){const n=norm(x["hafta_"+(i+1)]),s=c.w[i]||(c.w[i]={o:0,k:0});
+      if(!n)continue;if(/acilmadi/.test(n)){s.k=1;continue}
+      s.o=1;if(n==="var")c.V++;else if(n==="yok")c.Y++}
+  });
+  const d=[];
+  for(const key in C){const c=C[key];let a=0,q=0;c.w.forEach(s=>{if(s.o)a++;else if(s.k)q++});
+    let h=c.h.size?c.h:hk[c.code+"|"+c.sube];
+    if(!h&&hc[c.code]&&hc[c.code].size===1)h=hk[[...hc[c.code]][0]];
+    const o={c:c.code,n:c.name,s:c.sube,o:c.st.size,a,q,v:c.V,y:c.Y};
+    if(h&&h.size){o.h=[...h.values()];o.k=[...h.keys()]}
+    d.push(o)}
+  return{d};
+}
+
 /* ---------- Öğretim elemanı ---------- */
 function hocaName(x){
   const ad=str(x.dh_o_e_ad),soyad=str(x.dh_o_e_soyad);
@@ -1062,7 +1183,8 @@ function buildRoster(){
 $("build").addEventListener("click",()=>{
   const data={title:$("title").value.trim()||"Haftalık Ders Programı",titleEn:$("titleEn").value.trim()||"Weekly Course Schedule",ogrenci:null,sinif:null,hoca:null,updated:window.__dataUpdated||new Date().toISOString()},parts=[];
   if(sRows.length||aRows.length){data.ogrenci=buildStudents();
-    if(aRows.length){const r=addAttendance(data.ogrenci.people);data.weeks=aWeeks;parts.push("yoklama: "+aRows.length+" kayıt"+(r.extra?", "+r.extra+" öğrenci yalnızca yoklamada":""))}
+    if(aRows.length){const r=addAttendance(data.ogrenci.people);data.weeks=aWeeks;parts.push("yoklama: "+aRows.length+" kayıt"+(r.extra?", "+r.extra+" öğrenci yalnızca yoklamada":""));
+      data.devam=buildDevam();parts.push("devam raporu: "+data.devam.d.length+" ders")}
     data.ogrenci.people&&Object.values(data.ogrenci.people).forEach(p=>p.courses.forEach(c=>delete c.id));
     parts.unshift(Object.keys(data.ogrenci.people).length+" öğrenci")}
   if((hAll.length||sRows.some(x=>str(x.sinif)))&&$("sSinif").checked){data.sinif=buildSinif();parts.push(Object.keys(data.sinif).length+" bölüm")}
