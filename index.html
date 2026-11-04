@@ -250,10 +250,12 @@
     }
     /* Uyarılar yalnızca hatırlatma günlerinde görünür */
     .osym .uyarilar { margin-bottom: 10px; }
-    /* Kısa ekranlarda ve telefonda liste 3 sınavla sınırlı, sayfa kaydırmadan sığsın */
-    @media (max-width: 760px), (max-height: 820px) {
+    /* Telefonda liste 3 sınavla sınırlı. Geniş ekranda sağ sütun ekrana sığana kadar
+       ÖSYM ve takvim listelerinin sonundan satır gizlenir (aşağıdaki sigdir()). */
+    @media (max-width: 760px) {
       #osym-liste li:nth-child(n+4) { display: none; }
     }
+    .sigmaz { display: none !important; }
     .osym .uyarilar li a { background: var(--accent); color: var(--on-accent); }
     .osym .uyarilar .tarih { color: var(--on-accent); }
     .osym .uyarilar .gun { border-color: var(--on-accent); color: var(--on-accent); }
@@ -271,14 +273,14 @@
     .takvim .donem { font-size: 0.82rem; color: var(--text-2); font-variant-numeric: tabular-nums; }
     .takvim .donem b { color: var(--accent-ink); font-weight: 800; }
     .yaklasan[hidden] { display: none; }
-    .yaklasan { padding: 4px clamp(14px, 1.6vw, 20px); background: var(--surface); animation: rise 600ms var(--ease-out) 320ms both; }
+    .yaklasan { background: var(--surface); animation: rise 600ms var(--ease-out) 320ms both; }
     .yaklasan ul { list-style: none; }
     .yaklasan li {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 2px 12px;
       align-items: baseline;
-      padding: clamp(7px, 1vh, 11px) 0;
+      padding: clamp(7px, 1vh, 10px) clamp(14px, 1.6vw, 20px);
       border-top: 1px solid var(--surface-2);
       font-variant-numeric: tabular-nums;
     }
@@ -286,10 +288,13 @@
     .yaklasan .ad { font-weight: 700; font-size: 0.92rem; line-height: 1.3; }
     .yaklasan .tarih { grid-column: 1; color: var(--text-2); font-size: 0.82rem; }
     .yaklasan .kalan { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--text-2); font-size: 0.82rem; white-space: nowrap; }
-    .yaklasan .suruyor .kalan, .yaklasan .bugun .kalan { color: var(--accent-ink); font-weight: 700; }
     .yaklasan .tatil .ad::after { content: " · tatil"; font-weight: 500; color: var(--text-2); }
-    /* Kısa ekranlarda ve telefonda 3 etkinlik */
-    @media (max-width: 760px), (max-height: 820px) {
+    /* Süren (ve bugünkü) etkinlik: vurgu renginde zemin, solda şerit */
+    .yaklasan .suruyor { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); box-shadow: inset 4px 0 0 var(--accent); border-top-color: transparent; }
+    .yaklasan .suruyor + li { border-top-color: transparent; }
+    .yaklasan .suruyor .kalan { color: var(--accent-ink); font-weight: 800; }
+    /* Telefonda 3 etkinlik */
+    @media (max-width: 760px) {
       .yaklasan li:nth-child(n+4) { display: none; }
     }
 
@@ -355,13 +360,13 @@
 
     <section class="takvim" aria-labelledby="takvim-baslik">
       <div class="osym-head">
-        <h2 id="takvim-baslik">Yaklaşan etkinlikler</h2>
+        <h2 id="takvim-baslik">Akademik takvim</h2>
         <span class="donem" id="donem-hafta"></span>
       </div>
       <div class="yaklasan" id="takvim-yaklasan" hidden>
         <ul id="yaklasan-liste" aria-labelledby="takvim-baslik"></ul>
       </div>
-      <p class="alt-satir"><span></span><a href="https://arel.edu.tr/2026-2027-akademik-takvim-llisans-onlisans/" target="_blank" rel="noopener">Akademik takvim</a></p>
+      <p class="alt-satir"><span></span><a href="akademik-takvim.html">Akademik takvim</a></p>
     </section>
     </div>
 
@@ -482,67 +487,66 @@
           document.getElementById('osym-not').textContent =
             'Güncellendi: ' + new Date(veri.guncellendi).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
           document.getElementById('osym').hidden = false;
+          sigdir();
         })
         .catch(function () { /* veri yoksa bölüm gizli kalır */ });
     })();
 
-    // Dönemin kaçıncı haftası: hafta, derslerin başladığı haftanın pazartesisinden sayılır.
-    // Tarihler arel.edu.tr 2026-2027 lisans/ön lisans akademik takviminden; yeni yıl gelince güncellenmeli.
+    // Akademik takvim (data/akademik-takvim.json): başlıkta dönemin kaçıncı haftası, altta süren ve yaklaşan etkinlikler.
     (function () {
-      var DONEMLER = [
-        { ad: 'Güz', bas: '2026-09-22', bit: '2026-12-16' },
-        { ad: 'Bahar', bas: '2027-01-18', bit: '2027-04-16' }
-      ];
-      var bugun = (location.search.match(/[?&]bugun=(\d{4}-\d{2}-\d{2})/) || [])[1] ||
-        new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' });
-      function utc(g) { return new Date(g + 'T12:00:00Z'); }
-      function uzun(g) { return utc(g).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', timeZone: 'UTC' }); }
-      var el = document.getElementById('donem-hafta');
-
-      for (var i = 0; i < DONEMLER.length; i++) {
-        var d = DONEMLER[i];
-        if (bugun < d.bas) {
-          el.textContent = d.ad + ' dönemi başlangıcı: ' + uzun(d.bas);
-          return;
-        }
-        if (bugun <= d.bit) {
-          var pazartesi = utc(d.bas);
-          pazartesi.setUTCDate(pazartesi.getUTCDate() - (pazartesi.getUTCDay() + 6) % 7);
-          var gecen = Math.floor((utc(bugun) - pazartesi) / (7 * 864e5));
-          el.innerHTML = '';
-          var b = document.createElement('b');
-          b.textContent = (gecen + 1) + '. hafta';
-          el.append(d.ad + ' dönemi · ', b, ' · ' + gecen + ' hafta geçti');
-          return;
-        }
-      }
-      el.textContent = 'Dönem dersleri sona erdi';
-    })();
-
-    // Akademik takvimden yaklaşan etkinlikler: süren ve önümüzdeki ilk 4 etkinlik (telefonda 3).
-    (function () {
-      var ADET = 4;
+      var ADET = 6; // geniş ekranda sigdir() sığmayanları gizler; telefonda 3
       var bugun = (location.search.match(/[?&]bugun=(\d{4}-\d{2}-\d{2})/) || [])[1] ||
         new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' });
       function utc(g) { return new Date(g + 'T12:00:00Z'); }
       function fark(a, b) { return Math.round((utc(b) - utc(a)) / 864e5); }
-      function tarih(g, ay) { return utc(g).toLocaleDateString('tr-TR', { day: 'numeric', month: ay ? 'short' : undefined, timeZone: 'UTC' }); }
+      function tarih(g, ay) { return utc(g).toLocaleDateString('tr-TR', ay ? { day: 'numeric', month: 'short', timeZone: 'UTC' } : { day: 'numeric', timeZone: 'UTC' }); }
+      function uzun(g) { return utc(g).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', timeZone: 'UTC' }); }
       function aralik(e) {
         if (!e.bit) return utc(e.bas).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long', timeZone: 'UTC' });
         var ayniAy = e.bas.slice(0, 7) === e.bit.slice(0, 7);
         return tarih(e.bas, !ayniAy) + ' – ' + tarih(e.bit, true);
       }
 
+      // Hafta, derslerin başladığı haftanın pazartesisinden sayılır
+      function hafta(dersler) {
+        var el = document.getElementById('donem-hafta');
+        for (var i = 0; i < dersler.length; i++) {
+          var d = dersler[i];
+          if (bugun < d.bas) { el.textContent = d.donem + ' başlangıcı: ' + uzun(d.bas); return; }
+          if (bugun <= d.bit) {
+            var pazartesi = utc(d.bas);
+            pazartesi.setUTCDate(pazartesi.getUTCDate() - (pazartesi.getUTCDay() + 6) % 7);
+            var gecen = Math.floor((utc(bugun) - pazartesi) / (7 * 864e5));
+            var b = document.createElement('b');
+            b.textContent = (gecen + 1) + '. hafta';
+            el.append(d.donem + ' · ', b, ' · ' + gecen + ' hafta geçti');
+            return;
+          }
+        }
+        el.textContent = 'Dönem dersleri sona erdi';
+      }
+
       fetch('data/akademik-takvim.json', { cache: 'no-cache' })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function (veri) {
-          var liste = document.getElementById('yaklasan-liste');
-          var secilen = veri.etkinlikler
+          var dersler = veri.etkinlikler.filter(function (e) { return e.tur === 'ders'; });
+          hafta(dersler);
+
+          // Anasayfadaki satırlar: "ana" işaretli etkinlikler, derslerin başlangıç/bitiş günleri, süreçlerin ilk adımı
+          var olaylar = veri.etkinlikler.filter(function (e) { return e.ana; });
+          dersler.forEach(function (d) {
+            olaylar.push({ ad: d.ad + ' başlıyor', bas: d.bas }, { ad: d.ad + ' sona eriyor', bas: d.bit });
+          });
+          veri.surecler.forEach(function (s) {
+            if (s.ana) olaylar.push({ ad: s.ana, bas: s.adimlar[0].bas, bit: s.adimlar[0].bit });
+          });
+          var secilen = olaylar
             .filter(function (e) { return (e.bit || e.bas) >= bugun; })
             .sort(function (a, b) { return a.bas < b.bas ? -1 : a.bas > b.bas ? 1 : 0; })
             .slice(0, ADET);
           if (!secilen.length) return;
 
+          var liste = document.getElementById('yaklasan-liste');
           secilen.forEach(function (e) {
             var li = document.createElement('li');
             var ad = document.createElement('span');
@@ -556,13 +560,9 @@
             var bas = fark(bugun, e.bas);
             if (bas > 0) {
               k.textContent = bas === 1 ? 'Yarın' : bas + ' gün sonra';
-            } else if (!e.bit || e.bit === bugun) {
-              k.textContent = e.bit ? 'Son gün' : 'Bugün';
-              li.classList.add('bugun');
             } else {
-              var kalan = fark(bugun, e.bit);
-              k.textContent = 'Sürüyor · ' + kalan + ' gün';
-              k.title = 'Bitişe ' + kalan + ' gün var';
+              var kalan = e.bit ? fark(bugun, e.bit) : 0;
+              k.textContent = !e.bit ? 'Bugün' : kalan === 0 ? 'Son gün' : 'Sürüyor · ' + kalan + ' gün kaldı';
               li.classList.add('suruyor');
             }
             if (e.tur === 'tatil') li.classList.add('tatil');
@@ -570,8 +570,35 @@
             liste.appendChild(li);
           });
           document.getElementById('takvim-yaklasan').hidden = false;
+          sigdir();
         })
-        .catch(function () { /* veri yoksa bölüm gizli kalır */ });
+        .catch(function () { /* veri yoksa yalnızca başlık ve bağlantı görünür */ });
+    })();
+
+    // Geniş ekranda (üç ya da iki sütun) sağ sütunu ekrana sığdır: sayfa kaydırma gerektiriyorsa
+    // önce uzun olan listenin sonundan satır gizle. En az 1 ÖSYM sınavı ve 2 takvim etkinliği kalır.
+    function sigdir() {
+      var osym = Array.prototype.slice.call(document.querySelectorAll('#osym-liste li:not(.bos)'));
+      var takvim = Array.prototype.slice.call(document.querySelectorAll('#yaklasan-liste li'));
+      osym.concat(takvim).forEach(function (li) { li.classList.remove('sigmaz'); });
+      if (!matchMedia('(min-width: 900px)').matches) return;
+      function gorunen(l) { return l.filter(function (li) { return !li.classList.contains('sigmaz'); }); }
+      var kok = document.documentElement;
+      while (kok.scrollHeight > innerHeight + 1) {
+        var o = gorunen(osym), t = gorunen(takvim);
+        if (t.length > 2 && t.length >= o.length) t[t.length - 1].classList.add('sigmaz');
+        else if (o.length > 1) o[o.length - 1].classList.add('sigmaz');
+        else if (t.length > 2) t[t.length - 1].classList.add('sigmaz');
+        else break;
+      }
+    }
+    (function () {
+      var bekleyen = 0;
+      addEventListener('resize', function () {
+        cancelAnimationFrame(bekleyen);
+        bekleyen = requestAnimationFrame(sigdir);
+      });
+      if (document.fonts) document.fonts.ready.then(sigdir);
     })();
 
     // Günün yemeği. Seçilen yerleşke tarayıcıda hatırlanır; varsayılan Tepekent.

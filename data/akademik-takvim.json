@@ -1,45 +1,193 @@
 {
+  "baslik": "2026–2027 lisans / ön lisans akademik takvimi",
   "kaynak": "https://arel.edu.tr/2026-2027-akademik-takvim-llisans-onlisans/",
-  "not": "2026-2027 lisans/ön lisans akademik takviminin öne çıkan satırları. Kaynakta güz finallerinin bitişi '6 Ocak 2026' yazıyor; 2027 olarak düzeltildi. YÖK tarafından revize edilebilir.",
+  "not": "Kaynakta güz finallerinin bitişi '6 Ocak 2026' yazıyor; 2027 olarak düzeltildi. Takvim YÖK tarafından revize edilebilir.",
   "guncellendi": "2026-11-04",
+  "aciklama": "etkinlikler: tur = ders | kayit | sinav | not | tatil | toren. ana: true olanlar anasayfada da görünür. tur 'ders' olanlar dönemi tanımlar (anasayfadaki hafta bilgisi bunlardan hesaplanır). surecler: adım adım başvuru süreçleri; 'ana' alanı varsa ilk adım bu adla anasayfada görünür.",
   "etkinlikler": [
-    { "ad": "Ders kayıt işlemleri", "bas": "2026-09-14", "bit": "2026-09-20" },
-    { "ad": "Akademik yıla başlama töreni", "bas": "2026-09-21" },
-    { "ad": "Güz dönemi dersleri başlıyor", "bas": "2026-09-22" },
-    { "ad": "Ders ekleme-bırakma", "bas": "2026-09-22", "bit": "2026-10-02" },
-    { "ad": "Kayıt dondurma başvurusu", "bas": "2026-09-22", "bit": "2026-10-23" },
-    { "ad": "Muafiyet sınavları", "bas": "2026-10-10", "tur": "sinav" },
-    { "ad": "Cumhuriyet Bayramı tatili", "bas": "2026-10-28", "bit": "2026-10-29", "tur": "tatil" },
-    { "ad": "Mazeret sınavları", "bas": "2026-11-23", "bit": "2026-11-27", "tur": "sinav" },
-    { "ad": "Dersten çekilme son günü", "bas": "2026-11-27" },
-    { "ad": "Dönem içi notların sisteme girilmesi", "bas": "2026-12-03" },
-    { "ad": "Güz dönemi dersleri sona eriyor", "bas": "2026-12-16" },
-    { "ad": "Merkezi puanla yatay geçiş başvurusu", "bas": "2026-12-21", "bit": "2027-01-06" },
-    { "ad": "Final sınavları", "bas": "2026-12-23", "bit": "2027-01-06", "tur": "sinav" },
-    { "ad": "Yılbaşı tatili", "bas": "2027-01-01", "tur": "tatil" },
-    { "ad": "Not ortalamasıyla yatay geçiş başvurusu", "bas": "2027-01-04", "bit": "2027-01-06" },
-    { "ad": "Çift anadal/yandal başvurusu", "bas": "2027-01-04", "bit": "2027-01-06" },
-    { "ad": "Bütünleme sınavları", "bas": "2027-01-11", "bit": "2027-01-13", "tur": "sinav" },
-    { "ad": "Bahar dönemi ders kayıt işlemleri", "bas": "2027-01-11", "bit": "2027-01-18" },
-    { "ad": "Tek ders ve not yükseltme başvurusu", "bas": "2027-01-11", "bit": "2027-01-20" },
-    { "ad": "Bahar dönemi dersleri başlıyor", "bas": "2027-01-18" },
-    { "ad": "Kayıt dondurma başvurusu", "bas": "2027-01-18", "bit": "2027-02-19" },
-    { "ad": "Tek ders ve not yükseltme sınavları", "bas": "2027-01-26", "bit": "2027-01-29", "tur": "sinav" },
-    { "ad": "Ramazan Bayramı tatili", "bas": "2027-03-08", "bit": "2027-03-12", "tur": "tatil" },
-    { "ad": "Dersten çekilme son günü", "bas": "2027-04-02" },
-    { "ad": "Mazeret sınavları", "bas": "2027-04-05", "bit": "2027-04-09", "tur": "sinav" },
-    { "ad": "Dönem içi notların sisteme girilmesi", "bas": "2027-04-12" },
-    { "ad": "Bahar dönemi dersleri sona eriyor", "bas": "2027-04-16" },
-    { "ad": "Final sınavları", "bas": "2027-04-17", "bit": "2027-04-30", "tur": "sinav" },
-    { "ad": "23 Nisan Ulusal Egemenlik ve Çocuk Bayramı", "bas": "2027-04-23", "tur": "tatil" },
-    { "ad": "1 Mayıs Emek ve Dayanışma Günü", "bas": "2027-05-01", "tur": "tatil" },
-    { "ad": "Bütünleme sınavları", "bas": "2027-05-07", "bit": "2027-05-14", "tur": "sinav" },
-    { "ad": "Kurban Bayramı tatili", "bas": "2027-05-15", "bit": "2027-05-19", "tur": "tatil" },
-    { "ad": "Tek ders ve not yükseltme başvurusu", "bas": "2027-05-21", "bit": "2027-05-24" },
-    { "ad": "Tek ders ve not yükseltme sınavları", "bas": "2027-05-27", "bit": "2027-05-31", "tur": "sinav" },
-    { "ad": "Mezuniyet töreni", "bas": "2027-05-29" },
-    { "ad": "Yaz okulu dersleri başlıyor", "bas": "2027-07-05" },
-    { "ad": "Yaz okulu dersleri sona eriyor", "bas": "2027-08-23" },
-    { "ad": "Yaz okulu final sınavları", "bas": "2027-08-24", "bit": "2027-08-27", "tur": "sinav" }
+    { "ad": "Kayıt yenileme işlemleri", "bas": "2026-04-06", "bit": "2026-09-11", "tur": "kayit" },
+    { "ad": "Ders kayıt işlemleri", "bas": "2026-09-14", "bit": "2026-09-20", "tur": "kayit", "ana": true },
+    { "ad": "Akademik yıla başlama töreni", "bas": "2026-09-21", "tur": "toren", "ana": true },
+    { "ad": "Güz dönemi dersleri", "bas": "2026-09-22", "bit": "2026-12-16", "tur": "ders", "donem": "Güz dönemi" },
+    { "ad": "Ders ekleme-bırakma", "bas": "2026-09-22", "bit": "2026-10-02", "tur": "kayit", "ana": true },
+    { "ad": "Kayıt dondurma başvurusu", "bas": "2026-09-22", "bit": "2026-10-23", "tur": "kayit", "ana": true },
+    { "ad": "Muafiyet sınavları (yeni kayıt olan öğrenciler)", "bas": "2026-10-10", "tur": "sinav", "ana": true },
+    { "ad": "Muafiyet sınav sonuçlarının Öğrenci İşlerine bildirilmesi", "bas": "2026-10-14", "tur": "not" },
+    { "ad": "Cumhuriyet Bayramı tatili", "bas": "2026-10-28", "bit": "2026-10-29", "tur": "tatil", "ana": true },
+    { "ad": "Mazeret sınavları", "bas": "2026-11-23", "bit": "2026-11-27", "tur": "sinav", "ana": true },
+    { "ad": "Dersten çekilme (son gün)", "bas": "2026-11-27", "tur": "kayit", "ana": true },
+    { "ad": "Dönem içi notların sisteme girilmesi", "bas": "2026-12-03", "tur": "not", "ana": true },
+    { "ad": "Final sınavları", "bas": "2026-12-23", "bit": "2027-01-06", "tur": "sinav", "ana": true },
+    { "ad": "Final notlarının sisteme girilmesi", "bas": "2026-12-23", "bit": "2027-01-09", "tur": "not" },
+    { "ad": "Yılbaşı tatili", "bas": "2027-01-01", "tur": "tatil", "ana": true },
+    { "ad": "Bütünleme sınavları", "bas": "2027-01-11", "bit": "2027-01-13", "tur": "sinav", "ana": true },
+    { "ad": "Bütünleme notlarının girişi ve ilanı", "bas": "2027-01-11", "bit": "2027-01-14", "tur": "not" },
+    { "ad": "Bahar dönemi ders kayıt işlemleri", "bas": "2027-01-11", "bit": "2027-01-18", "tur": "kayit", "ana": true },
+    { "ad": "Bahar dönemi dersleri", "bas": "2027-01-18", "bit": "2027-04-16", "tur": "ders", "donem": "Bahar dönemi" },
+    { "ad": "Kayıt dondurma başvurusu", "bas": "2027-01-18", "bit": "2027-02-19", "tur": "kayit", "ana": true },
+    { "ad": "Güz dönemi ders portfolyolarının arşive teslimi", "bas": "2027-03-05", "tur": "not" },
+    { "ad": "Ramazan Bayramı tatili", "bas": "2027-03-08", "bit": "2027-03-12", "tur": "tatil", "ana": true },
+    { "ad": "Dersten çekilme (son gün)", "bas": "2027-04-02", "tur": "kayit", "ana": true },
+    { "ad": "Mazeret sınavları", "bas": "2027-04-05", "bit": "2027-04-09", "tur": "sinav", "ana": true },
+    { "ad": "Dönem içi notların sisteme girilmesi", "bas": "2027-04-12", "tur": "not", "ana": true },
+    { "ad": "Final sınavları", "bas": "2027-04-17", "bit": "2027-04-30", "tur": "sinav", "ana": true },
+    { "ad": "Final notlarının sisteme girilmesi", "bas": "2027-04-17", "bit": "2027-05-03", "tur": "not" },
+    { "ad": "23 Nisan Ulusal Egemenlik ve Çocuk Bayramı", "bas": "2027-04-23", "tur": "tatil", "ana": true },
+    { "ad": "1 Mayıs Emek ve Dayanışma Günü", "bas": "2027-05-01", "tur": "tatil", "ana": true },
+    { "ad": "Bütünleme sınavları", "bas": "2027-05-07", "bit": "2027-05-14", "tur": "sinav", "ana": true },
+    { "ad": "Bütünleme notlarının girişi ve ilanı", "bas": "2027-05-07", "bit": "2027-05-20", "tur": "not" },
+    { "ad": "Kurban Bayramı tatili", "bas": "2027-05-15", "bit": "2027-05-19", "tur": "tatil", "ana": true },
+    { "ad": "Mezuniyet töreni", "bas": "2027-05-29", "tur": "toren", "ana": true },
+    { "ad": "Bahar dönemi ders portfolyolarının arşive teslimi", "bas": "2027-06-15", "tur": "not" },
+    { "ad": "Yaz okulu dersleri", "bas": "2027-07-05", "bit": "2027-08-23", "tur": "ders", "donem": "Yaz okulu" },
+    { "ad": "Yaz okulu final sınavları", "bas": "2027-08-24", "bit": "2027-08-27", "tur": "sinav", "ana": true },
+    { "ad": "Yaz okulu final notlarının girişi ve ilanı", "bas": "2027-08-24", "bit": "2027-09-02", "tur": "not" }
+  ],
+  "surecler": [
+    {
+      "ad": "Yatay geçiş · not ortalamasıyla (güz)",
+      "adimlar": [
+        { "ad": "Başvuru", "bas": "2026-07-13", "bit": "2026-08-15" },
+        { "ad": "Değerlendirme", "bas": "2026-08-17", "bit": "2026-08-19" },
+        { "ad": "Sonuçların ilanı", "bas": "2026-08-21" },
+        { "ad": "Asil adayların kesin kaydı", "bas": "2026-08-24", "bit": "2026-08-28" },
+        { "ad": "Yedek adayların kesin kaydı", "bas": "2026-08-31", "bit": "2026-09-03" },
+        { "ad": "Ders intibak işlemleri", "bas": "2026-09-04", "bit": "2026-09-10" }
+      ]
+    },
+    {
+      "ad": "Yatay geçiş · merkezi puanla, Ek Madde-1 (güz)",
+      "adimlar": [
+        { "ad": "Başvuru", "bas": "2026-08-01", "bit": "2026-08-15" },
+        { "ad": "Değerlendirme", "bas": "2026-08-17", "bit": "2026-08-21" },
+        { "ad": "Sonuçların ilanı", "bas": "2026-08-24" },
+        { "ad": "Asil adayların kesin kaydı", "bas": "2026-08-24", "bit": "2026-08-26" },
+        { "ad": "Yedek adayların kesin kaydı", "bas": "2026-08-27", "bit": "2026-08-28" },
+        { "ad": "Ders intibak işlemleri", "bas": "2026-08-31", "bit": "2026-09-04" }
+      ]
+    },
+    {
+      "ad": "Çift anadal / yandal (güz)",
+      "adimlar": [
+        { "ad": "Başvuru", "bas": "2026-08-31", "bit": "2026-09-04" },
+        { "ad": "Değerlendirme", "bas": "2026-09-07", "bit": "2026-09-10" },
+        { "ad": "Sonuçların ilanı", "bas": "2026-09-11" },
+        { "ad": "Asil adayların kesin kaydı", "bas": "2026-09-14", "bit": "2026-09-15" },
+        { "ad": "Yedek adayların kesin kaydı", "bas": "2026-09-16", "bit": "2026-09-17" },
+        { "ad": "Ders intibak işlemleri", "bas": "2026-09-18", "bit": "2026-09-22" }
+      ]
+    },
+    {
+      "ad": "2025–2026 yaz okulu sonu ve mezuniyet için tek ders / not yükseltme",
+      "adimlar": [
+        { "ad": "Yaz okulu final sınavları", "bas": "2026-09-07", "bit": "2026-09-09" },
+        { "ad": "Final notlarının girişi ve ilanı", "bas": "2026-09-07", "bit": "2026-09-11" },
+        { "ad": "Tek ders / not yükseltme başvurusu", "bas": "2026-09-14", "bit": "2026-09-17" },
+        { "ad": "Yaz okulu sonu mezuniyet kararlarının iletilmesi", "bas": "2026-09-18" },
+        { "ad": "Değerlendirme", "bas": "2026-09-18", "bit": "2026-09-22" },
+        { "ad": "Sonuçların ilanı", "bas": "2026-09-23" },
+        { "ad": "Tek ders / not yükseltme sınavları", "bas": "2026-09-28", "bit": "2026-09-30" },
+        { "ad": "Mezuniyet kararlarının Öğrenci İşlerine iletilmesi", "bas": "2026-10-09" }
+      ]
+    },
+    {
+      "ad": "Azami süresi dolanlar için ek sınav, 44/c (güz başı)",
+      "adimlar": [
+        { "ad": "Başvuru", "bas": "2026-09-07", "bit": "2026-09-11" },
+        { "ad": "Değerlendirme", "bas": "2026-09-14", "bit": "2026-09-17" },
+        { "ad": "Sonuçların ilanı", "bas": "2026-09-18" },
+        { "ad": "Ek sınavlar", "bas": "2026-09-21", "bit": "2026-09-30" },
+        { "ad": "Sınav sonuçları ve başarı durumunun ilanı", "bas": "2026-10-01", "bit": "2026-10-07" }
+      ]
+    },
+    {
+      "ad": "Yatay geçiş · merkezi puanla, Ek Madde-1 (bahar)",
+      "ana": "Merkezi puanla yatay geçiş başvurusu",
+      "adimlar": [
+        { "ad": "Başvuru", "bas": "2026-12-21", "bit": "2027-01-06" },
+        { "ad": "Değerlendirme", "bas": "2027-01-07", "bit": "2027-01-11" },
+        { "ad": "Sonuçların ilanı", "bas": "2027-01-13" },
+        { "ad": "Asil adayların kesin kaydı", "bas": "2027-01-14", "bit": "2027-01-15" },
+        { "ad": "Yedek adayların kesin kaydı", "bas": "2027-01-19", "bit": "2027-01-20" },
+        { "ad": "Ders intibak işlemleri", "bas": "2027-01-21", "bit": "2027-01-22" }
+      ]
+    },
+    {
+      "ad": "Yatay geçiş · not ortalamasıyla (bahar)",
+      "ana": "Not ortalamasıyla yatay geçiş başvurusu",
+      "adimlar": [
+        { "ad": "Başvuru", "bas": "2027-01-04", "bit": "2027-01-06" },
+        { "ad": "Değerlendirme", "bas": "2027-01-07", "bit": "2027-01-08" },
+        { "ad": "Sonuçların ilanı", "bas": "2027-01-13" },
+        { "ad": "Asil adayların kesin kaydı", "bas": "2027-01-14", "bit": "2027-01-15" },
+        { "ad": "Yedek adayların kesin kaydı", "bas": "2027-01-19", "bit": "2027-01-20" },
+        { "ad": "Ders intibak işlemleri", "bas": "2027-01-21", "bit": "2027-01-22" }
+      ]
+    },
+    {
+      "ad": "Çift anadal / yandal (bahar)",
+      "ana": "Çift anadal / yandal başvurusu",
+      "adimlar": [
+        { "ad": "Başvuru", "bas": "2027-01-04", "bit": "2027-01-06" },
+        { "ad": "Değerlendirme", "bas": "2027-01-07", "bit": "2027-01-08" },
+        { "ad": "Sonuçların ilanı", "bas": "2027-01-11" },
+        { "ad": "Asil adayların kesin kaydı", "bas": "2027-01-11", "bit": "2027-01-13" },
+        { "ad": "Yedek adayların kesin kaydı", "bas": "2027-01-14", "bit": "2027-01-15" },
+        { "ad": "Ders intibak işlemleri", "bas": "2027-01-18", "bit": "2027-01-20" }
+      ]
+    },
+    {
+      "ad": "Mezuniyet için tek ders / not yükseltme (güz sonu)",
+      "ana": "Tek ders ve not yükseltme başvurusu",
+      "adimlar": [
+        { "ad": "Başvuru", "bas": "2027-01-11", "bit": "2027-01-20" },
+        { "ad": "Değerlendirme", "bas": "2027-01-21" },
+        { "ad": "Sonuçların ilanı", "bas": "2027-01-22" },
+        { "ad": "Sınavlar", "bas": "2027-01-26", "bit": "2027-01-29" },
+        { "ad": "Mezuniyet kararlarının Öğrenci İşlerine iletilmesi", "bas": "2027-02-05" }
+      ]
+    },
+    {
+      "ad": "Azami süresi dolanlar için ek sınav, 44/c (güz sonu)",
+      "adimlar": [
+        { "ad": "Başvuru", "bas": "2027-01-11", "bit": "2027-01-20" },
+        { "ad": "Değerlendirme", "bas": "2027-01-21" },
+        { "ad": "Sonuçların ilanı", "bas": "2027-01-22" },
+        { "ad": "Ek sınavlar", "bas": "2027-01-26", "bit": "2027-02-04" },
+        { "ad": "Sınav sonuçları ve başarı durumunun ilanı", "bas": "2027-02-10" }
+      ]
+    },
+    {
+      "ad": "Mezuniyet için tek ders / not yükseltme (bahar sonu)",
+      "ana": "Tek ders ve not yükseltme başvurusu",
+      "adimlar": [
+        { "ad": "Başvuru", "bas": "2027-05-21", "bit": "2027-05-24" },
+        { "ad": "Değerlendirme", "bas": "2027-05-25" },
+        { "ad": "Sonuçların ilanı", "bas": "2027-05-26" },
+        { "ad": "Sınavlar", "bas": "2027-05-27", "bit": "2027-05-31" },
+        { "ad": "Mezuniyet kararlarının Öğrenci İşlerine iletilmesi", "bas": "2027-06-04" }
+      ]
+    },
+    {
+      "ad": "Yaz okulu sonrası mezuniyet için tek ders / not yükseltme",
+      "ana": "Yaz okulu sonrası tek ders başvurusu",
+      "adimlar": [
+        { "ad": "Başvuru", "bas": "2027-09-03", "bit": "2027-09-07" },
+        { "ad": "Değerlendirme", "bas": "2027-09-08", "bit": "2027-09-09" },
+        { "ad": "Sonuçların ilanı", "bas": "2027-09-10" },
+        { "ad": "Sınavlar", "bas": "2027-09-14", "bit": "2027-09-17" },
+        { "ad": "Mezuniyet kararlarının Öğrenci İşlerine iletilmesi", "bas": "2027-09-20" }
+      ]
+    },
+    {
+      "ad": "Azami süresi dolanlar için ek sınav, 44/c (yaz sonu)",
+      "adimlar": [
+        { "ad": "Başvuru", "bas": "2027-09-03", "bit": "2027-09-07" },
+        { "ad": "Değerlendirme", "bas": "2027-09-08", "bit": "2027-09-10" },
+        { "ad": "Sonuçların ilanı", "bas": "2027-09-13" },
+        { "ad": "Ek sınavlar", "bas": "2027-09-15", "bit": "2027-09-24" },
+        { "ad": "Sınav sonuçları ve başarı durumunun ilanı", "bas": "2027-09-27", "bit": "2027-09-30" }
+      ]
+    }
   ]
 }

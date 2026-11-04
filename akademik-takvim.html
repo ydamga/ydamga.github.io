@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Akademik takvim</title>
+  <meta name="description" content="2026–2027 lisans / ön lisans akademik takvimi: süren ve yaklaşan etkinlikler, başvuru süreçleri.">
+  <script src="ayarlar.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="ortak.css">
+  <style>
+    main { justify-content: flex-start; }
+
+    /* Sayfa başı sinavlar.html ile aynı */
+    .ust {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      margin-bottom: clamp(14px, 2.5vh, 24px);
+    }
+    .ust-sol { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
+    .geri {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      color: var(--accent-ink);
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+    }
+    .geri svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .geri:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
+    @media (hover: hover) and (pointer: fine) {
+      .geri:hover { text-decoration: underline; text-underline-offset: 3px; }
+    }
+    h1 { font-size: clamp(1.3rem, 2vw, 1.75rem); font-weight: 800; letter-spacing: -0.025em; }
+    h1 small { display: block; margin-top: 2px; font-size: 0.85rem; font-weight: 500; letter-spacing: 0; color: var(--muted); }
+
+    /* Dönem durumu: kaçıncı hafta ve dönem ilerleme çubuğu */
+    .durum {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 6px 28px;
+      align-items: center;
+      margin-bottom: clamp(18px, 3vh, 32px);
+      padding: clamp(14px, 2vh, 20px) clamp(16px, 2vw, 24px);
+      background: var(--surface);
+    }
+    .durum[hidden] { display: none; }
+    .durum .hafta { font-size: clamp(1.4rem, 2.2vw, 1.9rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; }
+    .durum .hafta span { display: block; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .cubuk { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+    .cubuk i { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+    .durum .alt { grid-column: 2; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 0.84rem; color: var(--text-2); font-variant-numeric: tabular-nums; }
+
+    /* Solda takvim, sağda başvuru süreçleri */
+    .ikili {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      gap: 28px clamp(20px, 2.4vw, 40px);
+      align-items: start;
+    }
+    h2 { font-size: clamp(1.05rem, 1.4vw, 1.3rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 10px; }
+    .grup + .grup { margin-top: 22px; }
+    .grup h3 {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .grup h3::after { content: ""; flex: 1; height: 1px; background: var(--surface-2); transform: translateY(-3px); }
+    .liste { list-style: none; display: grid; gap: 6px; }
+    .liste li {
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr) auto;
+      gap: 3px 16px;
+      align-items: center;
+      padding: 10px 16px 10px 12px;
+      background: var(--surface);
+      border-left: 4px solid transparent;
+    }
+    /* Tarih kutusu: gün büyük, ay küçük; aralıklarda "23–27" */
+    .tarih-kutu {
+      grid-row: span 2;
+      padding: 6px 0;
+      text-align: center;
+      border-radius: 8px;
+      background: var(--surface-2);
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .tarih-kutu b { display: block; font-size: 1.2rem; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+    .tarih-kutu b.uzun { font-size: 0.95rem; }
+    .tarih-kutu span { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .liste .ad { font-weight: 700; font-size: 0.98rem; line-height: 1.3; }
+    .liste .detay { grid-column: 2; font-size: 0.84rem; color: var(--text-2); line-height: 1.4; font-variant-numeric: tabular-nums; }
+    .liste .detay em { font-style: normal; }
+    .etiket {
+      grid-column: 3;
+      grid-row: 1 / span 2;
+      justify-self: end;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-2);
+      color: var(--text-2);
+      font-size: 0.76rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .liste .tatil .etiket { border-color: var(--accent); color: var(--accent-ink); }
+    .liste .sinav .etiket { background: var(--surface-2); border-color: var(--surface-2); color: var(--text); }
+    /* Süren etkinlik: vurgu renginde zemin ve kutu */
+    .liste .suruyor { background: color-mix(in srgb, var(--accent) 20%, var(--surface)); border-left-color: var(--accent); }
+    .liste .suruyor .tarih-kutu { background: var(--accent); color: var(--on-accent); }
+    .liste .suruyor .detay em { font-style: normal; font-weight: 800; color: var(--accent-ink); }
+    .liste .yakin { border-left-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+    .liste .yakin .detay em { font-style: normal; font-weight: 700; color: var(--accent-ink); }
+    .liste .gecmis { opacity: 0.6; }
+    .bos { padding: 14px 16px; background: var(--surface); color: var(--text-2); line-height: 1.5; }
+
+    .gecmis-ac {
+      margin-top: 22px;
+      min-height: 40px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-2);
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .gecmis-ac:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .gecmis-ac:hover { background: var(--surface); }
+    }
+
+    /* Başvuru süreçleri: adım adım */
+    .surecler { display: grid; gap: 10px; }
+    .surec { padding: 14px 18px 16px; background: var(--surface); border-left: 4px solid transparent; }
+    .surec.aktif { border-left-color: var(--accent); }
+    .surec h3 { font-size: 0.98rem; font-weight: 700; line-height: 1.3; }
+    .surec .ozet { margin-top: 2px; font-size: 0.82rem; color: var(--text-2); font-variant-numeric: tabular-nums; }
+    .surec .ozet em { font-style: normal; font-weight: 700; color: var(--accent-ink); }
+    .adimlar { list-style: none; margin-top: 10px; }
+    .adimlar li {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 5px 0 5px 22px;
+      font-size: 0.86rem;
+      line-height: 1.35;
+      font-variant-numeric: tabular-nums;
+    }
+    /* Adımları birleştiren çizgi ve noktalar */
+    .adimlar li::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 0.62em;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 2px solid var(--surface-2);
+      background: var(--surface);
+      box-sizing: border-box;
+    }
+    .adimlar li + li::after {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: calc(-0.62em + 4px);
+      height: calc(0.62em + 2px);
+      width: 1px;
+      background: var(--surface-2);
+    }
+    .adimlar .t { color: var(--text-2); white-space: nowrap; }
+    .adimlar .bitti { color: var(--muted); }
+    .adimlar .bitti::before { background: var(--surface-2); }
+    .adimlar .simdi { margin: 2px -8px; padding-left: 30px; padding-right: 8px; border-radius: 6px; background: color-mix(in srgb, var(--accent) 20%, var(--surface)); font-weight: 700; }
+    .adimlar .simdi::before { left: 12px; background: var(--accent); border-color: var(--accent); }
+    .adimlar .simdi .t { color: var(--accent-ink); }
+    details.tamam { margin-top: 12px; }
+    details.tamam summary {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      cursor: pointer;
+      color: var(--accent-ink);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    details.tamam summary:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+    details.tamam .surecler { margin-top: 8px; }
+    details.tamam .surec { opacity: 0.7; }
+
+    .kaynak { margin-top: 24px; font-size: 0.82rem; line-height: 1.5; color: var(--muted); }
+    .kaynak a { color: var(--accent-ink); font-weight: 700; text-underline-offset: 3px; }
+
+    @media (max-width: 860px) {
+      .ikili { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .durum { grid-template-columns: 1fr; }
+      .durum .alt { grid-column: 1; }
+      .liste li { grid-template-columns: 56px minmax(0, 1fr); padding-right: 12px; }
+      .etiket { grid-column: 2; grid-row: auto; justify-self: start; margin-top: 4px; }
+      .tarih-kutu { grid-row: span 3; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="ust">
+      <div class="ust-sol">
+        <a class="geri" href="./"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Anasayfa</a>
+        <h1>Akademik takvim<small id="alt-baslik">2026–2027 lisans / ön lisans</small></h1>
+      </div>
+      <button type="button" class="ayarlar-btn" aria-haspopup="dialog" aria-label="Ayarlar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><span>Ayarlar</span></button>
+    </div>
+
+    <section class="durum" id="durum" hidden aria-label="Dönem durumu">
+      <div class="hafta" id="durum-hafta"></div>
+      <div class="cubuk" role="progressbar" aria-label="Dönemin ilerleyişi" aria-valuemin="0" aria-valuemax="100" id="durum-cubuk"><i></i></div>
+      <div class="alt" id="durum-alt"></div>
+    </section>
+
+    <div class="ikili">
+      <section aria-labelledby="takvim-baslik">
+        <h2 id="takvim-baslik">Etkinlikler</h2>
+        <div id="takvim"></div>
+        <button type="button" class="gecmis-ac" id="gecmis-ac" hidden></button>
+        <div id="gecmis" hidden></div>
+      </section>
+      <section aria-labelledby="surec-baslik">
+        <h2 id="surec-baslik">Başvuru süreçleri</h2>
+        <div class="surecler" id="surecler"></div>
+        <details class="tamam" id="tamam" hidden>
+          <summary></summary>
+          <div class="surecler" id="tamam-liste"></div>
+        </details>
+      </section>
+    </div>
+    <p class="kaynak" id="kaynak"></p>
+  </main>
+
+  <footer>
+    <span>ÖDHM · <span id="yil"></span></span>
+  </footer>
+
+  <script>
+    (function () {
+      // Tarihler Türkiye saatine göre takvim günü; ?bugun=2026-11-25 ile denenebilir
+      var bugun = (location.search.match(/[?&]bugun=(\d{4}-\d{2}-\d{2})/) || [])[1] ||
+        new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' });
+      var TUR = { ders: 'Dersler', kayit: 'Kayıt', sinav: 'Sınav', not: 'Not girişi', tatil: 'Tatil', toren: 'Tören' };
+
+      function utc(g) { return new Date(g + 'T12:00:00Z'); }
+      function fark(a, b) { return Math.round((utc(b) - utc(a)) / 864e5); }
+      function bicim(g, o) { o.timeZone = 'UTC'; return utc(g).toLocaleDateString('tr-TR', o); }
+      function uzunTarih(g) { return bicim(g, { day: 'numeric', month: 'long', weekday: 'long' }); }
+      function aralik(e) {
+        if (!e.bit) return uzunTarih(e.bas);
+        var ayniAy = e.bas.slice(0, 7) === e.bit.slice(0, 7);
+        return bicim(e.bas, ayniAy ? { day: 'numeric' } : { day: 'numeric', month: 'long' }) + ' – ' + bicim(e.bit, { day: 'numeric', month: 'long' });
+      }
+      function kisaAralik(e) {
+        if (!e.bit) return bicim(e.bas, { day: 'numeric', month: 'short' });
+        return bicim(e.bas, { day: 'numeric', month: 'short' }) + ' – ' + bicim(e.bit, { day: 'numeric', month: 'short' });
+      }
+      function bitis(e) { return e.bit || e.bas; }
+      // Durum: gecmis, suruyor, bugun (tek gün), gelecek
+      function durum(e) {
+        if (bitis(e) < bugun) return 'gecmis';
+        if (e.bas <= bugun) return e.bit ? 'suruyor' : 'bugun';
+        return 'gelecek';
+      }
+      function zaman(e) {
+        var d = durum(e);
+        if (d === 'gecmis') return 'Bitti';
+        if (d === 'bugun') return 'Bugün';
+        if (d === 'suruyor') {
+          var k = fark(bugun, e.bit);
+          return k === 0 ? 'Sürüyor · bugün son gün' : 'Sürüyor · ' + k + ' gün kaldı';
+        }
+        var b = fark(bugun, e.bas);
+        return b === 1 ? 'Yarın' : b + ' gün sonra';
+      }
+
+      function satir(e) {
+        var d = durum(e);
+        var li = document.createElement('li');
+        li.classList.add(e.tur);
+        if (d === 'suruyor' || d === 'bugun') li.classList.add('suruyor');
+        else if (d === 'gecmis') li.classList.add('gecmis');
+        else if (fark(bugun, e.bas) <= 7) li.classList.add('yakin');
+
+        var kutu = document.createElement('span');
+        kutu.className = 'tarih-kutu';
+        var no = document.createElement('b');
+        var ay = document.createElement('span');
+        if (e.bit && e.bas.slice(0, 7) === e.bit.slice(0, 7)) {
+          no.textContent = utc(e.bas).getUTCDate() + '–' + utc(e.bit).getUTCDate();
+          no.className = 'uzun';
+        } else {
+          no.textContent = utc(e.bas).getUTCDate();
+        }
+        ay.textContent = bicim(e.bas, { month: 'short' });
+        kutu.append(no, ay);
+
+        var ad = document.createElement('span');
+        ad.className = 'ad';
+        ad.textContent = e.ad;
+        var detay = document.createElement('span');
+        detay.className = 'detay';
+        var em = document.createElement('em');
+        em.textContent = zaman(e);
+        detay.append(aralik(e) + ' · ', em);
+        var etiket = document.createElement('span');
+        etiket.className = 'etiket';
+        etiket.textContent = TUR[e.tur] || '';
+        li.append(kutu, ad, detay, etiket);
+        return li;
+      }
+      function grup(baslik, olaylar) {
+        var div = document.createElement('div');
+        div.className = 'grup';
+        var h = document.createElement('h3');
+        h.textContent = baslik;
+        var ul = document.createElement('ul');
+        ul.className = 'liste';
+        olaylar.forEach(function (e) { ul.appendChild(satir(e)); });
+        div.append(h, ul);
+        return div;
+      }
+      function ayGruplari(hedef, olaylar) {
+        var aylar = {};
+        olaylar.forEach(function (e) { (aylar[e.bas.slice(0, 7)] = aylar[e.bas.slice(0, 7)] || []).push(e); });
+        Object.keys(aylar).sort().forEach(function (a) {
+          hedef.appendChild(grup(bicim(a + '-01', { month: 'long', year: 'numeric' }), aylar[a]));
+        });
+      }
+      function sirala(a, b) { return a.bas < b.bas ? -1 : a.bas > b.bas ? 1 : (bitis(a) < bitis(b) ? -1 : 1); }
+
+      // Dönem durumu: hafta, derslerin başladığı haftanın pazartesisinden sayılır
+      function donemDurumu(dersler) {
+        var kutu = document.getElementById('durum');
+        var hafta = document.getElementById('durum-hafta');
+        var alt = document.getElementById('durum-alt');
+        var cubuk = document.getElementById('durum-cubuk');
+        function etiketli(ust, metin) {
+          var s = document.createElement('span');
+          s.textContent = ust;
+          hafta.append(s, metin);
+        }
+        for (var i = 0; i < dersler.length; i++) {
+          var d = dersler[i];
+          if (bugun < d.bas) {
+            etiketli(i ? 'Dönem arası' : 'Dönem başlamadı', d.donem + ' ' + fark(bugun, d.bas) + ' gün sonra');
+            alt.append('Dersler ' + aralik(d));
+            cubuk.hidden = true;
+            kutu.hidden = false;
+            return;
+          }
+          if (bugun <= d.bit) {
+            var pazartesi = utc(d.bas);
+            pazartesi.setUTCDate(pazartesi.getUTCDate() - (pazartesi.getUTCDay() + 6) % 7);
+            var gecen = Math.floor((utc(bugun) - pazartesi) / (7 * 864e5));
+            var toplam = Math.ceil((fark(pazartesi.toISOString().slice(0, 10), d.bit) + 1) / 7);
+            var yuzde = Math.round(fark(d.bas, bugun) / fark(d.bas, d.bit) * 100);
+            etiketli(d.donem, (gecen + 1) + '. hafta');
+            cubuk.firstChild.style.width = yuzde + '%';
+            cubuk.setAttribute('aria-valuenow', yuzde);
+            var sol = document.createElement('span');
+            sol.textContent = gecen + ' hafta geçti · ' + toplam + ' haftalık dönem';
+            var sag = document.createElement('span');
+            var kalan = fark(bugun, d.bit);
+            sag.textContent = kalan === 0 ? 'Dersler bugün sona eriyor' : 'Derslerin bitişine ' + kalan + ' gün (' + bicim(d.bit, { day: 'numeric', month: 'long' }) + ')';
+            alt.append(sol, sag);
+            kutu.hidden = false;
+            return;
+          }
+        }
+      }
+
+      function surecKarti(s) {
+        var ilk = s.adimlar[0].bas;
+        var son = s.adimlar.reduce(function (m, a) { return bitis(a) > m ? bitis(a) : m; }, ilk);
+        var div = document.createElement('article');
+        div.className = 'surec';
+        var h = document.createElement('h3');
+        h.textContent = s.ad;
+        var ozet = document.createElement('p');
+        ozet.className = 'ozet';
+        var ul = document.createElement('ol');
+        ul.className = 'adimlar';
+        var simdi = null;
+        s.adimlar.forEach(function (a) {
+          var li = document.createElement('li');
+          var ad = document.createElement('span');
+          ad.textContent = a.ad;
+          var t = document.createElement('span');
+          t.className = 't';
+          t.textContent = kisaAralik(a);
+          var d = durum(a);
+          if (d === 'gecmis') li.className = 'bitti';
+          else if (d !== 'gelecek') { li.className = 'simdi'; simdi = simdi || a; }
+          li.append(ad, t);
+          ul.appendChild(li);
+        });
+        var em = document.createElement('em');
+        if (son < bugun) {
+          ozet.textContent = 'Tamamlandı · ' + bicim(ilk, { day: 'numeric', month: 'long' }) + ' – ' + bicim(son, { day: 'numeric', month: 'long' });
+        } else if (ilk > bugun) {
+          em.textContent = fark(bugun, ilk) === 1 ? 'Yarın başlıyor' : fark(bugun, ilk) + ' gün sonra başlıyor';
+          ozet.append(em, ' · ' + bicim(ilk, { day: 'numeric', month: 'long' }));
+        } else {
+          div.classList.add('aktif');
+          if (simdi) { em.textContent = 'Şu an: ' + simdi.ad.toLocaleLowerCase('tr'); ozet.append(em); }
+          else {
+            var sonraki = s.adimlar.filter(function (a) { return a.bas > bugun; })[0];
+            ozet.append('Sıradaki adım ', em);
+            em.textContent = sonraki.ad.toLocaleLowerCase('tr') + ', ' + fark(bugun, sonraki.bas) + ' gün sonra';
+          }
+        }
+        div.append(h, ozet, ul);
+        return { el: div, ilk: ilk, son: son };
+      }
+
+      fetch('data/akademik-takvim.json', { cache: 'no-cache' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function (veri) {
+          var olaylar = veri.etkinlikler.slice().sort(sirala);
+          donemDurumu(olaylar.filter(function (e) { return e.tur === 'ders'; }));
+
+          // Üstte sürenler, sonra ay ay yaklaşanlar; geçmiş bir düğmenin arkasında
+          var takvim = document.getElementById('takvim');
+          var suren = olaylar.filter(function (e) { var d = durum(e); return d === 'suruyor' || d === 'bugun'; });
+          var gelecek = olaylar.filter(function (e) { return durum(e) === 'gelecek'; });
+          var gecmis = olaylar.filter(function (e) { return durum(e) === 'gecmis'; });
+          if (suren.length) takvim.appendChild(grup('Devam ediyor', suren));
+          ayGruplari(takvim, gelecek);
+          if (!suren.length && !gelecek.length) {
+            var bos = document.createElement('p');
+            bos.className = 'bos';
+            bos.textContent = 'Bu akademik yılın etkinlikleri sona erdi. Yeni takvim eklenince burada görünür.';
+            takvim.appendChild(bos);
+          }
+          if (gecmis.length) {
+            var dugme = document.getElementById('gecmis-ac');
+            var kutu = document.getElementById('gecmis');
+            ayGruplari(kutu, gecmis.reverse());
+            // Geçmiş aylar yeniden eskiden yeniye
+            Array.prototype.slice.call(kutu.children).reverse().forEach(function (g) { kutu.appendChild(g); });
+            dugme.textContent = 'Geçmiş etkinlikleri göster (' + gecmis.length + ')';
+            dugme.hidden = false;
+            dugme.setAttribute('aria-expanded', 'false');
+            dugme.addEventListener('click', function () {
+              var ac = kutu.hidden;
+              kutu.hidden = !ac;
+              dugme.setAttribute('aria-expanded', String(ac));
+              dugme.textContent = (ac ? 'Geçmiş etkinlikleri gizle' : 'Geçmiş etkinlikleri göster') + ' (' + gecmis.length + ')';
+            });
+          }
+
+          // Süreçler: süren ve yaklaşanlar başlangıca göre, tamamlananlar katlanmış
+          var kartlar = veri.surecler.map(surecKarti).sort(function (a, b) { return a.ilk < b.ilk ? -1 : 1; });
+          var acik = kartlar.filter(function (k) { return k.son >= bugun; });
+          var biten = kartlar.filter(function (k) { return k.son < bugun; });
+          var surecler = document.getElementById('surecler');
+          acik.forEach(function (k) { surecler.appendChild(k.el); });
+          if (!acik.length) {
+            var yok = document.createElement('p');
+            yok.className = 'bos';
+            yok.textContent = 'Şu an açık ya da yaklaşan başvuru süreci yok.';
+            surecler.appendChild(yok);
+          }
+          if (biten.length) {
+            var tamam = document.getElementById('tamam');
+            tamam.querySelector('summary').textContent = 'Tamamlanan süreçler (' + biten.length + ')';
+            biten.forEach(function (k) { document.getElementById('tamam-liste').appendChild(k.el); });
+            tamam.hidden = false;
+          }
+
+          var kaynak = document.getElementById('kaynak');
+          var a = document.createElement('a');
+          a.href = veri.kaynak;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = 'arel.edu.tr akademik takvim';
+          kaynak.append('Kaynak: ', a, '. ' + veri.not);
+        })
+        .catch(function () {
+          var p = document.createElement('p');
+          p.className = 'bos';
+          p.textContent = 'Akademik takvim şu anda yüklenemedi. Biraz sonra tekrar deneyin.';
+          document.getElementById('takvim').appendChild(p);
+        });
+    })();
+  </script>
+</body>
+</html>
