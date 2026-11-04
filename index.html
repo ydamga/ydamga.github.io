@@ -55,7 +55,8 @@
       align-items: start;
       gap: 40px clamp(20px, 2.4vw, 40px);
     }
-    .govde .osym { grid-area: osym; }
+    /* Sağ sütun: ÖSYM sınavları, altında akademik takvim */
+    .sag { grid-area: osym; display: grid; align-content: start; gap: clamp(24px, 3.5vh, 40px); min-width: 0; }
     .araclar { grid-area: araclar; }
     .yemek { grid-area: yemek; }
     .araclar > h2, .yemek-head h2 {
@@ -265,34 +266,23 @@
     .kisayollar, .tool { animation: rise 600ms var(--ease-out) both; }
     .tools li:nth-child(1) .tool { animation-delay: 140ms; }
     .tools li:nth-child(2) .tool { animation-delay: 200ms; }
-    .tools li:nth-child(3) .tool { animation-delay: 260ms; }
 
-    /* Akademik takvim kartında dönemin kaçıncı haftası olduğu */
-    .tool .donem { display: block; margin-top: 6px; color: var(--text-2); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
-    .tool .donem:empty { display: none; }
-    .tool .donem b { color: var(--accent-ink); font-weight: 800; }
-
-    /* Akademik takvimden yaklaşan etkinlikler: data/akademik-takvim.json */
+    /* Akademik takvim: başlıkta dönemin kaçıncı haftası, altında yaklaşan etkinlikler (data/akademik-takvim.json) */
+    .takvim .donem { font-size: 0.82rem; color: var(--text-2); font-variant-numeric: tabular-nums; }
+    .takvim .donem b { color: var(--accent-ink); font-weight: 800; }
     .yaklasan[hidden] { display: none; }
-    .yaklasan { margin-top: 8px; padding: 4px clamp(16px, 2vw, 24px); background: var(--surface); animation: rise 600ms var(--ease-out) 320ms both; }
-    .yaklasan h3 {
-      padding: 10px 0 6px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
+    .yaklasan { padding: 4px clamp(14px, 1.6vw, 20px); background: var(--surface); animation: rise 600ms var(--ease-out) 320ms both; }
     .yaklasan ul { list-style: none; }
     .yaklasan li {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 2px 12px;
       align-items: baseline;
-      padding: clamp(6px, 0.9vh, 10px) 0;
+      padding: clamp(7px, 1vh, 11px) 0;
       border-top: 1px solid var(--surface-2);
       font-variant-numeric: tabular-nums;
     }
+    .yaklasan li:first-child { border-top: 0; }
     .yaklasan .ad { font-weight: 700; font-size: 0.92rem; line-height: 1.3; }
     .yaklasan .tarih { grid-column: 1; color: var(--text-2); font-size: 0.82rem; }
     .yaklasan .kalan { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--text-2); font-size: 0.82rem; white-space: nowrap; }
@@ -313,8 +303,6 @@
       .kisayollar a { min-height: 40px; padding: 0 2px; font-size: 0.74rem; }
       .kisayollar svg { display: none; }
       .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .tools li:nth-child(3) { grid-column: 1 / -1; }
-      .tool .donem { font-size: 0.78rem; margin-top: 4px; }
       .tool { min-height: 64px; padding: 12px 14px; gap: 8px; }
       .tool h2 { font-size: 1.05rem; }
       .arrow { width: 32px; height: 32px; }
@@ -346,6 +334,7 @@
     </div>
 
     <div class="govde">
+    <div class="sag">
     <section class="osym" id="osym" hidden aria-labelledby="osym-baslik">
       <div class="osym-head">
         <h2 id="osym-baslik">ÖSYM sınavları</h2>
@@ -364,6 +353,18 @@
       <p class="alt-satir"><span></span><a href="sinavlar.html">Aylık sınav takvimi</a></p>
     </section>
 
+    <section class="takvim" aria-labelledby="takvim-baslik">
+      <div class="osym-head">
+        <h2 id="takvim-baslik">Yaklaşan etkinlikler</h2>
+        <span class="donem" id="donem-hafta"></span>
+      </div>
+      <div class="yaklasan" id="takvim-yaklasan" hidden>
+        <ul id="yaklasan-liste" aria-labelledby="takvim-baslik"></ul>
+      </div>
+      <p class="alt-satir"><span></span><a href="https://arel.edu.tr/2026-2027-akademik-takvim-llisans-onlisans/" target="_blank" rel="noopener">Akademik takvim</a></p>
+    </section>
+    </div>
+
     <section class="araclar" aria-labelledby="araclar-baslik">
       <h2 id="araclar-baslik">Araçlar</h2>
       <ul class="tools">
@@ -379,20 +380,7 @@
             <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
           </a>
         </li>
-        <li>
-          <a class="tool" href="https://arel.edu.tr/2026-2027-akademik-takvim-llisans-onlisans/" target="_blank" rel="noopener">
-            <div>
-              <h2>Akademik takvim</h2>
-              <span class="donem" id="donem-hafta"></span>
-            </div>
-            <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
-          </a>
-        </li>
       </ul>
-      <div class="yaklasan" id="takvim-yaklasan" hidden>
-        <h3 id="yaklasan-baslik">Yaklaşan etkinlikler</h3>
-        <ul id="yaklasan-liste" aria-labelledby="yaklasan-baslik"></ul>
-      </div>
     </section>
 
     <section class="yemek" id="yemek" hidden aria-labelledby="yemek-baslik">
