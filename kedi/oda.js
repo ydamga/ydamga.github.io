@@ -7,6 +7,8 @@
   function $(id) { return document.getElementById(id); }
 
   var kedi = window.KediGezgin($('oda-zemin'), { hiz: 55 });
+  // Piksel avatar: odada dolaşır, kediyi sever, bakımlara katılır (kedi/avatar.js)
+  var avatar = window.KediAvatar ? window.KediAvatar($('oda-zemin'), kedi) : null;
   var butonlar = Array.prototype.slice.call(document.querySelectorAll('.eylem'));
   var bekliyor = false;
 
@@ -109,6 +111,7 @@
     $('ruh-mesaj').textContent = r.mesaj;
     $('oda').setAttribute('aria-label', 'Kedi odası: ' + AD + ' ' + r.ad.toLocaleLowerCase('tr') + '. ' + r.mesaj);
     kedi.guncelle(isaret);
+    if (avatar) avatar.gece(geceMi());
     sahneCiz();
     uykuDugmesi(c.resting);
     sonBakan();
@@ -215,6 +218,7 @@
         if (ozlemisti) m = AD + ' seni görünce koşa koşa geldi, çok özlemişti! ' + m;
         mesaj(m, 'tamam');
         kedi.tepki(eylem);
+        if (avatar) avatar.bakim(eylem);
         if (s.favorite) kedi.soyle('En sevdiğim!', 2400);
       } else {
         mesaj(RED[s.reason] || AD + ' şu an istemiyor.', 'red');
@@ -258,8 +262,10 @@
       mesaj('Lazer oyunu: noktayı odada gezdir, ' + AD + ' yakalamaya çalışsın! (10 sn, Esc ile bitir)', 'ozlem');
       bekliyor = true;
       dugmeler();
+      if (avatar) avatar.dur(true);
       window.KediLazer.oyna($('oda'), $('oda-zemin'), kedi).then(function (n) {
         bekliyor = false;
+        if (avatar) avatar.dur(false);
         // Sunucu da sınırlar; mesaj gerçek yakalama sayısını söyler
         yap('play', { toy: 'lazer', bonus: Math.min(n, D.kurallar.max_game_bonus || 10), yakalama: n });
       });
@@ -283,8 +289,14 @@
     kedi.sev();
     D.sev();
   }
+  // Kediye dokununca hemen mırlar; Sev düğmesinde avatar gidip sever
   $('oda-zemin').addEventListener('click', function (e) { if (e.target.closest('.kedi')) sev(); });
-  $('sev-btn').addEventListener('click', sev);
+  $('sev-btn').addEventListener('click', function () {
+    if (Date.now() - sonSevme < 1200) return;
+    sonSevme = Date.now();
+    D.sev();
+    if (avatar && !geceMi()) avatar.sevmeyeGit(); else kedi.sev();
+  });
 
   // ---- Kedinin sözleri: ara sıra ihtiyacını ya da bakanın adını söyler ----
   function geceMi() { return K.gunDilimi(D.simdi()) === 'gece'; }

@@ -282,6 +282,7 @@
       kovala: function (hedefPx, bitince) { git(hedefPx - el.offsetWidth / 2, 4.5, bitince || function () {}); },
       // Kedinin merkezinin alandaki yeri (px)
       merkez: function () { return suankiX() + el.offsetWidth / 2; },
+      uyuyorMu: function () { return !!isaret.uyuyor; },
       // Bakım sonrası kısa tepki: 'feed' | 'play' | 'rest' | 'wake' | 'clean' | 'treat' | 'red'
       tepki: function (tur) {
         if (tur === 'treat') {

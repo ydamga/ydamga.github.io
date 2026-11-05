@@ -32,6 +32,7 @@ Anasayfanın alt bilgisinde, yalnızca kendisine ayrılmış bir şeritte dolaş
 | `kedi/bildirim.js` | Anlık duyurular (başkası bakım yapınca/sevince), sekme başlığı uyarısı, masaüstü bildirimi |
 | `kedi/sahne.js` | Odanın gökyüzü (günün saati), süsleri (tatil, yılbaşı, mevsim) ve kazanılan eşyaları |
 | `kedi/lazer.js` | Lazer mini oyunu |
+| `kedi/avatar.js`, `kedi/avatar.png` | Odadaki piksel avatar ve kareleri (dur, iki yürüme, çömelip sevme, el sallama; 73×110) |
 | `supabase/schema.sql` | Tablolar, kısıtlar, indeksler, fonksiyonlar, RLS, Realtime |
 | `supabase/test-rls.sql` | Yetki ve fonksiyon sınaması (geri alınan tek işlem) |
 | `supabase/guncelleme-etkilesim.sql` | Kurulu şemaya oyuncakları, ödül mamasını, haftalık hedefi ve görünüş oylarını ekler |
@@ -91,6 +92,10 @@ Bütün yollar görelidir (`kedi/...`, `kedi-odasi.html`); site bir depo alt diz
   (yalnızca görünüş: ihtiyaçlar işlemeye devam eder, bakım yapılabilir).
 - **Süsler:** Akademik takvimdeki tatillerde (ulusal bayramda bayrak, dini bayramda fener), yılbaşında ışıklar
   ve ağaç; başka zaman mevsime göre pencere (çiçek, güneş, yaprak, kar).
+- **Avatar:** Odada piksel bir avatar dolaşır; ara sıra el sallar, kediye gidip çömelir ve onu sever (kedi
+  mırlar). **Sev**'e basınca kediye gider; mama ya da ödül mamasında mama kabına, öteki bakımlarda kedinin yanına
+  gider. Tıklanınca el sallar. Gece evine gider, lazer oyununda kenarda bekler. Görseli değiştirmek için
+  `kedi/avatar.png`'deki 5 kareyi (73×110, yan yana) aynı düzende çizin.
 - **Görünüş:** Ekip tasma rengi (yok/kırmızı/mavi/yeşil/mor/sarı) ve tüy rengi (turuncu/gri/siyah/krem) için oy
   verir; en çok oy alan görünür (eşitlikte en son oylanan).
 
