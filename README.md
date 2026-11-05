@@ -29,8 +29,12 @@ Anasayfanın alt bilgisinde, yalnızca kendisine ayrılmış bir şeritte dolaş
 | `kedi/karakter.js` | SVG kedi ve davranış seçimi (yürüme, bakınma, esneme, yalanma, uyuma) |
 | `kedi/kedi.css` | Pozlar ve animasyonlar |
 | `kedi/ana.js`, `kedi/oda.js` | Anasayfa şeridi ve Kedi Odası arayüzü |
+| `kedi/bildirim.js` | Anlık duyurular (başkası bakım yapınca/sevince), sekme başlığı uyarısı, masaüstü bildirimi |
+| `kedi/sahne.js` | Odanın gökyüzü (günün saati), süsleri (tatil, yılbaşı, mevsim) ve kazanılan eşyaları |
+| `kedi/lazer.js` | Lazer mini oyunu |
 | `supabase/schema.sql` | Tablolar, kısıtlar, indeksler, fonksiyonlar, RLS, Realtime |
 | `supabase/test-rls.sql` | Yetki ve fonksiyon sınaması (geri alınan tek işlem) |
+| `supabase/guncelleme-etkilesim.sql` | Kurulu şemaya oyuncakları, ödül mamasını, haftalık hedefi ve görünüş oylarını ekler |
 | `supabase/guncelleme-uyandir.sql` | Kurulu isimli şemaya 2 saatlik bakım oranlarını ve uyandırmayı ekler (tekrar çalıştırılabilir) |
 | `supabase/eski-semayi-kaldir.sql` | Eski e-postayla girişli şemayı kaldırır (yalnızca o kuruluysa) |
 | `test/kedi-kurallar.test.js` | Oyun kuralları birim testleri |
@@ -61,6 +65,35 @@ Bütün yollar görelidir (`kedi/...`, `kedi-odasi.html`); site bir depo alt diz
 - **Hareketi azalt** (`prefers-reduced-motion`) açıksa kedi yerinde durur, animasyonlar kapanır; pozu ve
   balonu yine durumunu gösterir.
 
+### Etkileşim
+
+- **Sevme:** Odada kediye dokun ya da **Sev**'e bas; anasayfada kediye basılı tut. Kedi mırlar, kalpler çıkar.
+  Sayaç yok, veri tabanına yazılmaz; öteki açık sayfalarda "Ayşe Fındık ile sevgi paylaştı" duyurusu çıkar.
+- **Sözler:** Kedi ara sıra balonda konuşur: ihtiyacını bakan kişiye adıyla söyler ("Ayşe, mama?"),
+  özlediği birini sorar ("Zeynep nerede?").
+- **Uyarılar:** Acil ihtiyaçta anasayfadaki kedinin üstünde ünlem çıkar, sekme başlığı "(!) Fındık acıktı" olur.
+  Odadaki **Fındık acıkınca bildir** açılırsa site bir sekmede açıkken masaüstü bildirimi gelir (en çok 2 saatte
+  bir). Hiçbir sekme açık değilken bildirim için sunucuda zamanlayıcı gerekir; bu kurulu değil.
+- **Canlılık:** Başkası bakım yapınca açık sayfalarda kısa duyuru çıkar ve kedi o bakıma tepki verir.
+- **Oyuncaklar:** **Oynat** top, ip ya da lazer sorar. Her hafta bir oyuncak gözdedir (ISO haftasına göre döner,
+  söylenmez); onunla oynayınca `favorite_toy_bonus` kadar ek mutluluk ve "bayıldı" tepkisi gelir.
+- **Lazer oyunu:** 10 saniye; noktayı fareyle, parmakla ya da ok tuşlarıyla gezdir. Nokta yerdeyken kedi
+  yetişirse yakalama sayılır; her yakalama +1 mutluluk (en çok `max_game_bonus`, sunucu da sınırlar).
+- **Ödül maması:** kişi başı günde bir (Türkiye saatiyle); açlık `treat_hunger` azalır, mutluluk `treat_happiness` artar.
+- **Bağlılık:** Son 14 günde açık ara en çok bakan (en az 5 bakım) sayfayı açınca kedi koşarak karşılar (oturumda bir kez).
+- **Haftalık hedef:** Haftada `weekly_goal` (60) bakım. Hedefin tuttuğu her hafta odaya sırayla bir eşya gelir:
+  kedi ağacı, saksı çiçeği, balık tablosu, halı, lamba, yumak sepeti. Kartta en çok bakanlar ve en çok oynanan oyuncak.
+- **Günlük:** Kedinin ağzından bugünün ve dünün özeti.
+- **Rozetler:** Son 5 haftanın bakımlarından: Sabah kuşu (09:00'dan önce 3), Akşam nöbetçisi (18:00'den sonra 3),
+  Sadık dost (5 iş günü üst üste; hafta sonu seriyi bozmaz), Mama ustası (20), Oyun arkadaşı (20),
+  Tarak ustası (15), Şımartan (5 ödül), Lazer avcısı (bir oyunda 8 yakalama).
+- **Gün saati:** Pencerede sabah, gündüz, akşam ve gece gökyüzü; 22:00–07:00 arası kedi uyur görünür
+  (yalnızca görünüş: ihtiyaçlar işlemeye devam eder, bakım yapılabilir).
+- **Süsler:** Akademik takvimdeki tatillerde (ulusal bayramda bayrak, dini bayramda fener), yılbaşında ışıklar
+  ve ağaç; başka zaman mevsime göre pencere (çiçek, güneş, yaprak, kar).
+- **Görünüş:** Ekip tasma rengi (yok/kırmızı/mavi/yeşil/mor/sarı) ve tüy rengi (turuncu/gri/siyah/krem) için oy
+  verir; en çok oy alan görünür (eşitlikte en son oylanan).
+
 ### İki çalışma modu
 
 | | Yerel deneme | Ortak canlı |
@@ -88,7 +121,8 @@ Aşağıdaki adımları sizin yapmanız gerekir; bu depoda gerçek bir Supabase 
 ### 2. Şema ve sınama
 
 1. **SQL Editor → New query**: `supabase/schema.sql` dosyasının tamamını yapıştırıp **Run**
-   (eski girişli şema kuruluysa önce 4. adıma bakın).
+   (eski girişli şema kuruluysa önce 4. adıma bakın). Şema daha önce kurulduysa onun yerine sırayla
+   `guncelleme-uyandir.sql` ve `guncelleme-etkilesim.sql`'i çalıştırın.
 2. Yeni bir sorguda `supabase/test-rls.sql`'i çalıştırın. Çıktıda (Messages/Notices) yalnızca `OK ...` satırları ve
    sonda `Bütün denetimler geçti` görünmeli. `HATA: ...` görürseniz canlıya geçmeyin.
    Betik tek işlemde çalışır ve sonunda geri alınır; test kullanıcıları kalmaz.

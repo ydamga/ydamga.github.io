@@ -34,6 +34,7 @@
           '<ellipse class="k-dil" cx="95.5" cy="47.6" rx="2" ry="2.6"/>' +
           '<path class="k-biyik" d="M103 42.5 115 40.5M103 45 115 46.5M86 43 76 41.5M86 45.5 76 46.5"/>' +
         '</g>' +
+        '<g class="k-tasma"><path class="k-tasma-serit" d="M78.5 45.5Q82.5 53 91.5 54.5"/><circle class="k-zil" cx="85.6" cy="54.2" r="2.3"/></g>' +
       '</g>' +
       '<rect class="k-bacak k-yakin k-b" x="31" y="60" width="9" height="20" rx="4.5"/>' +
       '<rect class="k-bacak k-yakin k-a" x="67" y="60" width="9" height="20" rx="4.5"/>' +
@@ -48,7 +49,7 @@
     soru: '<span class="i-soru">?</span>'
   };
 
-  var POZLAR = ['yuruyor', 'bakiyor', 'esniyor', 'yalaniyor', 'uyuyor', 'zipliyor', 'hayir'];
+  var POZLAR = ['yuruyor', 'bakiyor', 'esniyor', 'yalaniyor', 'uyuyor', 'zipliyor', 'hayir', 'mirliyor'];
   var azalt = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
 
   function rastgele(a, b) { return a + Math.random() * (b - a); }
@@ -68,11 +69,16 @@
     el.className = 'kedi';
     if (ops.link) el.href = ops.link;
     else el.setAttribute('aria-hidden', 'true');
-    el.innerHTML = '<div class="kedi-yon">' + SVG + '</div><div class="kedi-balon" hidden></div>';
+    el.innerHTML = '<div class="kedi-yon">' + SVG + '</div><div class="kedi-balon" hidden></div>' +
+      '<div class="kedi-soz" hidden></div><span class="kedi-unlem" hidden aria-hidden="true">!</span>';
     // Her kedinin göz kırpma aralığı biraz farklı
     el.style.setProperty('--kirpma', rastgele(4.2, 6.4).toFixed(2) + 's');
     alan.appendChild(el);
     var balonEl = el.querySelector('.kedi-balon');
+    var sozEl = el.querySelector('.kedi-soz');
+    var unlemEl = el.querySelector('.kedi-unlem');
+    var sozZaman = null;
+    var serbest = true; // false: dışarıdan yönetiliyor (lazer oyunu)
 
     var x = 0, yuruyor = false, zamanlayici = null, balonZaman = null;
     var isaret = {};
@@ -106,8 +112,40 @@
       return p ? parseFloat(p[4]) : x;
     }
 
+    // Konuşma balonu: kısa bir söz, birkaç saniye görünür
+    function soyle(metin, ms) {
+      clearTimeout(sozZaman);
+      if (!metin) { sozEl.hidden = true; return; }
+      sozEl.textContent = metin;
+      sozEl.hidden = false;
+      sozEl.classList.remove('yeni');
+      void sozEl.offsetWidth;
+      sozEl.classList.add('yeni');
+      sozZaman = setTimeout(function () { sozEl.hidden = true; }, ms || 3600);
+    }
+
+    // Belirli bir yere yürü/koş (px). carpan: hız çarpanı. Yürüme yarıdaysa oradan döner.
+    function git(hedef, carpan, bitince) {
+      var m = sinir();
+      hedef = Math.max(0, Math.min(m, hedef));
+      var su = suankiX();
+      var hiz = (ops.hiz || 36) * (carpan || 1);
+      var sure = Math.abs(hedef - su) / hiz;
+      if (sure < 0.05) { if (bitince) bitince(); return; }
+      yon(hedef > su);
+      poz('yuruyor');
+      yuruyor = true;
+      konum(hedef, sure);
+      bekle(sure * 1000, function () {
+        yuruyor = false;
+        poz(null);
+        if (bitince) bitince();
+        else if (serbest) dinlen();
+      });
+    }
+
     function sonraki() {
-      if (document.hidden) return;
+      if (document.hidden || !serbest) return;
       if (isaret.uyuyor) {
         poz('uyuyor');
         balon('zzz');
@@ -206,8 +244,55 @@
           baslat();
         } else if (azalt.matches) sabit();
       },
-      // Bakım sonrası kısa tepki: 'feed' | 'play' | 'rest' | 'wake' | 'clean' | 'red'
+      // Konuşma balonu
+      soyle: soyle,
+      // Acil ihtiyaç işareti (ünlem)
+      uyari: function (acik) { unlemEl.hidden = !acik; },
+      // Görünüş: { collar, coat }
+      kostum: function (k) {
+        el.dataset.tasma = (k && k.collar) || 'yok';
+        el.dataset.kurk = (k && k.coat) || 'turuncu';
+      },
+      // Sevilince mırlar; uyurken uyanmadan mırıldanır
+      sev: function () {
+        if (!serbest) return;
+        if (isaret.uyuyor) { soyle('mrr…', 1400); kalpler(1); return; }
+        if (yuruyor) { yuruyor = false; konum(suankiX(), 0); }
+        balon(null);
+        poz(azalt.matches ? null : 'mirliyor');
+        soyle('Mrrr…', 1800);
+        kalpler();
+        bekle(2000, azalt.matches ? sabit : dinlen);
+      },
+      // Sevdiği birini görünce oraya koşar (oran: alanın 0–1 arası bir noktası)
+      kos: function (oran, soz) {
+        if (!serbest || isaret.uyuyor) return;
+        if (soz) soyle(soz, 3000);
+        if (azalt.matches) { kalpler(); return; }
+        git(oran * sinir(), 3.2, function () { poz('zipliyor'); kalpler(); bekle(1500, dinlen); });
+      },
+      // Dışarıdan yönetim (lazer oyunu): açıkken kendi başına dolaşmaz
+      yonet: function (acik) {
+        serbest = !acik;
+        clearTimeout(zamanlayici);
+        if (acik) { balon(null); soyle(null); if (yuruyor) { yuruyor = false; konum(suankiX(), 0); } poz(null); }
+        else dinlen();
+      },
+      // Yönetim açıkken bir noktaya koş (px, alana göre). Döner: ulaşınca çağrılır
+      kovala: function (hedefPx, bitince) { git(hedefPx - el.offsetWidth / 2, 4.5, bitince || function () {}); },
+      // Kedinin merkezinin alandaki yeri (px)
+      merkez: function () { return suankiX() + el.offsetWidth / 2; },
+      // Bakım sonrası kısa tepki: 'feed' | 'play' | 'rest' | 'wake' | 'clean' | 'treat' | 'red'
       tepki: function (tur) {
+        if (tur === 'treat') {
+          if (yuruyor) { yuruyor = false; konum(suankiX(), 0); }
+          poz(isaret.uyuyor ? 'uyuyor' : azalt.matches ? null : 'zipliyor');
+          balon('parilti', 2600);
+          soyle('Ödül mü? Bayılırım!', 2600);
+          kalpler(5);
+          bekle(2600, azalt.matches ? sabit : isaret.uyuyor ? sonraki : dinlen);
+          return;
+        }
         if (tur === 'wake') {
           // Uyanınca gerinip esner, sonra dolaşmaya devam eder
           if (yuruyor) { yuruyor = false; konum(suankiX(), 0); }
@@ -238,14 +323,14 @@
       bilinmiyor: function () { clearTimeout(zamanlayici); poz(null); balon('soru'); }
     };
 
-    function kalpler() {
-      var n = azalt.matches ? 1 : 3;
+    function kalpler(adet) {
+      var n = azalt.matches ? 1 : adet || 3;
       for (var i = 0; i < n; i++) {
         var k = document.createElement('span');
         k.className = 'kedi-kalp';
         k.innerHTML = IKON.kalp;
         k.style.setProperty('--gecikme', i * 180 + 'ms');
-        k.style.setProperty('--sapma', (i - 1) * 14 + 'px');
+        k.style.setProperty('--sapma', (i - (n - 1) / 2) * 14 + 'px');
         el.appendChild(k);
         setTimeout(function (k) { k.remove(); }.bind(null, k), 1800 + i * 180);
       }

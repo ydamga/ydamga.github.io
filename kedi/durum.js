@@ -7,8 +7,10 @@
 // Canlı modda giriş yoktur: bakan kişi ekip listesinden adını seçer (ya da yeni ad ekler); seçim bu tarayıcıda
 // hatırlanır ve her bakım bu adla kaydedilir.
 //
-// Kullanım: KediDurum.baslat({ gecmis: true }) → Promise; KediDurum.dinle(fn) her değişiklikte fn(olay) çağırır.
-// Olaylar: durum | gecmis | ekip | ben | baglanti
+// Kullanım: KediDurum.baslat({ gecmis: true, aktivite: true }) → Promise; KediDurum.dinle(fn) her değişiklikte
+// fn(olay, veri) çağırır. Olaylar:
+//   durum | gecmis | ekip | ben | baglanti | aktivite | hafta | kozmetik
+//   eylem (veri: başka birinin yaptığı bakım satırı) | sev (veri: { member_id, ad }, başka biri kediyi sevdi)
 (function () {
   var AYAR = window.KEDI_AYAR;
   var BAG = window.KEDI_BAGLANTI || {};
@@ -17,6 +19,8 @@
   var DEMO_ANAHTAR = 'kedi-demo';
   var BEN_ANAHTAR = 'kedi-ben';
   var GECMIS_SINIR = 12;
+  var AKTIVITE_GUN = 35;       // rozetler, günlük, haftalık özet ve bağlılık için geriye bakılan gün
+  var SEV_ARALIK = 8000;       // sevme yayını en sık bu aralıkla gönderilir (ms)
 
   var dinleyiciler = [];
   var S = {
@@ -25,15 +29,18 @@
     kurallar: AYAR.kurallar,
     fark: 0,              // sunucu saati - tarayıcı saati (ms)
     gecmis: [],
+    aktivite: [],         // son AKTIVITE_GUN günün kabul edilmiş bakımları, eskiden yeniye
     ekip: [],             // [{ id, name, created_at, last_action_at }]
     ben: null,            // seçilen ekip üyesinin id'si (yalnızca canlı mod)
+    hafta: { count: 0, goal: AYAR.kurallar.weekly_goal, completed: 0 },
+    kozmetik: { collar: 'yok', coat: 'turuncu', votes: [] },
     sonBakim: null,       // son bakımın zamanı
     baglanti: 'yukleniyor', // yukleniyor | acik | kopuk
     hata: null
   };
   try { S.ben = Number(localStorage.getItem(BEN_ANAHTAR)) || null; } catch (e) {}
 
-  function yay(tur) { dinleyiciler.forEach(function (fn) { fn(tur); }); }
+  function yay(tur, veri) { dinleyiciler.forEach(function (fn) { fn(tur, veri); }); }
   function simdi() { return Date.now() + S.fark; }
 
   // Hata nesnesi: kod arayüzde mesaja çevrilir (kedi/oda.js)
@@ -60,6 +67,18 @@
       yay('ekip');
     }
   }
+  // Yeni kabul edilmiş bakım: etkinlik listesine ve haftalık sayaca eklenir
+  function aktiviteEkle(a) {
+    if (a.id != null && S.aktivite.some(function (x) { return x.id === a.id; })) return false;
+    S.aktivite.push(a);
+    if (Date.parse(a.created_at) >= K.haftaBasi(simdi())) {
+      S.hafta.count++;
+      if (S.hafta.count === S.hafta.goal) S.hafta.completed++;
+      yay('hafta');
+    }
+    yay('aktivite');
+    return true;
+  }
 
   // ---- Yerel deneme modu ----
   var demo = {
@@ -69,14 +88,22 @@
       if (!v || !v.pet) {
         var b = AYAR.baslangic;
         v = { pet: { hunger: b.hunger, happiness: b.happiness, energy: b.energy, cleanliness: b.cleanliness,
-          updated_at: new Date().toISOString(), resting_until: null }, gecmis: [] };
+          updated_at: new Date().toISOString(), resting_until: null }, gecmis: [], aktivite: [] };
       }
       S.pet = v.pet;
       S.gecmis = v.gecmis || [];
       S.sonBakim = v.sonBakim || null;
+      var sinir = simdi() - AKTIVITE_GUN * 864e5;
+      S.aktivite = (v.aktivite || []).filter(function (a) { return Date.parse(a.created_at) >= sinir; });
+      var bas = K.haftaBasi(simdi());
+      S.hafta = { count: S.aktivite.filter(function (a) { return Date.parse(a.created_at) >= bas; }).length,
+        goal: S.kurallar.weekly_goal, completed: v.tamamlanan || 0 };
     },
     yaz: function () {
-      try { localStorage.setItem(DEMO_ANAHTAR, JSON.stringify({ pet: S.pet, gecmis: S.gecmis, sonBakim: S.sonBakim })); } catch (e) {}
+      try {
+        localStorage.setItem(DEMO_ANAHTAR, JSON.stringify({ pet: S.pet, gecmis: S.gecmis, sonBakim: S.sonBakim,
+          aktivite: S.aktivite, tamamlanan: S.hafta.completed }));
+      } catch (e) {}
     },
     baslat: function () {
       demo.oku();
@@ -85,36 +112,35 @@
       window.addEventListener('storage', function (e) {
         if (e.key !== DEMO_ANAHTAR) return;
         demo.oku();
-        yay('durum');
-        yay('gecmis');
+        yay('durum'); yay('gecmis'); yay('aktivite'); yay('hafta');
       });
-      yay('durum');
-      yay('gecmis');
+      yay('durum'); yay('gecmis'); yay('aktivite'); yay('hafta');
       return Promise.resolve();
     },
-    islem: function (eylem) {
+    islem: function (eylem, ek) {
       demo.oku();
       var t = simdi();
-      var s = K.uygula(S.pet, eylem, S.kurallar, t);
+      var s = K.uygula(S.pet, eylem, S.kurallar, t, Object.assign({}, ek, { odulVerildi: odulVerildi() }));
       S.pet = s.pet;
-      S.gecmis.unshift({ id: t, action: eylem, result: s.result, reason: s.reason, actor_name: null, created_at: new Date(t).toISOString() });
+      var satir = { id: t, action: eylem, toy: s.toy, bonus: s.bonus, result: s.result, reason: s.reason,
+        member_id: null, actor_name: null, created_at: new Date(t).toISOString() };
+      S.gecmis.unshift(satir);
       S.gecmis = S.gecmis.slice(0, GECMIS_SINIR);
-      if (s.result === 'applied') S.sonBakim = S.gecmis[0].created_at;
+      if (s.result === 'applied') { S.sonBakim = satir.created_at; aktiviteEkle(satir); }
       demo.yaz();
       yay('durum');
       yay('gecmis');
-      return Promise.resolve({ result: s.result, reason: s.reason });
+      return Promise.resolve({ result: s.result, reason: s.reason, toy: s.toy, favorite: s.favorite });
     },
     sifirla: function () {
       try { localStorage.removeItem(DEMO_ANAHTAR); } catch (e) {}
       demo.oku();
-      yay('durum');
-      yay('gecmis');
+      yay('durum'); yay('gecmis'); yay('aktivite'); yay('hafta');
     }
   };
 
   // ---- Ortak canlı mod (Supabase) ----
-  var sb = null;
+  var sb = null, kanal = null, sonSev = 0;
   var canli = {
     yukle: function () {
       return new Promise(function (tamam, red) {
@@ -152,14 +178,16 @@
         S.kurallar = v.rules;
         S.sonBakim = v.pet.last_cared_at;
         S.ekip = v.team || [];
+        if (v.week) S.hafta = v.week;
+        if (v.cosmetics) S.kozmetik = v.cosmetics;
         S.hata = null;
         if (S.baglanti !== 'acik') { S.baglanti = 'acik'; yay('baglanti'); }
         benDenetle();
-        yay('durum');
-        yay('ekip');
+        yay('durum'); yay('ekip'); yay('hafta'); yay('kozmetik');
       }).then(function () {
-        // Geçmiş ayrı yüklenir: okunamaması sunucu bağlantısının koptuğu anlamına gelmez
+        // Geçmiş ve etkinlik ayrı yüklenir: okunamamaları sunucu bağlantısının koptuğu anlamına gelmez
         if (ops.gecmis) canli.gecmisYukle().catch(function () {});
+        if (ops.aktivite) canli.aktiviteYukle().catch(function () {});
       }, function (e) {
         canli.koptu(e);
         throw hata('network');
@@ -167,7 +195,7 @@
     },
     gecmisYukle: function () {
       return sb.from('pet_actions')
-        .select('id, member_id, action, result, reason, actor_name, created_at')
+        .select('id, member_id, action, toy, result, reason, actor_name, created_at')
         .order('created_at', { ascending: false })
         .limit(GECMIS_SINIR)
         .then(function (r) {
@@ -176,18 +204,45 @@
           yay('gecmis');
         });
     },
+    // Son AKTIVITE_GUN günün kabul edilmiş bakımları (sayfa sayfa; Supabase bir istekte en çok 1000 satır verir)
+    aktiviteYukle: function () {
+      var sinir = new Date(simdi() - AKTIVITE_GUN * 864e5).toISOString();
+      var hepsi = [], SAYFA = 1000;
+      function sayfa(i) {
+        return sb.from('pet_actions')
+          .select('id, member_id, actor_name, action, toy, bonus, created_at')
+          .eq('result', 'applied')
+          .gte('created_at', sinir)
+          .order('created_at', { ascending: true })
+          .range(i * SAYFA, i * SAYFA + SAYFA - 1)
+          .then(function (r) {
+            if (r.error) throw r.error;
+            hepsi = hepsi.concat(r.data);
+            if (r.data.length === SAYFA && i < 9) return sayfa(i + 1);
+          });
+      }
+      return sayfa(0).then(function () {
+        S.aktivite = hepsi;
+        yay('aktivite');
+      });
+    },
     abone: function (ops) {
-      sb.channel('ekip-kedisi')
+      kanal = sb.channel('ekip-kedisi', { config: { broadcast: { self: false } } })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pets' }, function (p) {
           S.pet = p.new;
           S.sonBakim = p.new.last_cared_at;
           yay('durum');
         })
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pet_actions' }, function (p) {
-          ugradi(p.new.member_id, p.new.created_at);
+          var a = p.new;
+          ugradi(a.member_id, a.created_at);
+          if (a.result === 'applied') {
+            var yeni = aktiviteEkle(a);
+            if (yeni && a.member_id !== S.ben) yay('eylem', a);
+          }
           if (!ops.gecmis) return;
-          if (S.gecmis.some(function (g) { return g.id === p.new.id; })) return;
-          S.gecmis.unshift(p.new);
+          if (S.gecmis.some(function (g) { return g.id === a.id; })) return;
+          S.gecmis.unshift(a);
           S.gecmis = S.gecmis.slice(0, GECMIS_SINIR);
           yay('gecmis');
         })
@@ -195,6 +250,15 @@
           // Ekleme, ad düzeltme ya da silme: listeyi son uğrama zamanlarıyla birlikte yeniden al
           canli.tazele(ops).catch(function () {});
         })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cosmetic_votes' }, function () {
+          sb.rpc('get_pet_state').then(function (r) {
+            if (r.error || !r.data.cosmetics) return;
+            S.kozmetik = r.data.cosmetics;
+            yay('kozmetik');
+          });
+        })
+        // Sevme veri tabanına yazılmaz; açık sayfalara anlık yayınla gider
+        .on('broadcast', { event: 'sev' }, function (m) { yay('sev', m.payload || {}); })
         .subscribe(function (durum) {
           if (durum === 'SUBSCRIBED') {
             // Kopukken kaçırılan değişiklikleri al
@@ -209,9 +273,12 @@
       S.baglanti = 'kopuk';
       yay('baglanti');
     },
-    islem: function (eylem) {
-      // Tarayıcı yalnızca eylemin adını ve bakan kişiyi gönderir; değerleri sunucu hesaplar
-      return sb.rpc('perform_pet_action', { p_action: eylem, p_member_id: S.ben }).then(function (r) {
+    islem: function (eylem, ek) {
+      ek = ek || {};
+      // Tarayıcı yalnızca eylemin adını, bakan kişiyi ve oyuncağı gönderir; değerleri sunucu hesaplar
+      var arg = { p_action: eylem, p_member_id: S.ben };
+      if (eylem === 'play') { arg.p_toy = ek.toy || 'top'; arg.p_bonus = Math.max(0, Math.round(ek.bonus || 0)); }
+      return sb.rpc('perform_pet_action', arg).then(function (r) {
         if (r.error) {
           var kod = hataKodu(r.error, ['unknown_member', 'cooldown', 'rate_limited', 'invalid_action']);
           if (kod === 'unknown_member') { S.ben = null; try { localStorage.removeItem(BEN_ANAHTAR); } catch (e) {} yay('ben'); }
@@ -224,7 +291,7 @@
         S.fark = Date.parse(v.server_now) - Date.now();
         ugradi(S.ben, v.server_now);
         yay('durum');
-        return { result: v.result, reason: v.reason };
+        return { result: v.result, reason: v.reason, toy: v.toy, favorite: !!v.favorite };
       }, function () {
         canli.koptu();
         throw hata('network');
@@ -241,6 +308,13 @@
         }
         return m;
       }, function () { throw hata('network'); });
+    },
+    oyVer: function (tur, deger) {
+      return sb.rpc('vote_cosmetic', { p_member_id: S.ben, p_kind: tur, p_value: deger }).then(function (r) {
+        if (r.error) throw hata(hataKodu(r.error, ['unknown_member', 'invalid_vote']) || 'network');
+        S.kozmetik = r.data;
+        yay('kozmetik');
+      }, function () { throw hata('network'); });
     }
   };
 
@@ -250,6 +324,16 @@
     S.ben = id;
     try { id ? localStorage.setItem(BEN_ANAHTAR, String(id)) : localStorage.removeItem(BEN_ANAHTAR); } catch (e) {}
     yay('ben');
+  }
+  function benKaydi() {
+    return S.ben ? S.ekip.filter(function (m) { return m.id === S.ben; })[0] || null : null;
+  }
+  // Seçili kişi (demo modunda bu tarayıcı) bugün ödül maması verdi mi
+  function odulVerildi() {
+    var bugun = K.yerel(simdi()).gun;
+    return S.aktivite.some(function (a) {
+      return a.action === 'treat' && (S.mod === 'demo' || a.member_id === S.ben) && K.yerel(a.created_at).gun === bugun;
+    });
   }
 
   window.KediDurum = {
@@ -272,23 +356,38 @@
     },
     get kurallar() { return S.kurallar; },
     get gecmis() { return S.gecmis; },
+    get aktivite() { return S.aktivite; },
+    get hafta() { return S.hafta; },
+    get kozmetik() { return S.kozmetik; },
     get sonBakim() { return S.sonBakim; },
     get baglanti() { return S.baglanti; },
     get ekip() { return S.ekip; },
     // Seçili ekip üyesi ({ id, name, ... }) ya da null
-    get ben() {
-      return S.ben ? S.ekip.filter(function (m) { return m.id === S.ben; })[0] || null : null;
-    },
+    get ben() { return benKaydi(); },
     // Kedinin özlediği kişiler (KediKurallar.ozlenenler)
     ozlenenler: function () { return K.ozlenenler(S.ekip, simdi(), AYAR.ozlemGun); },
-    islem: function (eylem) {
+    odulVerildi: odulVerildi,
+    // ek: { toy, bonus } (yalnızca oyun)
+    islem: function (eylem, ek) {
       if (S.mod === 'canli' && !S.ben) return Promise.reject(hata('no_name'));
-      return motor.islem(eylem);
+      return motor.islem(eylem, ek);
     },
-    // Yalnızca canlı mod: ekipten birini seç / yeni ad ekleyip seç / seçimi bırak
+    // Kediyi sevmek: sayaç yok, veri tabanına yazılmaz; canlı modda öteki açık sayfalara duyurulur
+    sev: function () {
+      var ben = benKaydi();
+      if (S.mod !== 'canli' || !kanal || !ben || Date.now() - sonSev < SEV_ARALIK) return;
+      sonSev = Date.now();
+      kanal.send({ type: 'broadcast', event: 'sev', payload: { member_id: ben.id, ad: ben.name } });
+    },
+    // Yalnızca canlı mod: ekipten birini seç / yeni ad ekleyip seç
     benSec: function (id) { benAyarla(id); },
     isimEkle: function (ad) {
       return canli.isimEkle(ad).then(function (m) { benAyarla(m.id); return m; });
+    },
+    // Yalnızca canlı mod: görünüş oyu ('collar' | 'coat')
+    oyVer: function (tur, deger) {
+      if (S.mod !== 'canli' || !S.ben) return Promise.reject(hata('no_name'));
+      return canli.oyVer(tur, deger);
     },
     // Yalnızca demo modu
     sifirla: function () { if (S.mod === 'demo') demo.sifirla(); }

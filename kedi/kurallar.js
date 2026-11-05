@@ -250,7 +250,8 @@
   }
 
   // Kedinin ağzından günlük paragrafı
-  var OYUNCAK_AD = { top: 'top', ip: 'ip', lazer: 'lazer' };
+  // Ünlü uyumuyla: topla, iple, lazerle
+  var OYUNCAKLA = { top: 'topla', ip: 'iple', lazer: 'lazerle' };
   function gunlukMetni(o, bugunMu) {
     if (!o.toplam) {
       return bugunMu
@@ -268,8 +269,8 @@
     if (e.treat) c.push(e.treat + ' kez ödül maması kaptım' + kim('treat'));
     if (e.play) {
       var oy = Object.keys(o.oyuncak).sort(function (a, b) { return o.oyuncak[b] - o.oyuncak[a]; })
-        .map(function (t) { return OYUNCAK_AD[t]; });
-      c.push(e.play + ' kez oynadım' + (oy.length ? ', en çok ' + oy[0] + 'la' : '') + kim('play'));
+        .map(function (t) { return OYUNCAKLA[t]; });
+      c.push(e.play + ' kez oynadım' + (oy.length ? ', en çok ' + oy[0] : '') + kim('play'));
     }
     if (e.clean) c.push(e.clean + ' kez tarandım' + kim('clean'));
     if (e.rest) c.push(e.rest + ' kez minderimde uyudum');

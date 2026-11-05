@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kedi Odası</title>
-  <meta name="description" content="Ekibin ortak kedisi: adını seç, besle, oynat, dinlendir, temizle. Uzun süre uğramayanları özler.">
+  <meta name="description" content="Ekibin ortak kedisi: adını seç; besle, oyuncakla ya da lazerle oynat, sev, ödül maması ver. Haftalık hedef, rozetler, günlük ve görünüş oylaması.">
   <script src="ayarlar.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -274,6 +274,138 @@
     }
     .gecmis .ekip-liste li.ozlenen { box-shadow: inset 4px 0 0 var(--accent); }
 
+
+    /* ---- Etkileşim ---- */
+    /* Ödül maması: tam genişlik, ikincil görünüm; bugün verildiyse soluk */
+    .eylem-odul { grid-column: 1 / -1; min-height: 46px; background: color-mix(in srgb, var(--accent) 35%, var(--surface)); color: var(--text); }
+    .eylem-odul .odul-not { font-size: 0.78rem; font-weight: 500; color: var(--text-2); }
+    .eylem-odul.kullanildi { opacity: 0.6; }
+    @media (hover: hover) and (pointer: fine) {
+      .eylem-odul:not(:disabled):hover { background: color-mix(in srgb, var(--accent) 50%, var(--surface)); }
+    }
+    /* Oyuncak seçimi */
+    .oyuncak-sec { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 12px; background: var(--surface); }
+    .oyuncak-sec[hidden] { display: none; }
+    .oyuncak-sec > span { font-weight: 700; font-size: 0.9rem; margin-right: 4px; }
+    .oyuncak-sec button {
+      min-height: 40px; padding: 0 14px; border: 1px solid var(--accent-ink); border-radius: 999px;
+      background: transparent; color: var(--accent-ink); font: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+    }
+    .oyuncak-sec button:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+    @media (hover: hover) and (pointer: fine) {
+      .oyuncak-sec button:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    }
+
+    /* Sev düğmesi (kediye dokunmak da sever) */
+    .ruh { position: relative; }
+    .sev-btn {
+      position: absolute; top: clamp(12px, 2vh, 18px); right: clamp(14px, 2vw, 22px);
+      display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px;
+      border: 1px solid var(--surface-2); border-radius: 999px; background: transparent; color: var(--text);
+      font: inherit; font-size: 0.88rem; font-weight: 700; cursor: pointer;
+    }
+    .sev-btn svg { width: 16px; height: 16px; fill: #E7808F; }
+    .sev-btn:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+    @media (hover: hover) and (pointer: fine) { .sev-btn:hover { background: var(--surface-2); } }
+    .oda-zemin .kedi { cursor: pointer; }
+    .ruh-ad { padding-right: 84px; }
+
+    /* Kartlar: haftalık hedef, görünüş, bildirim, günlük */
+    .kart { padding: 14px 16px; background: var(--surface); }
+    .kart[hidden] { display: none; }
+    .kart h2 { margin-bottom: 8px; }
+    .hafta-ust { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .hafta-ust b { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+    .hafta-bar { height: 10px; margin: 8px 0 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+    .hafta-bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--accent); transition: width 500ms var(--ease-out); }
+    .hafta-odul { font-size: 0.88rem; font-weight: 700; color: var(--accent-ink); }
+    .hafta-ozet { list-style: none; margin-top: 8px; display: grid; gap: 4px; font-size: 0.86rem; color: var(--text-2); line-height: 1.4; }
+
+    .oy-satir { display: grid; gap: 6px; margin-top: 8px; }
+    .oy-satir > b { font-size: 0.86rem; }
+    .oylar { display: flex; flex-wrap: wrap; gap: 6px; }
+    .renk {
+      display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 10px 0 6px;
+      border: 1px solid var(--surface-2); border-radius: 999px; background: transparent; color: var(--text);
+      font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+    }
+    .renk i { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.15); background: var(--r, transparent); }
+    .renk[data-deger="yok"] i { background: repeating-linear-gradient(45deg, var(--surface-2) 0 3px, transparent 3px 6px); }
+    .renk[data-deger="kirmizi"] { --r: #D64545; } .renk[data-deger="mavi"] { --r: #3D7DD8; } .renk[data-deger="yesil"] { --r: #3FA66B; }
+    .renk[data-deger="mor"] { --r: #8A5CD6; } .renk[data-deger="sari"] { --r: #E8B923; }
+    .renk[data-deger="turuncu"] { --r: #E39B5B; } .renk[data-deger="gri"] { --r: #A7AFB8; } .renk[data-deger="siyah"] { --r: #3B3B42; } .renk[data-deger="krem"] { --r: #EAD2AE; }
+    .renk[aria-pressed="true"] { border-color: var(--accent-ink); box-shadow: inset 0 0 0 1px var(--accent-ink); }
+    .renk.kazanan i { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
+    .renk:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+    .renk:disabled { opacity: 0.5; }
+    .kart-not { margin-top: 8px; font-size: 0.8rem; color: var(--muted); }
+
+    .bildirim-satir { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .bildirim-satir span { font-size: 0.88rem; line-height: 1.4; color: var(--text-2); }
+    .bildirim-satir b { display: block; color: var(--text); }
+    .anahtar-k {
+      flex: none; position: relative; width: 46px; height: 26px; border: 0; border-radius: 999px;
+      background: var(--surface-2); cursor: pointer; transition: background-color 150ms ease;
+    }
+    .anahtar-k::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 200ms var(--ease-out); }
+    .anahtar-k[aria-checked="true"] { background: var(--accent); }
+    .anahtar-k[aria-checked="true"]::after { transform: translateX(20px); }
+    .anahtar-k:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+
+    .gunluk-kart { margin-bottom: clamp(16px, 2vw, 24px); }
+    .gunluk-ust { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+    .gunluk-ust h2 { margin-bottom: 0; }
+    .gunluk-sec { display: inline-flex; gap: 2px; padding: 2px; border-radius: 999px; border: 1px solid var(--surface-2); }
+    .gunluk-sec button { min-height: 30px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+    .gunluk-sec button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+    .gunluk-sec button:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+    .gunluk-metin { font-size: 0.95rem; line-height: 1.55; color: var(--text); font-style: italic; }
+
+    /* Rozetler (ekip listesi) */
+    .rozetler { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px; }
+    .rozet { padding: 1px 8px; border-radius: 999px; border: 1px solid var(--surface-2); font-size: 0.74rem; font-weight: 700; color: var(--text-2); cursor: help; }
+
+    /* Lazer oyunu */
+    .lazer-katman { position: absolute; inset: 0; z-index: 5; cursor: none; touch-action: none; outline: none; }
+    .lazer-katman:focus-visible { box-shadow: inset 0 0 0 3px var(--accent-ink); }
+    .lazer-nokta {
+      position: absolute; left: 0; top: 0; width: 14px; height: 14px; border-radius: 50%;
+      background: #FF2D2D; box-shadow: 0 0 10px 3px rgba(255, 45, 45, 0.6);
+    }
+    .lazer-nokta.yakalandi { animation: lazer-yakala 320ms ease-out; }
+    @keyframes lazer-yakala { 50% { box-shadow: 0 0 0 10px rgba(255, 45, 45, 0.25); } }
+    .lazer-bilgi {
+      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+      padding: 4px 12px; border-radius: 999px; background: var(--surface); color: var(--text);
+      font-size: 0.85rem; font-variant-numeric: tabular-nums; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Sahne: günün saatine göre gökyüzü */
+    .oda-pencere { --gok: color-mix(in srgb, var(--accent) 22%, var(--surface)); overflow: hidden; }
+    .oda-pencere {
+      background:
+        linear-gradient(var(--surface-2), var(--surface-2)) center / 4px 100% no-repeat,
+        linear-gradient(var(--surface-2), var(--surface-2)) center / 100% 4px no-repeat,
+        var(--gok);
+    }
+    .oda-pencere svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .oda[data-dilim="sabah"] .oda-pencere { --gok: linear-gradient(#FBD9B5, #CFE6F5); }
+    .oda[data-dilim="gunduz"] .oda-pencere { --gok: linear-gradient(#9FD0F0, #D7EEFA); }
+    .oda[data-dilim="aksam"] .oda-pencere { --gok: linear-gradient(#F29E7A, #8E6BB8); }
+    .oda[data-dilim="gece"] .oda-pencere { --gok: linear-gradient(#1C2546, #2E3B66); }
+    .oda[data-dilim="gece"]::after { content: ""; position: absolute; inset: 0; background: rgba(16, 22, 50, 0.22); pointer-events: none; }
+    .oda-tavan { position: absolute; left: 0; right: 0; top: 0; height: 40px; pointer-events: none; }
+    .oda-tavan svg { display: block; width: 100%; height: 100%; }
+    .oda-esyalar { position: absolute; inset: 0; pointer-events: none; }
+    .oda-esya-kazanc { position: absolute; }
+    .oda-esya-kazanc svg { display: block; width: 100%; height: auto; }
+    .esya-agac { left: 11%; bottom: 7%; width: clamp(40px, 6vw, 62px); }
+    .esya-bitki { left: 26%; bottom: 7%; width: clamp(26px, 4vw, 40px); }
+    .esya-tablo { right: 20%; top: 18%; width: clamp(40px, 6vw, 58px); }
+    .esya-hali { left: 30%; right: 30%; bottom: 3%; }
+    .esya-lamba { right: 25%; bottom: 7%; width: clamp(22px, 3vw, 32px); }
+    .esya-sepet { left: 40%; bottom: 6%; width: clamp(30px, 4vw, 44px); }
+
     @media (max-width: 900px) {
       .oda-govde { grid-template-columns: minmax(0, 1fr); grid-template-areas: "sahne" "bakim" "gecmis"; }
     }
@@ -284,7 +416,8 @@
       .eylem { min-height: 52px; font-size: 0.96rem; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .eylem, .olcer-bar i { transition: none; }
+      .eylem, .olcer-bar i, .hafta-bar i, .anahtar-k, .anahtar-k::after { transition: none; }
+      .lazer-nokta.yakalandi { animation: none; }
       .eylem:active:not(:disabled) { transform: none; }
     }
   </style>
@@ -313,6 +446,7 @@
           <div class="oda-zemin" id="oda-zemin"></div>
         </div>
         <div class="ruh">
+          <button type="button" class="sev-btn" id="sev-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.6A4 4 0 0 1 12 8a4 4 0 0 1 7 2.4C19 15.6 12 20 12 20z"/></svg>Sev</button>
           <span class="ruh-ad" id="ruh-ad">…</span>
           <p id="ruh-mesaj"></p>
           <p class="son" id="son-bakan"></p>
@@ -327,9 +461,16 @@
         </div>
         <div class="eylemler" role="group" aria-label="Bakım">
           <button type="button" class="eylem" data-eylem="feed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18l-2 7H5zM8 9h.01M12 8h.01M16 9h.01"/></svg>Besle</button>
-          <button type="button" class="eylem" data-eylem="play"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M5 9c4 2 10 2 14 0M5 15c4-2 10-2 14 0"/></svg>Oynat</button>
+          <button type="button" class="eylem" data-eylem="play" id="oynat-btn" aria-expanded="false" aria-controls="oyuncak-sec"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M5 9c4 2 10 2 14 0M5 15c4-2 10-2 14 0"/></svg>Oynat</button>
           <button type="button" class="eylem" data-eylem="rest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Dinlendir</button>
           <button type="button" class="eylem" data-eylem="clean"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg>Temizle</button>
+          <button type="button" class="eylem eylem-odul" data-eylem="treat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12c3-5 13-5 16 0-3 5-13 5-16 0zM20 12l2-3v6z"/></svg>Ödül maması <span class="odul-not">günde bir</span></button>
+        </div>
+        <div class="oyuncak-sec" id="oyuncak-sec" role="group" aria-label="Oyuncak seç" hidden>
+          <span>Ne ile oynayalım?</span>
+          <button type="button" data-toy="top">Top</button>
+          <button type="button" data-toy="ip">İp</button>
+          <button type="button" data-toy="lazer">Lazer (oyun)</button>
         </div>
         <p class="eylem-mesaj" id="eylem-mesaj" aria-live="polite"></p>
         <div class="not" id="demo-not" hidden>
@@ -338,9 +479,37 @@
           <br><button type="button" id="sifirla">Denemeyi sıfırla</button>
         </div>
         <div class="kim" id="kim" hidden></div>
+        <section class="kart" aria-labelledby="hafta-baslik">
+          <div class="hafta-ust"><h2 id="hafta-baslik">Haftalık hedef</h2><b id="hafta-sayi">0 / 60</b></div>
+          <div class="hafta-bar" id="hafta-bar" role="progressbar" aria-labelledby="hafta-baslik" aria-valuemin="0" aria-valuenow="0" aria-valuemax="60"><i></i></div>
+          <p class="hafta-odul" id="hafta-odul"></p>
+          <ul class="hafta-ozet" id="hafta-ozet"></ul>
+        </section>
+        <section class="kart" id="gorunus" aria-labelledby="gorunus-baslik" hidden>
+          <h2 id="gorunus-baslik">Görünüş oylaması</h2>
+          <div class="oy-satir"><b>Tasma</b><div class="oylar" id="oy-collar" role="group" aria-label="Tasma rengi"></div></div>
+          <div class="oy-satir"><b>Tüy rengi</b><div class="oylar" id="oy-coat" role="group" aria-label="Tüy rengi"></div></div>
+          <p class="kart-not">En çok oy alan görünür. Oyunu istediğin zaman değiştirebilirsin.</p>
+        </section>
+        <div class="kart" id="bildirim-kutu" hidden>
+          <div class="bildirim-satir">
+            <span><b id="bildirim-ad">Fındık acıkınca bildir</b>Site bir sekmede açıkken, ihtiyacı acilleşince masaüstü bildirimi (en çok 2 saatte bir).</span>
+            <button type="button" class="anahtar-k" id="bildirim-btn" role="switch" aria-checked="false" aria-labelledby="bildirim-ad"></button>
+          </div>
+        </div>
       </section>
 
       <div class="gecmis">
+        <section class="kart gunluk-kart" aria-labelledby="gunluk-baslik">
+          <div class="gunluk-ust">
+            <h2 id="gunluk-baslik">Fındık'ın günlüğü</h2>
+            <div class="gunluk-sec" role="group" aria-label="Gün">
+              <button type="button" data-gun="bugun" aria-pressed="true">Bugün</button>
+              <button type="button" data-gun="dun" aria-pressed="false">Dün</button>
+            </div>
+          </div>
+          <p class="gunluk-metin" id="gunluk-metin">…</p>
+        </section>
         <section aria-labelledby="gecmis-baslik">
           <h2 id="gecmis-baslik">Son bakımlar</h2>
           <ol id="gecmis-liste"></ol>
@@ -361,7 +530,10 @@
   <script src="kedi/baglanti.js" defer></script>
   <script src="kedi/kurallar.js" defer></script>
   <script src="kedi/durum.js" defer></script>
+  <script src="kedi/bildirim.js" defer></script>
   <script src="kedi/karakter.js" defer></script>
+  <script src="kedi/sahne.js" defer></script>
+  <script src="kedi/lazer.js" defer></script>
   <script src="kedi/oda.js" defer></script>
 </body>
 </html>

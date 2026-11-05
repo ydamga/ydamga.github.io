@@ -144,6 +144,91 @@ a.kedi:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px
 @keyframes k-balon { from { opacity: 0; transform: translateY(4px) scale(0.85); } }
 @keyframes k-zzz { 0%, 100% { transform: translateY(0); opacity: 0.6; } 50% { transform: translateY(-3px); opacity: 1; } }
 
+/* Konuşma balonu: kısa sözler, başın üstünde */
+.kedi-soz {
+  position: absolute;
+  bottom: 96%;
+  left: 50%;
+  max-width: 220px;
+  width: max-content;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: normal;
+  text-align: center;
+  pointer-events: none;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+.kedi-soz::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  border: 6px solid transparent;
+  border-top-color: var(--surface);
+  transform: translateX(-50%);
+}
+.kedi-soz[hidden] { display: none; }
+/* Düşünce balonu da görünürken söz onun üstüne çıkar */
+.kedi-balon:not([hidden]) ~ .kedi-soz { bottom: calc(70% + max(22px, var(--kedi-en) * 0.42) + 8px); }
+.kedi-soz.yeni { animation: k-balon 240ms var(--ease-out); }
+/* Anasayfanın dar şeridinde balon daha küçük */
+.kedi-serit .kedi-soz { font-size: 0.74rem; padding: 4px 8px; max-width: 160px; }
+
+/* Acil ihtiyaç işareti */
+.kedi-unlem {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #E0605E;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--bg);
+  pointer-events: none;
+  animation: k-nabiz 1.6s ease-in-out infinite;
+}
+.kedi-unlem[hidden] { display: none; }
+@keyframes k-nabiz { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+
+/* Mırlama: gözler mutlu, gövde hafifçe titrer */
+@keyframes k-mir { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(0.6px); } }
+.kedi.mirliyor .k-vucut { animation: k-mir 90ms linear infinite; }
+.kedi.mirliyor .k-goz-acik { display: none; }
+.kedi.mirliyor .k-goz-mutlu { display: inline; }
+.kedi.mirliyor .k-bas { transform: rotate(-6deg); }
+.kedi.mirliyor .k-kuyruk { animation-duration: 1.2s; }
+
+/* Tasma: ekibin oyladığı renk */
+.k-tasma { display: none; }
+.kedi[data-tasma]:not([data-tasma="yok"]) .k-tasma { display: inline; }
+.k-tasma-serit { fill: none; stroke: var(--k-tasma, #D64545); stroke-width: 3.4; stroke-linecap: round; }
+.k-zil { fill: #F2C94C; stroke: #B8902A; stroke-width: 0.6; }
+.kedi[data-tasma="kirmizi"] { --k-tasma: #D64545; }
+.kedi[data-tasma="mavi"] { --k-tasma: #3D7DD8; }
+.kedi[data-tasma="yesil"] { --k-tasma: #3FA66B; }
+.kedi[data-tasma="mor"] { --k-tasma: #8A5CD6; }
+.kedi[data-tasma="sari"] { --k-tasma: #E8B923; }
+
+/* Tüy rengi: ekibin oyladığı */
+.kedi[data-kurk="gri"] { --k-tuy: #A7AFB8; --k-tuy-koyu: #7B848E; }
+.kedi[data-kurk="krem"] { --k-tuy: #EAD2AE; --k-tuy-koyu: #C9A576; --k-krem: #FFF6E8; }
+.kedi[data-kurk="siyah"] { --k-tuy: #3B3B42; --k-tuy-koyu: #24242A; --k-krem: #F1EEE8; --k-murekkep: #F1EEE8; }
+.kedi[data-kurk="siyah"] .k-goz-acik { fill: #C9DE6A; }
+.kedi[data-kurk="siyah"] .k-agiz-acik { fill: #7A3442; }
+
 /* Bakım sonrası kalpler */
 .kedi-kalp {
   position: absolute;
@@ -177,9 +262,42 @@ a.kedi:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px
   .kedi-serit .kedi { --kedi-en: 52px; }
 }
 
+/* Anlık duyurular: başkası bakım yapınca ya da kediyi sevince (kedi/bildirim.js) */
+.kedi-duyurular {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 50;
+  display: grid;
+  gap: 6px;
+  max-width: min(320px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.kedi-duyuru {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  border-left: 4px solid var(--accent);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.3;
+  animation: k-duyuru 280ms var(--ease-out);
+  transition: opacity 280ms ease, transform 280ms var(--ease-out);
+}
+.kedi-duyuru svg { flex: none; width: 18px; height: 18px; fill: var(--accent); }
+.kedi-duyuru.gidiyor { opacity: 0; transform: translateY(6px); }
+@keyframes k-duyuru { from { opacity: 0; transform: translateY(10px); } }
+
 @media (prefers-reduced-motion: reduce) {
   .kedi, .kedi-yon, .k-bas, .k-vucut, .k-kulak { transition: none; }
-  .kedi *, .kedi-balon, .kedi-kalp { animation: none !important; }
+  .kedi *, .kedi-balon, .kedi-kalp, .kedi-soz, .kedi-unlem, .kedi-duyuru { animation: none !important; }
+  .kedi-duyuru { transition: opacity 200ms ease; }
+  .kedi-duyuru.gidiyor { transform: none; }
   .kedi-kalp { opacity: 1; transform: translate(-50%, calc(var(--kedi-en) * -0.35)); }
   .kedi.uyuyor .k-vucut { transform: translateY(9px); }
 }

@@ -231,7 +231,7 @@ test('günlük paragrafı günün bakımlarını anlatır', () => {
   const o = K.gunOzeti(a, '2026-11-05');
   assert.equal(o.toplam, 4);
   const m = K.gunlukMetni(o, true);
-  assert.match(m, /^Bugün 3 kez mama yedim \(en çok Ayşe\) ve 1 kez oynadım, en çok lazerla \(Mehmet\)\. 2 kişi uğradı;/);
+  assert.match(m, /^Bugün 3 kez mama yedim \(en çok Ayşe\) ve 1 kez oynadım, en çok lazerle \(Mehmet\)\. 2 kişi uğradı;/);
   assert.match(K.gunlukMetni(K.gunOzeti([], '2026-11-05'), true), /kimse uğramadı/);
 });
 
