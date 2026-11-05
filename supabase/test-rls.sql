@@ -175,6 +175,74 @@ exception when raise_exception then
   raise notice 'OK sıklık: herkes toplamındaki dakikalık sınır uygulandı';
 end $$;
 
+-- ---- 3) Etkileşim: ödül maması, oyuncaklar, lazer puanı, görünüş oyları, haftalık hedef ----
+reset role;
+update public.game_rules set cooldown_seconds = 0, max_actions_per_hour = 1000, max_actions_per_minute_total = 1000 where id = 1;
+update public.pets set hunger = 50, happiness = 30, energy = 80, cleanliness = 50,
+  resting_until = null, updated_at = now() where id = 1;
+set local role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
+
+do $$
+declare m jsonb; uye bigint; r jsonb; k jsonb; n int;
+begin
+  m := public.add_team_member('Etkileşim Kişi');
+  uye := (m->>'id')::bigint;
+
+  r := public.perform_pet_action('treat', uye);
+  assert r->>'result' = 'applied', 'HATA: ödül maması verilemedi: ' || r::text;
+  r := public.perform_pet_action('treat', uye);
+  assert r->>'result' = 'declined' and r->>'reason' = 'treat_used', 'HATA: aynı gün ikinci ödül maması verildi';
+  raise notice 'OK ödül: kişi başı günde bir kez';
+
+  r := public.perform_pet_action('play', uye, 'lazer', 999);
+  assert r->>'result' = 'applied' and r->>'toy' = 'lazer', 'HATA: lazerle oyun uygulanmadı: ' || r::text;
+  assert r->>'favorite' in ('true', 'false'), 'HATA: gözde oyuncak bilgisi yok';
+  select bonus into n from public.pet_actions where member_id = uye and action = 'play' order by id desc limit 1;
+  assert n = 10, 'HATA: lazer puanı sınırlanmadı: ' || n;
+  r := public.perform_pet_action('play', uye, null, 50);
+  assert r->>'toy' = 'top', 'HATA: oyuncak seçilmeyince top kullanılmadı';
+  select bonus into n from public.pet_actions where member_id = uye and action = 'play' order by id desc limit 1;
+  assert n = 0, 'HATA: lazer dışındaki oyuna puan eklendi';
+  begin
+    perform public.perform_pet_action('play', uye, 'kemik', 0);
+    raise exception 'HATA: bilinmeyen oyuncak kabul edildi';
+  exception when invalid_parameter_value then null;
+  end;
+  raise notice 'OK oyuncak: lazer puanı sınırlı, varsayılan top, bilinmeyen oyuncak reddedildi';
+
+  k := public.vote_cosmetic(uye, 'collar', 'mavi');
+  assert k->>'collar' = 'mavi', 'HATA: tasma oyu sayılmadı: ' || k::text;
+  k := public.vote_cosmetic(uye, 'coat', 'gri');
+  assert k->>'coat' = 'gri', 'HATA: tüy oyu sayılmadı';
+  k := public.vote_cosmetic(uye, 'collar', 'kirmizi');
+  assert k->>'collar' = 'kirmizi', 'HATA: oy değiştirilemedi';
+  select count(*) into n from public.cosmetic_votes where member_id = uye;
+  assert n = 2, 'HATA: kişi başına tür başı tek oy değil';
+  begin
+    perform public.vote_cosmetic(uye, 'collar', 'pembe');
+    raise exception 'HATA: geçersiz renk kabul edildi';
+  exception when invalid_parameter_value then null;
+  end;
+  begin
+    perform public.vote_cosmetic(-1, 'collar', 'mavi');
+    raise exception 'HATA: listede olmayan kişi oy verebildi';
+  exception when invalid_parameter_value then null;
+  end;
+  begin
+    insert into public.cosmetic_votes (member_id, kind, value) values (uye, 'coat', 'siyah');
+    raise exception 'HATA: oylara doğrudan yazılabildi';
+  exception when insufficient_privilege then null;
+  end;
+  raise notice 'OK görünüş: oy verildi ve değiştirildi; geçersiz renk, yabancı kişi ve doğrudan yazma reddedildi';
+
+  r := public.get_pet_state();
+  assert (r->'week'->>'count')::int >= 4 and (r->'week'->>'goal')::int > 0 and r->'week' ? 'completed',
+    'HATA: haftalık hedef bilgisi eksik: ' || (r->'week')::text;
+  assert r->'cosmetics'->>'collar' = 'kirmizi' and r->'cosmetics'->>'coat' = 'gri', 'HATA: görünüş durumda yok';
+  raise notice 'OK durum: haftalık hedef ve görünüş okunuyor';
+end $$;
+
 reset role;
 select 'Bütün denetimler geçti (değişiklikler geri alınıyor)' as sonuc;
 rollback;

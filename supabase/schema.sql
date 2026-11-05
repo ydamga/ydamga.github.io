@@ -5,7 +5,10 @@
 -- Sonra supabase/test-rls.sql ile sınayın.
 --
 -- Model
---  * Eylemler: feed (besle), play (oynat), rest (dinlendir), wake (uyandır), clean (temizle).
+--  * Eylemler: feed (besle), play (oynat; top/ip/lazer), rest (dinlendir), wake (uyandır), clean (temizle),
+--    treat (ödül maması; kişi başı günde bir).
+--  * Haftalık hedef: haftada game_rules.weekly_goal bakım; tamamlanan her hafta odaya bir eşya kazandırır.
+--  * Görünüş: ekip tasma rengi ve tüy rengi için oy verir; en çok oy alan görünür (cosmetic_votes).
 --  * Giriş/kayıt yok. Ekip listesi public.team_members'ta isimlerden oluşur; sayfayı açan kişi adını seçer
 --    ya da yeni ad ekler (public.add_team_member). Seçilen ad tarayıcıda hatırlanır.
 --  * Her bakım bir isimle kaydedilir; geçmişi herkes görür. Kedi, bir süredir uğramayanları "özler"
@@ -52,6 +55,11 @@ create table public.game_rules (
   cooldown_seconds          integer not null default 3  check (cooldown_seconds between 0 and 3600),
   max_actions_per_hour      integer not null default 60 check (max_actions_per_hour between 1 and 10000),
   max_actions_per_minute_total integer not null default 30 check (max_actions_per_minute_total between 1 and 10000),
+  treat_hunger              numeric not null default 10 check (treat_hunger between 0 and 100),
+  treat_happiness           numeric not null default 20 check (treat_happiness between 0 and 100),
+  favorite_toy_bonus        numeric not null default 10 check (favorite_toy_bonus between 0 and 100),
+  max_game_bonus            integer not null default 10 check (max_game_bonus between 0 and 100),
+  weekly_goal               integer not null default 60 check (weekly_goal between 1 and 10000),
   updated_at timestamptz not null default now()
 );
 insert into public.game_rules (id) values (1);
@@ -92,14 +100,30 @@ create table public.pet_actions (
   pet_id smallint not null default 1 references public.pets (id),
   member_id bigint references public.team_members (id) on delete set null,
   actor_name text not null check (char_length(actor_name) between 1 and 60),
-  action text not null check (action in ('feed', 'play', 'rest', 'wake', 'clean')),
+  action text not null check (action in ('feed', 'play', 'rest', 'wake', 'clean', 'treat')),
+  toy text check (toy in ('top', 'ip', 'lazer')),
+  bonus smallint not null default 0 check (bonus between 0 and 100),
   result text not null check (result in ('applied', 'declined')),
-  reason text check (reason in ('already_full', 'sleeping', 'too_tired', 'already_happy', 'already_resting', 'not_tired', 'not_sleeping', 'already_clean')),
+  reason text check (reason in ('already_full', 'sleeping', 'too_tired', 'already_happy', 'already_resting', 'not_tired', 'not_sleeping', 'already_clean', 'treat_used')),
   created_at timestamptz not null default now(),
   check ((result = 'applied') = (reason is null))
 );
 create index pet_actions_created_at_idx on public.pet_actions (created_at desc);
 create index pet_actions_member_created_idx on public.pet_actions (member_id, created_at desc);
+
+-- ---------------------------------------------------------------------------
+-- Görünüş oyları: her kişinin tasma ve tüy rengi için birer oyu. En çok oy alan görünür.
+-- ---------------------------------------------------------------------------
+create table public.cosmetic_votes (
+  member_id bigint not null references public.team_members (id) on delete cascade,
+  kind text not null check (kind in ('collar', 'coat')),
+  value text not null check (
+    (kind = 'collar' and value in ('yok', 'kirmizi', 'mavi', 'yesil', 'mor', 'sari')) or
+    (kind = 'coat' and value in ('turuncu', 'gri', 'siyah', 'krem'))
+  ),
+  updated_at timestamptz not null default now(),
+  primary key (member_id, kind)
+);
 
 -- ---------------------------------------------------------------------------
 -- Yardımcılar (private şema API'de görünmez)
@@ -139,17 +163,57 @@ language sql stable security definer set search_path = '' as $$
 $$;
 revoke all on function private.team_json() from public;
 
+-- Haftanın gözde oyuncağı: ISO haftasına göre döner (kedi/kurallar.js → favoriOyuncak ile aynı)
+create function private.favorite_toy(at timestamptz) returns text
+language sql stable set search_path = '' as $$
+  select (array['top', 'ip', 'lazer'])[(extract(week from (at at time zone 'Europe/Istanbul'))::int % 3) + 1]
+$$;
+revoke all on function private.favorite_toy(timestamptz) from public;
+
+-- Bu haftanın bakım sayısı, hedef ve hedefi tutturulan hafta sayısı (Türkiye saatiyle pazartesiden pazartesiye)
+create function private.week_json() returns jsonb
+language sql stable security definer set search_path = '' as $$
+  select jsonb_build_object(
+    'count', (select count(*) from public.pet_actions a
+              where a.result = 'applied'
+                and a.created_at >= (date_trunc('week', now() at time zone 'Europe/Istanbul') at time zone 'Europe/Istanbul')),
+    'goal', r.weekly_goal,
+    'completed', (select count(*) from (
+                    select 1 from public.pet_actions a where a.result = 'applied'
+                    group by date_trunc('week', a.created_at at time zone 'Europe/Istanbul')
+                    having count(*) >= r.weekly_goal) x)
+  )
+  from public.game_rules r where r.id = 1
+$$;
+revoke all on function private.week_json() from public;
+
+-- Görünüş: kazanan tasma ve tüy rengi (eşitlikte en son oy verilen) ve bütün oylar
+create function private.cosmetics_json() returns jsonb
+language sql stable security definer set search_path = '' as $$
+  select jsonb_build_object(
+    'collar', coalesce((select v.value from public.cosmetic_votes v where v.kind = 'collar'
+                        group by v.value order by count(*) desc, max(v.updated_at) desc limit 1), 'yok'),
+    'coat', coalesce((select v.value from public.cosmetic_votes v where v.kind = 'coat'
+                      group by v.value order by count(*) desc, max(v.updated_at) desc limit 1), 'turuncu'),
+    'votes', coalesce((select jsonb_agg(jsonb_build_object('member_id', v.member_id, 'kind', v.kind, 'value', v.value))
+                       from public.cosmetic_votes v), '[]'::jsonb)
+  )
+$$;
+revoke all on function private.cosmetics_json() from public;
+
 -- ---------------------------------------------------------------------------
 -- İstemcinin çağırdığı fonksiyonlar
 -- ---------------------------------------------------------------------------
 
--- Kedinin anlık görüntüsü, kurallar, ekip ve sunucu saati. Hesabı istemci yapar (her saniye istek gerekmez).
+-- Kedinin anlık görüntüsü, kurallar, ekip, haftalık hedef, görünüş ve sunucu saati. Hesabı istemci yapar (her saniye istek gerekmez).
 create function public.get_pet_state() returns jsonb
 language sql stable security definer set search_path = '' as $$
   select jsonb_build_object(
     'pet', (select to_jsonb(p) from public.pets p where p.id = 1),
     'rules', (select to_jsonb(r) - 'id' - 'updated_at' from public.game_rules r where r.id = 1),
     'team', private.team_json(),
+    'week', private.week_json(),
+    'cosmetics', private.cosmetics_json(),
     'server_now', now()
   )
 $$;
@@ -187,8 +251,9 @@ end $$;
 revoke all on function public.add_team_member(text) from public;
 grant execute on function public.add_team_member(text) to anon, authenticated;
 
--- Bakım eylemi. Tek giriş noktası; değerleri tarayıcıdan almaz, yalnızca eylemin adını ve bakan kişiyi alır.
-create function public.perform_pet_action(p_action text, p_member_id bigint) returns jsonb
+-- Bakım eylemi. Tek giriş noktası; değerleri tarayıcıdan almaz. Eylemin adını, bakan kişiyi ve oyunda
+-- oyuncağı (top/ip/lazer) alır. Lazer oyununun yakalama sayısı (p_bonus) mutluluğa en çok max_game_bonus ekler.
+create function public.perform_pet_action(p_action text, p_member_id bigint, p_toy text default null, p_bonus integer default 0) returns jsonb
 language plpgsql volatile security definer set search_path = '' as $$
 declare
   v_member public.team_members;
@@ -200,9 +265,18 @@ declare
   v_hunger numeric; v_happiness numeric; v_energy numeric; v_clean numeric;
   v_until timestamptz;
   v_hours numeric;
+  v_toy text := null;
+  v_bonus integer := 0;
+  v_favorite boolean := false;
 begin
-  if p_action is null or p_action not in ('feed', 'play', 'rest', 'wake', 'clean') then
+  if p_action is null or p_action not in ('feed', 'play', 'rest', 'wake', 'clean', 'treat') then
     raise exception 'invalid_action' using errcode = '22023';
+  end if;
+  if p_action = 'play' then
+    v_toy := coalesce(p_toy, 'top');
+    if v_toy not in ('top', 'ip', 'lazer') then
+      raise exception 'invalid_action' using errcode = '22023';
+    end if;
   end if;
   select * into v_member from public.team_members where id = p_member_id;
   if not found then
@@ -233,6 +307,11 @@ begin
     raise exception 'rate_limited' using errcode = 'P0001';
   end if;
 
+  if p_action = 'play' then
+    v_favorite := v_toy = private.favorite_toy(v_now);
+    if v_toy = 'lazer' then v_bonus := least(greatest(coalesce(p_bonus, 0), 0), v_rules.max_game_bonus); end if;
+  end if;
+
   select * into c from private.pet_current(v_pet, v_rules, v_now);
   v_hunger := c.hunger; v_happiness := c.happiness; v_energy := c.energy; v_clean := c.cleanliness;
   v_until := case when c.resting then v_pet.resting_until else null end;
@@ -245,7 +324,8 @@ begin
     elsif v_energy < v_rules.play_min_energy then v_reason := 'too_tired';
     elsif v_happiness >= v_rules.full_happiness then v_reason := 'already_happy';
     else
-      v_happiness := least(100, v_happiness + v_rules.play_amount);
+      v_happiness := least(100, v_happiness + v_rules.play_amount
+                                + case when v_favorite then v_rules.favorite_toy_bonus else 0 end + v_bonus);
       v_energy := greatest(0, v_energy - v_rules.play_energy_cost);
     end if;
   elsif p_action = 'rest' then
@@ -265,6 +345,18 @@ begin
   elsif p_action = 'clean' then
     if v_clean >= v_rules.full_cleanliness then v_reason := 'already_clean';
     else v_clean := least(100, v_clean + v_rules.clean_amount); end if;
+  elsif p_action = 'treat' then
+    -- Ödül maması: kişi başı günde bir (Türkiye saatiyle)
+    if exists (
+      select 1 from public.pet_actions a
+      where a.member_id = v_member.id and a.action = 'treat' and a.result = 'applied'
+        and (a.created_at at time zone 'Europe/Istanbul')::date = (v_now at time zone 'Europe/Istanbul')::date
+    ) then
+      v_reason := 'treat_used';
+    else
+      v_hunger := greatest(0, v_hunger - v_rules.treat_hunger);
+      v_happiness := least(100, v_happiness + v_rules.treat_happiness);
+    end if;
   end if;
 
   if v_reason is null then
@@ -275,42 +367,65 @@ begin
     returning * into v_pet;
   end if;
 
-  insert into public.pet_actions (member_id, actor_name, action, result, reason, created_at)
-  values (v_member.id, v_member.name, p_action,
+  insert into public.pet_actions (member_id, actor_name, action, toy, bonus, result, reason, created_at)
+  values (v_member.id, v_member.name, p_action, v_toy, v_bonus,
           case when v_reason is null then 'applied' else 'declined' end, v_reason, v_now);
 
   return jsonb_build_object(
     'result', case when v_reason is null then 'applied' else 'declined' end,
     'reason', v_reason,
+    'toy', v_toy,
+    'favorite', v_favorite and v_reason is null,
     'pet', to_jsonb(v_pet),
     'server_now', v_now
   );
 end $$;
-revoke all on function public.perform_pet_action(text, bigint) from public;
-grant execute on function public.perform_pet_action(text, bigint) to anon, authenticated;
+revoke all on function public.perform_pet_action(text, bigint, text, integer) from public;
+grant execute on function public.perform_pet_action(text, bigint, text, integer) to anon, authenticated;
+
+-- Görünüş oyu: kişi tasma ya da tüy rengi için oyunu verir (değiştirir). Güncel görünüşü döndürür.
+create function public.vote_cosmetic(p_member_id bigint, p_kind text, p_value text) returns jsonb
+language plpgsql volatile security definer set search_path = '' as $$
+begin
+  if not exists (select 1 from public.team_members m where m.id = p_member_id) then
+    raise exception 'unknown_member' using errcode = '22023';
+  end if;
+  if not ((p_kind = 'collar' and p_value in ('yok', 'kirmizi', 'mavi', 'yesil', 'mor', 'sari')) or
+          (p_kind = 'coat' and p_value in ('turuncu', 'gri', 'siyah', 'krem'))) then
+    raise exception 'invalid_vote' using errcode = '22023';
+  end if;
+  insert into public.cosmetic_votes (member_id, kind, value) values (p_member_id, p_kind, p_value)
+  on conflict (member_id, kind) do update set value = excluded.value, updated_at = now();
+  return private.cosmetics_json();
+end $$;
+revoke all on function public.vote_cosmetic(bigint, text, text) from public;
+grant execute on function public.vote_cosmetic(bigint, text, text) to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Yetkiler ve Row Level Security
 -- Supabase yeni tablolarda anon/authenticated'a geniş yetki verebilir; hepsi geri alınıp
 -- yalnızca okuma verilir. Yazma yetkisi hiçbir istemci rolünde yoktur (yazma yalnızca fonksiyonlarla).
 -- ---------------------------------------------------------------------------
-revoke all on table public.game_rules, public.pets, public.team_members, public.pet_actions from anon, authenticated;
-grant select on table public.game_rules, public.pets, public.team_members, public.pet_actions to anon, authenticated;
+revoke all on table public.game_rules, public.pets, public.team_members, public.pet_actions, public.cosmetic_votes from anon, authenticated;
+grant select on table public.game_rules, public.pets, public.team_members, public.pet_actions, public.cosmetic_votes to anon, authenticated;
 
 alter table public.game_rules enable row level security;
 alter table public.pets enable row level security;
 alter table public.team_members enable row level security;
 alter table public.pet_actions enable row level security;
+alter table public.cosmetic_votes enable row level security;
 
 create policy "Kurallari herkes okur" on public.game_rules for select to anon, authenticated using (true);
 create policy "Kediyi herkes gorur" on public.pets for select to anon, authenticated using (true);
 create policy "Ekibi herkes gorur" on public.team_members for select to anon, authenticated using (true);
 create policy "Gecmisi herkes gorur" on public.pet_actions for select to anon, authenticated using (true);
+create policy "Oylari herkes gorur" on public.cosmetic_votes for select to anon, authenticated using (true);
 
 -- ---------------------------------------------------------------------------
--- Realtime: kedinin durumu, yeni bakımlar ve yeni isimler açık sayfalara iletilir
+-- Realtime: kedinin durumu, yeni bakımlar, yeni isimler ve oylar açık sayfalara iletilir.
+-- Sevme anlık bir yayındır (Realtime broadcast); veri tabanına yazılmaz.
 -- ---------------------------------------------------------------------------
-alter publication supabase_realtime add table public.pets, public.pet_actions, public.team_members;
+alter publication supabase_realtime add table public.pets, public.pet_actions, public.team_members, public.cosmetic_votes;
 
 commit;
 
@@ -325,6 +440,7 @@ commit;
 --
 -- Oyun ayarlarını değiştirme (kedi/ayar.js'i de aynı değerlerle güncelleyin):
 --   update public.game_rules set hunger_rise_per_hour = 6, updated_at = now() where id = 1;
+--   Haftalık hedef: update public.game_rules set weekly_goal = 80 where id = 1;
 --   Not: yeni oran, son bakımdan (pets.updated_at) bu yana geçen sürenin tamamına uygulanır.
 --   Eski oranla geçen süreyi korumak için değiştirmeden hemen önce bir bakım yapın.
 --

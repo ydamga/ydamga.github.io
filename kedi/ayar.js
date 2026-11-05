@@ -31,7 +31,14 @@ window.KEDI_AYAR = {
     // Kötüye kullanım sınırı (yalnızca canlı modda, sunucuda uygulanır)
     cooldown_seconds: 3,
     max_actions_per_hour: 60,
-    max_actions_per_minute_total: 30
+    max_actions_per_minute_total: 30,
+
+    // Etkileşim
+    treat_hunger: 10,               // ödül maması açlığı azaltır (kişi başı günde bir)
+    treat_happiness: 20,            // ödül maması mutluluğu artırır
+    favorite_toy_bonus: 10,         // haftanın gözde oyuncağıyla oynayınca ek mutluluk
+    max_game_bonus: 10,             // lazer oyununda yakalama başına +1 mutluluk, en çok bu kadar
+    weekly_goal: 60                 // haftalık ortak hedef (bakım sayısı); tutturulan her hafta odaya bir eşya
   },
 
   // Yerel deneme modunda ilk açılıştaki değerler

@@ -157,3 +157,139 @@ test('kedi uzun süredir uğramayanları özler', () => {
   assert.deepEqual(K.ozlenenler([], T0, 3), []);
   assert.deepEqual(K.ozlenenler(undefined, T0, 3), []);
 });
+
+// ---- Etkileşim ----
+const GUN = 864e5;
+// Türkiye saatiyle bir an: '2026-11-05 10:30'
+const tr = (metin) => Date.parse(metin.replace(' ', 'T') + ':00+03:00');
+
+test('ISO hafta ve haftanın gözde oyuncağı', () => {
+  assert.equal(K.isoHafta(tr('2026-11-05 10:00')), 45);
+  assert.equal(K.isoHafta(tr('2027-01-01 10:00')), 53); // 2026'nın 53. haftası
+  assert.equal(K.isoHafta(tr('2027-01-04 00:30')), 1);  // pazartesi, Türkiye saatiyle
+  assert.equal(K.favoriOyuncak(tr('2026-11-05 10:00')), K.OYUNCAKLAR[45 % 3]);
+  // Hafta içinde değişmez, sonraki hafta değişir
+  assert.equal(K.favoriOyuncak(tr('2026-11-02 00:10')), K.favoriOyuncak(tr('2026-11-08 23:50')));
+  assert.notEqual(K.favoriOyuncak(tr('2026-11-08 23:50')), K.favoriOyuncak(tr('2026-11-09 00:10')));
+});
+
+test('oyuncaklar: gözde oyuncak ek mutluluk verir, lazer puanı sınırlı, bilinmeyen oyuncak hata', () => {
+  const t = tr('2026-11-05 10:00');
+  const fav = K.favoriOyuncak(t);
+  const baska = K.OYUNCAKLAR.find((o) => o !== fav && o !== 'lazer');
+  const p = kedi({ happiness: 40, energy: 80, updated_at: new Date(t).toISOString() });
+  const a = K.uygula(p, 'play', R, t, { toy: fav });
+  assert.equal(a.favorite, true);
+  const b = K.uygula(p, 'play', R, t, { toy: baska });
+  assert.equal(b.favorite, false);
+  const happyAt = (x) => K.hesapla(x.pet, R, t).happiness;
+  yakin(happyAt(b), 40 + R.play_amount);
+  yakin(happyAt(a) - happyAt(b), R.favorite_toy_bonus);
+  const l = K.uygula(p, 'play', R, t, { toy: 'lazer', bonus: 999 });
+  assert.equal(l.bonus, R.max_game_bonus);
+  const l0 = K.uygula(p, 'play', R, t, { toy: 'top', bonus: 7 });
+  assert.equal(l0.bonus, 0);
+  assert.equal(K.uygula(p, 'play', R, t).toy, 'top');
+  assert.throws(() => K.uygula(p, 'play', R, t, { toy: 'kemik' }), /invalid_action/);
+});
+
+test('ödül maması günde bir kez', () => {
+  const p = kedi({ hunger: 50, happiness: 50 });
+  const s1 = K.uygula(p, 'treat', R, T0);
+  assert.equal(s1.result, 'applied');
+  yakin(s1.pet.hunger, 50 - R.treat_hunger);
+  yakin(s1.pet.happiness, 50 + R.treat_happiness);
+  assert.equal(K.uygula(p, 'treat', R, T0, { odulVerildi: true }).reason, 'treat_used');
+});
+
+const akt = (ad, id, eylem, zamanMetni, ek) => Object.assign({ member_id: id, actor_name: ad, action: eylem, toy: null, bonus: 0, created_at: new Date(tr(zamanMetni)).toISOString() }, ek);
+
+test('haftalık özet bu haftayı sayar (pazartesi 00:00, Türkiye saati)', () => {
+  const simdi = tr('2026-11-05 15:00'); // perşembe
+  const a = [
+    akt('Ayşe', 1, 'feed', '2026-11-01 23:59'), // geçen hafta (pazar)
+    akt('Ayşe', 1, 'feed', '2026-11-02 00:01'),
+    akt('Ayşe', 1, 'play', '2026-11-03 10:00', { toy: 'ip' }),
+    akt('Mehmet', 2, 'play', '2026-11-04 10:00', { toy: 'ip' }),
+    akt('Mehmet', 2, 'play', '2026-11-04 11:00', { toy: 'top' })
+  ];
+  const o = K.haftalikOzet(a, simdi);
+  assert.equal(o.toplam, 4);
+  assert.deepEqual(o.kisiler.map((k) => [k.ad, k.n]), [['Ayşe', 2], ['Mehmet', 2]]);
+  assert.equal(o.oyuncak, 'ip');
+  assert.equal(K.haftaBasi(simdi), tr('2026-11-02 00:00'));
+});
+
+test('günlük paragrafı günün bakımlarını anlatır', () => {
+  const a = [
+    akt('Ayşe', 1, 'feed', '2026-11-05 09:00'),
+    akt('Ayşe', 1, 'feed', '2026-11-05 11:00'),
+    akt('Mehmet', 2, 'feed', '2026-11-05 13:00'),
+    akt('Mehmet', 2, 'play', '2026-11-05 13:05', { toy: 'lazer' }),
+    akt('Zeynep', 3, 'feed', '2026-11-04 13:00') // başka gün
+  ];
+  const o = K.gunOzeti(a, '2026-11-05');
+  assert.equal(o.toplam, 4);
+  const m = K.gunlukMetni(o, true);
+  assert.match(m, /^Bugün 3 kez mama yedim \(en çok Ayşe\) ve 1 kez oynadım, en çok lazerla \(Mehmet\)\. 2 kişi uğradı;/);
+  assert.match(K.gunlukMetni(K.gunOzeti([], '2026-11-05'), true), /kimse uğramadı/);
+});
+
+test('rozetler: sabah, seri (hafta sonu bozmaz), sayılar', () => {
+  const a = [];
+  // Ayşe: perşembe, cuma, (hafta sonu yok), pazartesi, salı, çarşamba → 5 iş günü seri; üçü sabah erken
+  ['2026-10-29', '2026-10-30', '2026-11-02', '2026-11-03', '2026-11-04'].forEach((g, i) =>
+    a.push(akt('Ayşe', 1, 'feed', g + (i < 3 ? ' 08:30' : ' 12:00'))));
+  // Mehmet: 4 gün, araya boş bir iş günü → seri yok; 8 yakalamalı lazer oyunu
+  ['2026-10-26', '2026-10-27', '2026-10-29', '2026-10-30'].forEach((g) => a.push(akt('Mehmet', 2, 'play', g + ' 19:00')));
+  a.push(akt('Mehmet', 2, 'play', '2026-10-30 19:30', { toy: 'lazer', bonus: 8 }));
+  const r = K.rozetler(a);
+  assert.deepEqual(r.m1.map((x) => x.kod), ['sabah', 'seri']);
+  assert.deepEqual(r.m2.map((x) => x.kod), ['gece', 'lazer']);
+});
+
+test('bağlılık: son 14 günde açık ara en çok bakan', () => {
+  const simdi = tr('2026-11-05 12:00');
+  const a = [];
+  for (let i = 0; i < 6; i++) a.push(akt('Ayşe', 1, 'feed', '2026-11-0' + (i % 4 + 1) + ' 10:00'));
+  for (let i = 0; i < 3; i++) a.push(akt('Mehmet', 2, 'feed', '2026-11-03 1' + i + ':00'));
+  for (let i = 0; i < 9; i++) a.push(akt('Zeynep', 3, 'feed', '2026-10-0' + (i + 1) + ' 10:00')); // 14 günden eski
+  assert.equal(K.baglilik(a, simdi).ad, 'Ayşe');
+  assert.equal(K.baglilik(a.slice(6), simdi), null); // Mehmet'in 3 bakımı yetmez
+});
+
+test('gün dilimi ve süsler', () => {
+  assert.equal(K.gunDilimi(tr('2026-11-05 23:00')), 'gece');
+  assert.equal(K.gunDilimi(tr('2026-11-05 06:59')), 'gece');
+  assert.equal(K.gunDilimi(tr('2026-11-05 08:00')), 'sabah');
+  assert.equal(K.gunDilimi(tr('2026-11-05 13:00')), 'gunduz');
+  assert.equal(K.gunDilimi(tr('2026-11-05 19:00')), 'aksam');
+  const tatiller = [
+    { ad: 'Cumhuriyet Bayramı tatili', bas: '2026-10-28', bit: '2026-10-29' },
+    { ad: 'Ramazan Bayramı tatili', bas: '2027-03-08', bit: '2027-03-12' },
+    { ad: 'Yılbaşı tatili', bas: '2027-01-01' }
+  ];
+  assert.equal(K.susleme(tr('2026-10-29 12:00'), tatiller).kod, 'bayrak');
+  assert.equal(K.susleme(tr('2027-03-10 12:00'), tatiller).kod, 'bayram');
+  assert.equal(K.susleme(tr('2027-01-01 12:00'), tatiller).kod, 'yilbasi');
+  assert.equal(K.susleme(tr('2026-12-24 12:00'), tatiller).kod, 'yilbasi');
+  assert.equal(K.susleme(tr('2026-11-05 12:00'), tatiller).kod, 'sonbahar');
+  assert.equal(K.susleme(tr('2027-04-15 12:00'), tatiller).kod, 'bahar');
+});
+
+test('oda eşyaları tamamlanan hafta sayısıyla açılır', () => {
+  assert.deepEqual(K.esyalar(0), []);
+  assert.deepEqual(K.esyalar(2).map((e) => e.kod), ['agac', 'bitki']);
+  assert.equal(K.esyalar(99).length, K.ODA_ESYALARI.length);
+});
+
+test('sözler ihtiyaca ve kişiye göre; uyurken susar', () => {
+  const ac = { hunger: 80, happiness: 70, energy: 70, cleanliness: 80, resting: false };
+  assert.ok(K.sozler(ac, 'Ayşe').includes('Ayşe, mama?'));
+  assert.ok(K.sozler(ac, null).includes('Mama?'));
+  assert.ok(!K.sozler(ac, null).some((x) => /null/.test(x)));
+  assert.deepEqual(K.sozler(Object.assign({}, ac, { resting: true }), 'Ayşe'), []);
+  const iyi = { hunger: 20, happiness: 80, energy: 80, cleanliness: 90, resting: false };
+  assert.ok(K.sozler(iyi, 'Ayşe', 'Zeynep').includes('Zeynep nerede?'));
+});
+
