@@ -121,3 +121,20 @@ test('davranış işaretleri ihtiyaçlara göre', () => {
   const i = K.isaretler({ hunger: 80, happiness: 20, energy: 10, cleanliness: 20, resting: false });
   assert.deepEqual(i, { uyuyor: false, ac: true, uzgun: true, yorgun: true, kirli: true, mutlu: false });
 });
+
+test('kedi uzun süredir uğramayanları özler', () => {
+  const gun = 864e5;
+  const ekip = [
+    { id: 1, name: 'Yeni gelen', created_at: new Date(T0 - 1 * gun).toISOString(), last_action_at: null },
+    { id: 2, name: 'Dün baktı', created_at: new Date(T0 - 30 * gun).toISOString(), last_action_at: new Date(T0 - 1 * gun).toISOString() },
+    { id: 3, name: 'Beş gün', created_at: new Date(T0 - 30 * gun).toISOString(), last_action_at: new Date(T0 - 5 * gun).toISOString() },
+    { id: 4, name: 'Hiç bakmadı', created_at: new Date(T0 - 10 * gun).toISOString(), last_action_at: null },
+    { id: 5, name: 'Tam üç gün', created_at: new Date(T0 - 30 * gun).toISOString(), last_action_at: new Date(T0 - 3 * gun).toISOString() }
+  ];
+  const o = K.ozlenenler(ekip, T0, 3);
+  assert.deepEqual(o.map((m) => m.name), ['Hiç bakmadı', 'Beş gün', 'Tam üç gün']);
+  assert.equal(o[0].hic, true);
+  assert.equal(o[1].gun, 5);
+  assert.deepEqual(K.ozlenenler([], T0, 3), []);
+  assert.deepEqual(K.ozlenenler(undefined, T0, 3), []);
+});

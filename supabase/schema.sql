@@ -1,17 +1,25 @@
--- Ekip kedisi: Supabase şeması
--- Supabase panelinde SQL Editor'e yapıştırıp bir kez çalıştırın (yeni, boş bir projede).
--- Sonra supabase/test-rls.sql ile politikaları sınayın.
+-- Ekip kedisi: Supabase şeması (isimle bakım, girişsiz)
+-- Supabase panelinde SQL Editor'e yapıştırıp bir kez çalıştırın.
+--  * Yeni, boş projede: doğrudan bu dosya.
+--  * Eski (e-postayla girişli) şema kuruluysa: önce supabase/eski-semayi-kaldir.sql, sonra bu dosya.
+-- Sonra supabase/test-rls.sql ile sınayın.
 --
--- Güvenlik modeli
+-- Model
+--  * Giriş/kayıt yok. Ekip listesi public.team_members'ta isimlerden oluşur; sayfayı açan kişi adını seçer
+--    ya da yeni ad ekler (public.add_team_member). Seçilen ad tarayıcıda hatırlanır.
+--  * Her bakım bir isimle kaydedilir; geçmişi herkes görür. Kedi, bir süredir uğramayanları "özler"
+--    (hesap tarayıcıda: get_pet_state'in döndürdüğü team[].last_action_at'ten).
+--  * Kimlik doğrulaması olmadığı için sayfayı açan herkes listedeki herhangi bir adı seçebilir. Bu, sitenin
+--    yalnızca ekipçe kullanıldığı varsayımıyla bilinçli bir tercihtir.
+--
+-- Güvenlik
 --  * Tek kedi: pets.id yalnızca 1 olabilir; satır şemayla birlikte oluşur, istemci ekleyemez/silemez.
---  * İstemci hiçbir tabloya doğrudan yazamaz. Bakım yalnızca public.perform_pet_action('feed'|'play'|'rest'|'clean')
---    ile yapılır: tarayıcı değer göndermez, yalnızca eylemin adını gönderir. Fonksiyon kimliği auth.uid()'den alır,
---    ekip üyeliğini profiles.is_member'dan doğrular, kedi satırını kilitleyip (FOR UPDATE) sunucu saatine göre
---    hesaplar ve tek işlemde günceller. Aynı anda gelen iki bakım sırayla uygulanır, biri ötekini ezmez.
---  * Ekip üyeliğini yalnızca yönetici verir (SQL Editor'den); kullanıcı kendi profilini değiştiremez.
---  * Anonim ziyaretçiler yalnızca kedinin durumunu ve oyun kurallarını okur (anasayfadaki kedi için).
---    Bakım geçmişini ve adları yalnızca ekip üyeleri görür.
---  * Sıklık sınırı: kişi başına game_rules.cooldown_seconds saniyede bir ve saatte max_actions_per_hour bakım.
+--  * İstemci hiçbir tabloya doğrudan yazamaz. Bakım yalnızca public.perform_pet_action(eylem, üye_id) ile yapılır:
+--    tarayıcı değer göndermez. Fonksiyon kedi satırını kilitleyip (FOR UPDATE) sunucu saatine göre hesaplar ve
+--    tek işlemde günceller; aynı anda gelen iki bakım sırayla uygulanır, biri ötekini ezmez.
+--  * Kötüye kullanım sınırları: kişi başına game_rules.cooldown_seconds saniyede bir ve saatte
+--    max_actions_per_hour bakım; herkes toplamında dakikada max_actions_per_minute_total bakım.
+--    Ekip listesi en çok 40 isim; saatte en çok 10 yeni isim eklenebilir.
 --
 -- Hesap kedi/kurallar.js ile aynıdır; birini değiştirirseniz ötekini de değiştirin.
 
@@ -19,7 +27,6 @@ begin;
 
 create schema if not exists private;
 revoke all on schema private from public;
-grant usage on schema private to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Oyun ayarları (tek satır). Sütun adları kedi/ayar.js'teki anahtarlarla aynı.
@@ -43,6 +50,7 @@ create table public.game_rules (
   play_min_energy           numeric not null default 15 check (play_min_energy between 0 and 100),
   cooldown_seconds          integer not null default 3  check (cooldown_seconds between 0 and 3600),
   max_actions_per_hour      integer not null default 60 check (max_actions_per_hour between 1 and 10000),
+  max_actions_per_minute_total integer not null default 30 check (max_actions_per_minute_total between 1 and 10000),
   updated_at timestamptz not null default now()
 );
 insert into public.game_rules (id) values (1);
@@ -65,35 +73,23 @@ create table public.pets (
 insert into public.pets (id, hunger, happiness, energy, cleanliness) values (1, 30, 70, 70, 80);
 
 -- ---------------------------------------------------------------------------
--- Profiller: her Supabase Auth kullanıcısı için bir satır (tetikleyiciyle oluşur).
--- display_name ve is_member'ı yalnızca yönetici değiştirir.
+-- Ekip: kediye bakan kişilerin adları. Büyük/küçük harf farkı olmadan tekil.
 -- ---------------------------------------------------------------------------
-create table public.profiles (
-  id uuid primary key references auth.users (id) on delete cascade,
-  display_name text check (display_name is null or char_length(btrim(display_name)) between 1 and 40),
-  is_member boolean not null default false,
+create table public.team_members (
+  id bigint generated always as identity primary key,
+  name text not null check (char_length(name) between 1 and 30 and name = btrim(name) and name !~ '[[:cntrl:]]'),
   created_at timestamptz not null default now()
 );
-
-create function private.handle_new_user() returns trigger
-language plpgsql security definer set search_path = '' as $$
-begin
-  -- Kullanıcının kayıt sırasında gönderdiği meta veriye (ad vb.) güvenilmez; ad yöneticiden gelir
-  insert into public.profiles (id) values (new.id) on conflict (id) do nothing;
-  return new;
-end $$;
-
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function private.handle_new_user();
+create unique index team_members_name_idx on public.team_members (lower(name));
 
 -- ---------------------------------------------------------------------------
--- Bakım geçmişi. actor_name, eylem anında profilden sunucu tarafından kopyalanır.
+-- Bakım geçmişi. actor_name, eylem anında ekip listesinden sunucu tarafından kopyalanır;
+-- kişi listeden silinse de geçmişte adı kalır.
 -- ---------------------------------------------------------------------------
 create table public.pet_actions (
   id bigint generated always as identity primary key,
   pet_id smallint not null default 1 references public.pets (id),
-  actor_id uuid references public.profiles (id) on delete set null,
+  member_id bigint references public.team_members (id) on delete set null,
   actor_name text not null check (char_length(actor_name) between 1 and 60),
   action text not null check (action in ('feed', 'play', 'rest', 'clean')),
   result text not null check (result in ('applied', 'declined')),
@@ -102,17 +98,11 @@ create table public.pet_actions (
   check ((result = 'applied') = (reason is null))
 );
 create index pet_actions_created_at_idx on public.pet_actions (created_at desc);
-create index pet_actions_actor_created_idx on public.pet_actions (actor_id, created_at desc);
+create index pet_actions_member_created_idx on public.pet_actions (member_id, created_at desc);
 
 -- ---------------------------------------------------------------------------
 -- Yardımcılar (private şema API'de görünmez)
 -- ---------------------------------------------------------------------------
-create function private.is_member() returns boolean
-language sql stable security definer set search_path = '' as $$
-  select coalesce((select p.is_member from public.profiles p where p.id = auth.uid()), false)
-$$;
-revoke all on function private.is_member() from public;
-grant execute on function private.is_member() to authenticated;
 
 -- Anlık görüntüden "at" anındaki değerler. kedi/kurallar.js → hesapla() ile aynı.
 create function private.pet_current(
@@ -137,28 +127,70 @@ begin
 end $$;
 revoke all on function private.pet_current(public.pets, public.game_rules, timestamptz) from public;
 
+-- Ekip listesi ve her kişinin son uğradığı an (kabul edilen ya da reddedilen son bakım denemesi)
+create function private.team_json() returns jsonb
+language sql stable security definer set search_path = '' as $$
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'id', m.id, 'name', m.name, 'created_at', m.created_at,
+           'last_action_at', (select max(a.created_at) from public.pet_actions a where a.member_id = m.id)
+         ) order by lower(m.name)), '[]'::jsonb)
+  from public.team_members m
+$$;
+revoke all on function private.team_json() from public;
+
 -- ---------------------------------------------------------------------------
 -- İstemcinin çağırdığı fonksiyonlar
 -- ---------------------------------------------------------------------------
 
--- Kedinin anlık görüntüsü, kurallar ve sunucu saati. Hesabı istemci yapar (her saniye istek gerekmez).
+-- Kedinin anlık görüntüsü, kurallar, ekip ve sunucu saati. Hesabı istemci yapar (her saniye istek gerekmez).
 create function public.get_pet_state() returns jsonb
-language sql stable security invoker set search_path = '' as $$
+language sql stable security definer set search_path = '' as $$
   select jsonb_build_object(
     'pet', (select to_jsonb(p) from public.pets p where p.id = 1),
     'rules', (select to_jsonb(r) - 'id' - 'updated_at' from public.game_rules r where r.id = 1),
+    'team', private.team_json(),
     'server_now', now()
   )
 $$;
 revoke all on function public.get_pet_state() from public;
 grant execute on function public.get_pet_state() to anon, authenticated;
 
--- Bakım eylemi. Tek giriş noktası; değerleri tarayıcıdan almaz.
-create function public.perform_pet_action(p_action text) returns jsonb
+-- Ekibe isim ekleme. Aynı ad (büyük/küçük harf farkı olmadan) zaten varsa yeni satır açmaz, var olanı döndürür.
+create function public.add_team_member(p_name text) returns jsonb
 language plpgsql volatile security definer set search_path = '' as $$
 declare
-  v_uid uuid := auth.uid();
-  v_prof public.profiles;
+  v_name text := regexp_replace(btrim(coalesce(p_name, '')), '\s+', ' ', 'g');
+  v_m public.team_members;
+begin
+  if char_length(v_name) < 1 or char_length(v_name) > 30 or v_name ~ '[[:cntrl:]]' then
+    raise exception 'invalid_name' using errcode = '22023';
+  end if;
+
+  -- Eşzamanlı eklemeler sırayla: sınır denetimleri yarışmasın
+  lock table public.team_members in share row exclusive mode;
+
+  select * into v_m from public.team_members where lower(name) = lower(v_name);
+  if found then
+    return jsonb_build_object('id', v_m.id, 'name', v_m.name, 'created_at', v_m.created_at, 'existed', true);
+  end if;
+  if (select count(*) from public.team_members) >= 40 then
+    raise exception 'team_full' using errcode = 'P0001';
+  end if;
+  if (select count(*) from public.team_members where created_at > now() - interval '1 hour') >= 10 then
+    raise exception 'rate_limited' using errcode = 'P0001';
+  end if;
+
+  insert into public.team_members (name) values (v_name) returning * into v_m;
+  return jsonb_build_object('id', v_m.id, 'name', v_m.name, 'created_at', v_m.created_at, 'existed', false);
+end $$;
+revoke all on function public.add_team_member(text) from public;
+grant execute on function public.add_team_member(text) to anon, authenticated;
+
+-- Bakım eylemi. Tek giriş noktası; değerleri tarayıcıdan almaz, yalnızca eylemin adını ve bakan kişiyi alır.
+create function public.perform_pet_action(p_action text, p_member_id bigint) returns jsonb
+language plpgsql volatile security definer set search_path = '' as $$
+declare
+  v_member public.team_members;
   v_rules public.game_rules;
   v_pet public.pets;
   v_now timestamptz;
@@ -168,34 +200,35 @@ declare
   v_until timestamptz;
   v_hours numeric;
 begin
-  if v_uid is null then
-    raise exception 'not_authenticated' using errcode = '28000';
-  end if;
-  select * into v_prof from public.profiles where id = v_uid;
-  if not found or not v_prof.is_member then
-    raise exception 'not_member' using errcode = '42501';
-  end if;
   if p_action is null or p_action not in ('feed', 'play', 'rest', 'clean') then
     raise exception 'invalid_action' using errcode = '22023';
+  end if;
+  select * into v_member from public.team_members where id = p_member_id;
+  if not found then
+    raise exception 'unknown_member' using errcode = '22023';
   end if;
 
   select * into v_rules from public.game_rules where id = 1;
 
   -- Kedi satırını kilitle: eşzamanlı bakımlar burada sıraya girer. Sıklık denetimi de kilidin
-  -- arkasında olduğundan aynı kişinin paralel istekleri sınırı aşamaz.
+  -- arkasında olduğundan paralel isteklerle sınır aşılamaz.
   select * into v_pet from public.pets where id = 1 for update;
 
   -- Kilidi bekledikten sonraki gerçek saat; updated_at geriye gitmesin
   v_now := greatest(clock_timestamp(), v_pet.updated_at);
 
+  if (select count(*) from public.pet_actions a
+      where a.created_at > v_now - interval '1 minute') >= v_rules.max_actions_per_minute_total then
+    raise exception 'rate_limited' using errcode = 'P0001';
+  end if;
   if exists (
     select 1 from public.pet_actions a
-    where a.actor_id = v_uid and a.created_at > v_now - make_interval(secs => v_rules.cooldown_seconds)
+    where a.member_id = v_member.id and a.created_at > v_now - make_interval(secs => v_rules.cooldown_seconds)
   ) then
     raise exception 'cooldown' using errcode = 'P0001';
   end if;
   if (select count(*) from public.pet_actions a
-      where a.actor_id = v_uid and a.created_at > v_now - interval '1 hour') >= v_rules.max_actions_per_hour then
+      where a.member_id = v_member.id and a.created_at > v_now - interval '1 hour') >= v_rules.max_actions_per_hour then
     raise exception 'rate_limited' using errcode = 'P0001';
   end if;
 
@@ -237,8 +270,8 @@ begin
     returning * into v_pet;
   end if;
 
-  insert into public.pet_actions (actor_id, actor_name, action, result, reason, created_at)
-  values (v_uid, coalesce(nullif(btrim(v_prof.display_name), ''), 'Ekip üyesi'), p_action,
+  insert into public.pet_actions (member_id, actor_name, action, result, reason, created_at)
+  values (v_member.id, v_member.name, p_action,
           case when v_reason is null then 'applied' else 'declined' end, v_reason, v_now);
 
   return jsonb_build_object(
@@ -248,50 +281,42 @@ begin
     'server_now', v_now
   );
 end $$;
-revoke all on function public.perform_pet_action(text) from public, anon;
-grant execute on function public.perform_pet_action(text) to authenticated;
+revoke all on function public.perform_pet_action(text, bigint) from public;
+grant execute on function public.perform_pet_action(text, bigint) to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Yetkiler ve Row Level Security
 -- Supabase yeni tablolarda anon/authenticated'a geniş yetki verebilir; hepsi geri alınıp
--- yalnızca gereken okuma yetkileri verilir. Yazma yetkisi hiçbir istemci rolünde yoktur.
+-- yalnızca okuma verilir. Yazma yetkisi hiçbir istemci rolünde yoktur (yazma yalnızca fonksiyonlarla).
 -- ---------------------------------------------------------------------------
-revoke all on table public.game_rules, public.pets, public.profiles, public.pet_actions from anon, authenticated;
-grant select on table public.game_rules, public.pets to anon, authenticated;
-grant select on table public.profiles, public.pet_actions to authenticated;
+revoke all on table public.game_rules, public.pets, public.team_members, public.pet_actions from anon, authenticated;
+grant select on table public.game_rules, public.pets, public.team_members, public.pet_actions to anon, authenticated;
 
 alter table public.game_rules enable row level security;
 alter table public.pets enable row level security;
-alter table public.profiles enable row level security;
+alter table public.team_members enable row level security;
 alter table public.pet_actions enable row level security;
 
--- Anonim okuma: anasayfadaki kedinin herkese görünmesi için. Kapatmak isterseniz bu iki politikada
--- "anon, " kısmını silin ve yukarıdaki anon select yetkisini geri alın; o zaman kedi yalnızca giriş yapanlara görünür.
 create policy "Kurallari herkes okur" on public.game_rules for select to anon, authenticated using (true);
 create policy "Kediyi herkes gorur" on public.pets for select to anon, authenticated using (true);
-
-create policy "Kendi profilini ve uyeler ekibi gorur" on public.profiles for select to authenticated
-  using (id = (select auth.uid()) or (select private.is_member()));
-
-create policy "Gecmisi ekip uyeleri gorur" on public.pet_actions for select to authenticated
-  using ((select private.is_member()));
+create policy "Ekibi herkes gorur" on public.team_members for select to anon, authenticated using (true);
+create policy "Gecmisi herkes gorur" on public.pet_actions for select to anon, authenticated using (true);
 
 -- ---------------------------------------------------------------------------
--- Realtime: kedinin durumu ve yeni bakımlar açık sayfalara iletilir (RLS'ye uyar)
+-- Realtime: kedinin durumu, yeni bakımlar ve yeni isimler açık sayfalara iletilir
 -- ---------------------------------------------------------------------------
-alter publication supabase_realtime add table public.pets, public.pet_actions;
+alter publication supabase_realtime add table public.pets, public.pet_actions, public.team_members;
 
 commit;
 
 -- ===========================================================================
 -- Yönetici işlemleri (SQL Editor'de, gerektiğinde tek tek çalıştırın)
 -- ===========================================================================
--- Ekip üyesi ekleme: önce Authentication → Users → "Invite user" ile e-postayı davet edin, sonra:
---   update public.profiles set is_member = true, display_name = 'Ayşe Y.'
---   where id = (select id from auth.users where email = 'ayse@ornek.edu.tr');
+-- İsmi düzeltme (geçmişteki eski kayıtlar eski adla kalır):
+--   update public.team_members set name = 'Ayşe Y.' where name = 'ayse';
 --
--- Üyeliği kaldırma:
---   update public.profiles set is_member = false where id = (select id from auth.users where email = '...');
+-- Listeden çıkarma (geçmişteki kayıtları adıyla kalır):
+--   delete from public.team_members where name = 'Ayşe Y.';
 --
 -- Oyun ayarlarını değiştirme (kedi/ayar.js'i de aynı değerlerle güncelleyin):
 --   update public.game_rules set hunger_rise_per_hour = 3, updated_at = now() where id = 1;

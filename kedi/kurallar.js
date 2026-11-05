@@ -131,6 +131,19 @@
     return { kod: 'sakin', ad: 'Sakin', mesaj: 'Kendi hâlinde dolaşıyor.' };
   }
 
+  // Kedinin özlediği kişiler: en az "gun" gündür uğramayanlar (hiç uğramamışsa listeye eklendiği andan sayılır).
+  // ekip: [{ id, name, created_at, last_action_at }]. En uzun süredir uğramayan önce.
+  function ozlenenler(ekip, simdi, gun) {
+    var esik = gun * 864e5;
+    return (ekip || [])
+      .map(function (m) {
+        var son = zaman(m.last_action_at) || zaman(m.created_at);
+        return { id: m.id, name: m.name, gun: Math.floor((simdi - son) / 864e5), hic: !m.last_action_at, son: son };
+      })
+      .filter(function (m) { return m.son != null && simdi - m.son >= esik; })
+      .sort(function (a, b) { return a.son - b.son; });
+  }
+
   function sure(dk) {
     if (dk < 60) return dk + ' dk';
     var s = Math.floor(dk / 60), d = dk % 60;
@@ -144,6 +157,7 @@
     ihtiyaclar: ihtiyaclar,
     isaretler: isaretler,
     ruhHali: ruhHali,
+    ozlenenler: ozlenenler,
     sure: sure
   };
 });

@@ -5,7 +5,7 @@ GitHub Pages'te yayınlanan statik site (HTML, CSS, vanilla JavaScript; derleme 
 | Sayfa | İçerik |
 | --- | --- |
 | `index.html` | Üniversite sistemleri, araçlar, günün menüsü, ÖSYM takvimi, alt bilgide ekip kedisi |
-| `kedi-odasi.html` | Ekip kedisinin odası: göstergeler, bakım, geçmiş, giriş |
+| `kedi-odasi.html` | Ekip kedisinin odası: göstergeler, bakım, geçmiş, ad seçimi, ekip ve özlem |
 | `ders-programi.html`, `ziyaret.html`, `yemek.html`, `sinavlar.html` | Mevcut araçlar |
 
 Ortak görünüm `ortak.css`, tema ve ayarlar paneli `ayarlar.js`, ÖSYM bildirimleri `worker/` ve `.github/workflows/osym.yml`.
@@ -21,16 +21,17 @@ Anasayfanın alt bilgisinde, yalnızca kendisine ayrılmış bir şeritte dolaş
 
 | Dosya | Görevi |
 | --- | --- |
-| `kedi/ayar.js` | Oyun ayarları (oranlar, eşikler, sıklık sınırı) ve kedinin adı. Tek yapılandırma yeri |
+| `kedi/ayar.js` | Oyun ayarları (oranlar, eşikler, sıklık sınırı), kedinin adı ve özlem süresi (`ozlemGun`). Tek yapılandırma yeri |
 | `kedi/baglanti.js` | Supabase adresi ve herkese açık anahtar. Boşsa yerel deneme modu |
 | `kedi/baglanti.ornek.js` | Doldurulmuş örnek (sayfalarda yüklenmez) |
-| `kedi/kurallar.js` | Geçen süreye göre ihtiyaç hesabı, eylemler, ruh hâli. DOM'suz; Node'da test edilir |
+| `kedi/kurallar.js` | Geçen süreye göre ihtiyaç hesabı, eylemler, ruh hâli, özlenenler. DOM'suz; Node'da test edilir |
 | `kedi/durum.js` | Durumun kaynağı: yerel deneme (localStorage) ya da Supabase (RPC + Realtime) |
 | `kedi/karakter.js` | SVG kedi ve davranış seçimi (yürüme, bakınma, esneme, yalanma, uyuma) |
 | `kedi/kedi.css` | Pozlar ve animasyonlar |
 | `kedi/ana.js`, `kedi/oda.js` | Anasayfa şeridi ve Kedi Odası arayüzü |
 | `supabase/schema.sql` | Tablolar, kısıtlar, indeksler, fonksiyonlar, RLS, Realtime |
-| `supabase/test-rls.sql` | Yetki/RLS sınaması (geri alınan tek işlem) |
+| `supabase/test-rls.sql` | Yetki ve fonksiyon sınaması (geri alınan tek işlem) |
+| `supabase/eski-semayi-kaldir.sql` | Eski e-postayla girişli şemayı kaldırır (yalnızca o kuruluysa) |
 | `test/kedi-kurallar.test.js` | Oyun kuralları birim testleri |
 
 Bütün yollar görelidir (`kedi/...`, `kedi-odasi.html`); site bir depo alt dizininde (`kullanici.github.io/depo/`) yayınlansa da çalışır.
@@ -62,7 +63,7 @@ Bütün yollar görelidir (`kedi/...`, `kedi-odasi.html`); site bir depo alt diz
 | --- | --- | --- |
 | Ne zaman | `kedi/baglanti.js` boş | `kedi/baglanti.js` dolu |
 | Durum | Bu tarayıcının localStorage'ı | Supabase PostgreSQL |
-| Kim bakım yapar | Bu tarayıcıyı kullanan | Giriş yapmış ve yöneticinin onayladığı ekip üyeleri |
+| Kim bakım yapar | Bu tarayıcıyı kullanan | Ekip listesinden adını seçen herkes (giriş yok) |
 | Eşitleme | Yok (yalnızca aynı tarayıcının sekmeleri) | Realtime ile bütün açık sayfalar |
 | Arayüzde | "Yerel deneme" rozeti ve uyarı notu | "Ortak · canlı" rozeti |
 
@@ -82,38 +83,30 @@ Aşağıdaki adımları sizin yapmanız gerekir; bu depoda gerçek bir Supabase 
 
 ### 2. Şema ve sınama
 
-1. **SQL Editor → New query**: `supabase/schema.sql` dosyasının tamamını yapıştırıp **Run**.
+1. **SQL Editor → New query**: `supabase/schema.sql` dosyasının tamamını yapıştırıp **Run**
+   (eski girişli şema kuruluysa önce 4. adıma bakın).
 2. Yeni bir sorguda `supabase/test-rls.sql`'i çalıştırın. Çıktıda (Messages/Notices) yalnızca `OK ...` satırları ve
    sonda `Bütün denetimler geçti` görünmeli. `HATA: ...` görürseniz canlıya geçmeyin.
    Betik tek işlemde çalışır ve sonunda geri alınır; test kullanıcıları kalmaz.
 
-### 3. Giriş ayarları
+### 3. Ekip (isimle bakım, giriş yok)
 
-1. **Authentication → Sign In / Providers**: *Email* açık kalsın; **Allow new users to sign up** kapatın.
-   Böylece hesabı yalnızca yönetici açar (site de `shouldCreateUser: false` ile istek gönderir).
-2. **Authentication → URL Configuration**
-   - *Site URL*: `https://ydamga.github.io/`
-   - *Redirect URLs*: `https://ydamga.github.io/kedi-odasi.html`
-     (yerel deneme için isterseniz `http://localhost:8000/kedi-odasi.html` gibi bir adres de ekleyin)
-3. Supabase'in yerleşik e-posta servisi saatte birkaç iletiyle sınırlıdır. Ekip düzenli kullanacaksa
-   **Authentication → Emails → SMTP Settings**'ten kurumsal bir SMTP tanımlayın.
+Giriş ya da kayıt yoktur; Supabase Authentication ayarlarına dokunmanız gerekmez. Kedi Odası'nı açan kişi
+**Kediye kim bakıyor?** kutusundan adını seçer ya da listede yoksa yazıp ekler. Seçim o tarayıcıda hatırlanır;
+her bakım bu adla geçmişe yazılır ve geçmişi herkes görür.
 
-### 4. Ekip üyeliği ve davet
+- **Özlem:** `kedi/ayar.js` → `ozlemGun` (varsayılan 3) gündür bakım yapmayan kişiyi kedi özler. Odada
+  "Fındık özledi: …" satırı ve Ekip listesinde etiket görünür; o kişi sayfayı açınca kedi onu karşılar, bakım
+  yapınca da özel bir tepki verir. Hiç bakım yapmamış kişi için süre listeye eklendiği andan sayılır.
+- Kimlik doğrulaması olmadığından sayfayı açan herkes listedeki herhangi bir adı seçebilir. Site yalnızca ekipçe
+  kullanıldığı için bu bilinçli bir tercihtir; kötüye kullanımı sıklık sınırları ve isim sınırları önler.
+- Ad düzeltme ya da listeden çıkarma SQL Editor'den yapılır (`schema.sql` sonundaki örnekler).
 
-Sayfanın herkese açık adresini bilmek ekip üyesi olmak demek değildir. Üyelik iki adımda verilir:
+### 4. (Yalnızca eski kurulumdan geçiyorsanız)
 
-1. **Authentication → Users → Invite user**: kişinin e-postasını davet edin. Bu, bir `profiles` satırı oluşturur
-   (`is_member = false`).
-2. **SQL Editor**'de üyeliği ve görünen adı siz verin:
-
-   ```sql
-   update public.profiles set is_member = true, display_name = 'Ayşe Y.'
-   where id = (select id from auth.users where email = 'ayse@arel.edu.tr');
-   ```
-
-Üye, Kedi Odası'nda e-postasını yazıp gelen bağlantıyı açarak giriş yapar. Görünen adı ve üyeliği kullanıcı
-kendisi değiştiremez; geçmişteki ad sunucu tarafından profilden yazılır. Üyeliği kaldırmak için
-`is_member = false` yapın.
+Önceki sürümün e-postayla girişli şeması kuruluysa, `schema.sql`'den önce `supabase/eski-semayi-kaldir.sql`'i
+çalıştırın. Kedinin değerleri ve geçmişi sıfırlanır. Authentication'daki eski kullanıcılar artık kullanılmaz;
+isterseniz panelden silebilirsiniz. *Allow new users to sign up* ayarının bir önemi kalmaz.
 
 ### 5. Siteyi bağlama
 
@@ -150,18 +143,18 @@ değiştirmeden hemen önce bir bakım yapın. Hesabın kendisi `kedi/kurallar.j
 
 - **Tek kedi:** `pets.id` birincil anahtar ve `check (id = 1)`; satır şemayla oluşur, istemci ekleyemez/silemez.
 - **İstemci hiçbir tabloya yazamaz.** `anon` ve `authenticated` rollerinin tablo yetkileri geri alınmış, yalnızca
-  okuma verilmiştir. Bakım tek yoldan yapılır: `perform_pet_action(p_action)`. Tarayıcı yalnızca eylemin adını
-  gönderir; değerleri, zamanı ve kimliği sunucu belirler (`auth.uid()`, `clock_timestamp()`).
-- **Atomik ve eşzamanlı güvenli:** fonksiyon kedi satırını `SELECT ... FOR UPDATE` ile kilitler, durumu kilit
+  okuma verilmiştir. Yazma iki fonksiyonla yapılır: `add_team_member(ad)` ve `perform_pet_action(eylem, üye_id)`.
+  Tarayıcı değer göndermez; kedinin değerlerini ve zamanı sunucu belirler (`clock_timestamp()`), geçmişteki adı
+  ekip listesinden sunucu kopyalar.
+- **Atomik ve eşzamanlı güvenli:** bakım fonksiyonu kedi satırını `SELECT ... FOR UPDATE` ile kilitler, durumu kilit
   alındıktan sonraki sunucu saatine göre hesaplar, günceller ve geçmişi aynı işlemde yazar. Aynı anda gelen iki
   bakım sıraya girer; ikincisi birincinin sonucunu görür, veri ezilmez.
-- **Sahte kimlik yok:** `actor_id` ve `actor_name` istemciden alınmaz; `profiles`'ı yalnızca yönetici değiştirir.
-- **Okuma yetkileri (RLS):** kedinin durumu ve kurallar herkese açık (anasayfadaki kedi için). Bakım geçmişini
-  ve adları yalnızca ekip üyeleri görür; üye olmayan giriş yapmış kullanıcı yalnızca kendi profilini görür.
-  Anonim okumayı kapatmak için `schema.sql`'deki ilgili iki politikadan `anon`'u çıkarın.
-- **Sıklık sınırı:** kişi başına `cooldown_seconds` (3 sn) bekleme ve saatte `max_actions_per_hour` (60) bakım;
-  denetim satır kilidinin arkasında olduğundan paralel isteklerle aşılamaz. Giriş e-postalarını Supabase Auth
-  kendi sınırıyla korur.
+- **Kimlik yok, ad var:** giriş olmadığı için bakan kişi doğrulanmaz; herkes listedeki bir adı seçebilir (yukarıda
+  3. adım). Ad 1–30 karakter, büyük/küçük harf farkı olmadan tekildir.
+- **Okuma:** kedinin durumu, kurallar, ekip listesi ve bakım geçmişi herkese açıktır.
+- **Sıklık sınırları:** kişi başına `cooldown_seconds` (3 sn) bekleme ve saatte `max_actions_per_hour` (60) bakım;
+  herkes toplamında dakikada `max_actions_per_minute_total` (30) bakım. Ekip listesi en çok 40 ad; saatte en çok
+  10 yeni ad. Bakım denetimleri satır kilidinin arkasında olduğundan paralel isteklerle aşılamaz.
 - **Gizli anahtar yok:** istemcide yalnızca herkese açık anahtar bulunur; `.gitignore` `.env` dosyalarını dışarıda tutar.
 
 ---
@@ -175,15 +168,15 @@ node --test test/kedi-kurallar.test.js
 Oyun kurallarını sınar: geçen süre, 0–100 sınırları, dört eylem, reddetme koşulları, süreli dinlenme ve erken
 uyanma, ihmalde ceza olmaması, göstergeler.
 
-RLS ve fonksiyonlar için `supabase/test-rls.sql` (yukarıda 2. adım).
+Yetkiler ve fonksiyonlar için `supabase/test-rls.sql` (yukarıda 2. adım).
 
 ### Canlıya geçince elle sınayın
 
 1. İki farklı tarayıcıda (ör. Chrome ve Firefox) Kedi Odası'nı açın; iki ekranda aynı değerler görünmeli.
-2. Birinde giriş yapıp **Besle**'ye basın; ötekinde gösterge ve geçmiş sayfa yenilenmeden değişmeli.
-3. İki üye hesabıyla iki tarayıcıda aynı anda farklı düğmelere basın; `pet_actions`'ta iki satır olmalı ve
+2. Birinde adınızı ekleyip **Besle**'ye basın; ötekinde gösterge, geçmiş ve Ekip listesi sayfa yenilenmeden değişmeli.
+3. İki farklı adla iki tarayıcıda aynı anda farklı düğmelere basın; `pet_actions`'ta iki satır olmalı ve
    kedinin değerleri iki eylemin toplam etkisini göstermeli.
-4. Giriş yapmadan düğmeler kapalı olmalı; tarayıcı konsolundan
+4. Ad seçmeden **Besle**'ye basınca ad seçme kutusu açılmalı; tarayıcı konsolundan
    `supabase.createClient(url, anahtar).from('pets').update({ hunger: 0 }).eq('id', 1)` hata vermeli.
 5. Ağı kapatın (DevTools → Network → Offline): "bağlantı koptu" uyarısı çıkmalı, düğmeler kapanmalı;
    ağ gelince durum kendiliğinden tazelenmeli.

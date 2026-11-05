@@ -5,6 +5,9 @@
 window.KEDI_AYAR = {
   ad: 'Fındık',
 
+  // Bu kadar gündür bakım yapmayan ekip üyesini kedi özler (Kedi Odası'nda görünür)
+  ozlemGun: 3,
+
   kurallar: {
     hunger_rise_per_hour: 4,        // açlık saatte artar
     happiness_drop_per_hour: 2,     // mutluluk saatte azalır
@@ -27,7 +30,8 @@ window.KEDI_AYAR = {
 
     // Kötüye kullanım sınırı (yalnızca canlı modda, sunucuda uygulanır)
     cooldown_seconds: 3,
-    max_actions_per_hour: 60
+    max_actions_per_hour: 60,
+    max_actions_per_minute_total: 30
   },
 
   // Yerel deneme modunda ilk açılıştaki değerler

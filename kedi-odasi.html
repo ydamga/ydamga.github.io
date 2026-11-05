@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kedi Odası</title>
-  <meta name="description" content="Ekibin ortak kedisine bakım yapın: besleyin, oynatın, dinlendirin, temizleyin.">
+  <meta name="description" content="Ekibin ortak kedisi: adını seç, besle, oynat, dinlendir, temizle. Uzun süre uğramayanları özler.">
   <script src="ayarlar.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -65,7 +65,7 @@
       color: var(--text);
       line-height: 1.5;
     }
-    .uyari[hidden], .not[hidden], .giris[hidden] { display: none; }
+    .uyari[hidden], .not[hidden], .kim[hidden], .ozlem[hidden], .ekip-bolum[hidden] { display: none; }
 
     /* Gövde: solda oda, sağda bakım; altta geçmiş */
     .oda-govde {
@@ -117,6 +117,8 @@
     .ruh-ad { font-size: clamp(1.2rem, 1.8vw, 1.5rem); font-weight: 800; letter-spacing: -0.02em; }
     .ruh p { color: var(--text-2); line-height: 1.45; }
     .ruh .son { font-size: 0.85rem; color: var(--muted); }
+    /* Özlem: kedinin bir süredir göremediği kişiler */
+    .ruh .ozlem { font-size: 0.92rem; font-weight: 700; color: var(--accent-ink); }
 
     /* İhtiyaç göstergeleri: simge, ad, değer ve durum metni; renk tek başına anlam taşımaz */
     .olcerler { list-style: none; display: grid; gap: 6px; }
@@ -173,11 +175,12 @@
     .eylem-mesaj { min-height: 1.5em; line-height: 1.5; color: var(--text); }
     .eylem-mesaj[data-tur="red"] { color: var(--text-2); }
     .eylem-mesaj[data-tur="hata"] { padding: 10px 12px; border-left: 4px solid #E0605E; background: var(--surface); }
+    .eylem-mesaj[data-tur="ozlem"] { padding: 10px 12px; border-left: 4px solid var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--surface)); font-weight: 700; }
 
-    /* Mod notu ve giriş kutusu */
-    .not, .giris { padding: 14px 16px; background: var(--surface); line-height: 1.5; font-size: 0.9rem; color: var(--text-2); }
-    .not b, .giris b { color: var(--text); }
-    .not button, .giris button.ikincil {
+    /* Mod notu ve ad seçimi */
+    .not, .kim { padding: 14px 16px; background: var(--surface); line-height: 1.5; font-size: 0.9rem; color: var(--text-2); }
+    .not b, .kim b { color: var(--text); }
+    .not button, .kim button.ikincil {
       margin-top: 8px;
       min-height: 36px;
       padding: 0 14px;
@@ -190,10 +193,29 @@
       font-weight: 700;
       cursor: pointer;
     }
-    .not button:focus-visible, .giris button:focus-visible, .giris input:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
-    .giris form { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-    .giris input {
-      flex: 1 1 180px;
+    .kim button.ikincil + button.ikincil { margin-left: 6px; }
+    .not button:focus-visible, .kim button:focus-visible, .kim input:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+    .kisiler { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .kisi {
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--accent-ink);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--accent-ink);
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 150ms ease, color 150ms ease;
+    }
+    .kisi[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    @media (hover: hover) and (pointer: fine) {
+      .kisi:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    }
+    .kim form { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .kim input {
+      flex: 1 1 160px;
       min-width: 0;
       min-height: 40px;
       padding: 0 12px;
@@ -204,9 +226,9 @@
       font: inherit;
       font-size: 16px;
     }
-    .giris button[type="submit"] {
+    .kim button[type="submit"] {
       min-height: 40px;
-      padding: 0 14px;
+      padding: 0 16px;
       border: 0;
       border-radius: 8px;
       background: var(--accent);
@@ -216,9 +238,9 @@
       font-weight: 700;
       cursor: pointer;
     }
-    .giris button:disabled { opacity: 0.5; cursor: default; }
-    .giris-mesaj { margin-top: 8px; }
-    .giris-mesaj:empty { display: none; }
+    .kim button:disabled { opacity: 0.5; cursor: default; }
+    .kim-mesaj { margin-top: 8px; }
+    .kim-mesaj:empty { display: none; }
 
     /* Aktivite geçmişi */
     .gecmis ol { list-style: none; display: grid; gap: 4px; }
@@ -234,6 +256,23 @@
     .gecmis li.red { color: var(--text-2); }
     .gecmis time { color: var(--muted); font-size: 0.82rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .gecmis .bos { color: var(--text-2); grid-template-columns: 1fr; }
+
+    /* Ekip: herkesin son bakımı; kedinin özlediği kişiler vurgulu */
+    .ekip-bolum { margin-top: clamp(16px, 2vw, 24px); }
+    .gecmis .ekip-liste li { align-items: center; }
+    .ekip-ad { font-weight: 700; }
+    .ekip-son { color: var(--muted); font-size: 0.82rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .ekip-ozlem {
+      grid-column: 1 / -1;
+      justify-self: start;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: var(--on-accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .gecmis .ekip-liste li.ozlenen { box-shadow: inset 4px 0 0 var(--accent); }
 
     @media (max-width: 900px) {
       .oda-govde { grid-template-columns: minmax(0, 1fr); grid-template-areas: "sahne" "bakim" "gecmis"; }
@@ -277,6 +316,7 @@
           <span class="ruh-ad" id="ruh-ad">…</span>
           <p id="ruh-mesaj"></p>
           <p class="son" id="son-bakan"></p>
+          <p class="ozlem" id="ozlem" hidden></p>
         </div>
       </section>
 
@@ -297,13 +337,19 @@
           Ortak kedi için Supabase bağlantısı kurulmalı (README.md).
           <br><button type="button" id="sifirla">Denemeyi sıfırla</button>
         </div>
-        <div class="giris" id="giris" hidden></div>
+        <div class="kim" id="kim" hidden></div>
       </section>
 
-      <section class="gecmis" aria-labelledby="gecmis-baslik">
-        <h2 id="gecmis-baslik">Son bakımlar</h2>
-        <ol id="gecmis-liste"></ol>
-      </section>
+      <div class="gecmis">
+        <section aria-labelledby="gecmis-baslik">
+          <h2 id="gecmis-baslik">Son bakımlar</h2>
+          <ol id="gecmis-liste"></ol>
+        </section>
+        <section class="ekip-bolum" id="ekip-bolum" aria-labelledby="ekip-baslik" hidden>
+          <h2 id="ekip-baslik">Ekip</h2>
+          <ol class="ekip-liste" id="ekip-liste"></ol>
+        </section>
+      </div>
     </div>
   </main>
 

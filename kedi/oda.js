@@ -1,4 +1,4 @@
-// Kedi Odası: büyük kedi, ihtiyaç göstergeleri, bakım düğmeleri, geçmiş ve (canlı modda) giriş.
+// Kedi Odası: büyük kedi, ihtiyaç göstergeleri, bakım düğmeleri, geçmiş ve (canlı modda) ad seçimi, ekip ve özlem.
 (function () {
   var D = window.KediDurum, K = window.KediKurallar;
   var AD = D.ad;
@@ -37,8 +37,8 @@
     already_clean: AD + ' zaten tertemiz.'
   };
   var HATA = {
-    not_authenticated: 'Bakım yapmak için aşağıdan giriş yapın.',
-    not_member: 'Hesabınız henüz ekip üyesi olarak onaylanmadı; bakım yapamazsınız.',
+    no_name: 'Önce aşağıdan adını seç; bakım bu adla kaydedilir.',
+    unknown_member: 'Seçtiğin ad artık listede yok. Adını yeniden seç.',
     cooldown: 'Biraz yavaş: aynı kişi birkaç saniyede bir bakım yapabilir.',
     rate_limited: 'Bu saat için bakım sınırına ulaştınız. Biraz sonra tekrar deneyin.',
     invalid_action: 'Bilinmeyen bir işlem gönderildi.',
@@ -69,6 +69,12 @@
     return new Date(t).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   }
 
+  function gunOnce(t) {
+    var g = Math.floor((D.simdi() - Date.parse(t)) / 864e5);
+    if (g < 1) return zamanMetni(t);
+    return g === 1 ? 'dün' : g + ' gün önce';
+  }
+
   function goster() {
     var c = D.anlik();
     if (!c) return;
@@ -90,9 +96,10 @@
     $('oda').setAttribute('aria-label', 'Kedi odası: ' + AD + ' ' + r.ad.toLocaleLowerCase('tr') + '. ' + r.mesaj);
     kedi.guncelle(K.isaretler(c));
     sonBakan();
+    ozlemGoster();
   }
 
-  // En son kimin bakım yaptığı: yalnızca güvenilir bir ad varsa (canlı modda sunucunun yazdığı ad)
+  // En son kimin bakım yaptığı (canlı modda sunucunun yazdığı ad)
   function sonBakan() {
     var el = $('son-bakan');
     var t = D.sonBakim;
@@ -104,20 +111,13 @@
     } else if (kim && kim.actor_name && Math.abs(Date.parse(kim.created_at) - Date.parse(t)) < 1000) {
       el.textContent = 'Son bakım: ' + kim.actor_name + ', ' + zamanMetni(t) + '.';
     } else {
-      el.textContent = 'Son bakım ' + zamanMetni(t) + '.' + (D.oturum.durum === 'uye' ? '' : ' Kimin yaptığını ekip üyeleri görür.');
+      el.textContent = 'Son bakım ' + zamanMetni(t) + '.';
     }
   }
 
   function gecmisGoster() {
     var ol = $('gecmis-liste');
     ol.textContent = '';
-    if (D.mod === 'canli' && D.oturum.durum !== 'uye') {
-      var li0 = document.createElement('li');
-      li0.className = 'bos';
-      li0.textContent = 'Bakım geçmişini giriş yapan ekip üyeleri görür.';
-      ol.appendChild(li0);
-      return;
-    }
     if (!D.gecmis.length) {
       var li1 = document.createElement('li');
       li1.className = 'bos';
@@ -152,12 +152,18 @@
     el.dataset.tur = tur || '';
   }
   function dugmeler() {
-    var izin = D.baglanti === 'acik' && (D.mod === 'demo' || D.oturum.durum === 'uye');
+    var izin = D.baglanti === 'acik';
     butonlar.forEach(function (b) { b.disabled = bekliyor || !izin; });
   }
   butonlar.forEach(function (b) {
     b.addEventListener('click', function () {
       var eylem = b.dataset.eylem;
+      if (D.mod === 'canli' && !D.ben) {
+        mesaj(HATA.no_name, 'hata');
+        kimAc();
+        return;
+      }
+      var ozlemisti = D.mod === 'canli' && benOzlendiMi();
       bekliyor = true;
       dugmeler();
       D.islem(eylem).then(function (s) {
@@ -167,6 +173,7 @@
             var c = D.anlik();
             if (c && c.resting) m += ' Yaklaşık ' + K.sure(Math.max(1, Math.round((c.resting_until - D.simdi()) / 60000))) + ' dinlenecek.';
           }
+          if (ozlemisti) m = AD + ' seni görünce koşa koşa geldi, çok özlemişti! ' + m;
           mesaj(m, 'tamam');
           kedi.tepki(eylem);
         } else {
@@ -203,45 +210,158 @@
     dugmeler();
   }
 
-  function girisGoster() {
-    var g = $('giris');
+  // ---- Ad seçimi (canlı mod): giriş yok, bakan kişi adını seçer; seçim bu tarayıcıda hatırlanır ----
+  var kimAcik = false;
+  function kimAc() {
+    kimAcik = true;
+    kimGoster();
+    var ilk = $('kim').querySelector('.kisi, input');
+    if (ilk) ilk.focus();
+  }
+
+  function kimGoster() {
+    var k = $('kim');
     if (D.mod !== 'canli') return;
-    g.hidden = false;
-    g.textContent = '';
-    var o = D.oturum;
-    if (o.durum === 'yok') {
-      g.innerHTML =
-        '<b>Bakım yapmak için giriş yapın.</b> Kediyi herkes görebilir; bakımı yalnızca davet edilmiş ekip üyeleri yapar. ' +
-        'E-postanıza tek kullanımlık bir giriş bağlantısı gönderilir.' +
-        '<form id="giris-form"><input type="email" id="giris-eposta" required autocomplete="email" placeholder="ad.soyad@arel.edu.tr" aria-label="E-posta adresi">' +
-        '<button type="submit">Bağlantı gönder</button></form><p class="giris-mesaj" id="giris-mesaj" aria-live="polite"></p>';
-      $('giris-form').addEventListener('submit', function (e) {
-        e.preventDefault();
-        var btn = g.querySelector('button[type="submit"]');
-        var m = $('giris-mesaj');
-        btn.disabled = true;
-        D.girisBaglantisi($('giris-eposta').value.trim()).then(function () {
-          m.textContent = 'Bu adres ekip listesindeyse giriş bağlantısı gönderildi. E-postanızdaki bağlantıyı bu tarayıcıda açın.';
-        }, function (h) {
-          m.textContent = h.kod === 'rate_limited'
-            ? 'Çok sık bağlantı istendi. Birkaç dakika sonra tekrar deneyin.'
-            : 'Giriş bağlantısı gönderilemedi. Bağlantınızı kontrol edip tekrar deneyin.';
-        }).then(function () { btn.disabled = false; });
-      });
+    k.hidden = false;
+    k.textContent = '';
+    var ben = D.ben;
+    if (ben && !kimAcik) {
+      var p = document.createElement('p');
+      var b = document.createElement('b');
+      b.textContent = ben.name;
+      p.append(b, ' olarak bakıyorsun.');
+      var deg = document.createElement('button');
+      deg.type = 'button';
+      deg.className = 'ikincil';
+      deg.textContent = 'Değiştir';
+      deg.addEventListener('click', kimAc);
+      k.append(p, deg);
       return;
     }
-    var b = document.createElement('b');
-    b.textContent = o.ad;
-    g.append('Giriş: ', b, '. ');
-    if (o.durum === 'uye-degil') {
-      g.append('Hesabınız henüz ekip üyesi olarak onaylanmadı; onaylanınca bakım yapabilirsiniz.');
+
+    var h = document.createElement('p');
+    h.innerHTML = '<b>Kediye kim bakıyor?</b> Adını seç; bakımların bu adla kaydedilir ve bu tarayıcı seni hatırlar.';
+    k.appendChild(h);
+    if (D.ekip.length) {
+      var liste = document.createElement('div');
+      liste.className = 'kisiler';
+      liste.setAttribute('role', 'group');
+      liste.setAttribute('aria-label', 'Ekip');
+      D.ekip.forEach(function (m) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'kisi';
+        btn.textContent = m.name;
+        btn.setAttribute('aria-pressed', String(!!ben && ben.id === m.id));
+        btn.addEventListener('click', function () {
+          kimAcik = false;
+          D.benSec(m.id);
+          mesaj('', '');
+          selamla();
+        });
+        liste.appendChild(btn);
+      });
+      k.appendChild(liste);
     }
-    var cik = document.createElement('button');
-    cik.type = 'button';
-    cik.className = 'ikincil';
-    cik.textContent = 'Çıkış yap';
-    cik.addEventListener('click', function () { D.cikis(); });
-    g.append(document.createElement('br'), cik);
+    var form = document.createElement('form');
+    var girdi = document.createElement('input');
+    girdi.type = 'text';
+    girdi.maxLength = 30;
+    girdi.required = true;
+    girdi.autocomplete = 'given-name';
+    girdi.placeholder = D.ekip.length ? 'Listede yoksan adını yaz' : 'Adın';
+    girdi.setAttribute('aria-label', 'Yeni ad');
+    var ekle = document.createElement('button');
+    ekle.type = 'submit';
+    ekle.textContent = 'Ekle';
+    form.append(girdi, ekle);
+    var mesajEl = document.createElement('p');
+    mesajEl.className = 'kim-mesaj';
+    mesajEl.setAttribute('aria-live', 'polite');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      ekle.disabled = true;
+      D.isimEkle(girdi.value).then(function (m) {
+        kimAcik = false;
+        kimGoster();
+        mesaj(m.existed ? m.name + ' zaten listedeydi; onu seçtim.' : 'Hoş geldin ' + m.name + '! ' + AD + ' seni tanıdı.', 'tamam');
+      }, function (h) {
+        mesajEl.textContent = {
+          invalid_name: 'Ad 1–30 karakter olmalı.',
+          team_full: 'Ekip listesi dolu (en çok 40 kişi).',
+          rate_limited: 'Bu saat içinde çok fazla ad eklendi. Biraz sonra dene.'
+        }[h.kod] || 'Ad eklenemedi. Bağlantını kontrol edip tekrar dene.';
+        ekle.disabled = false;
+      });
+    });
+    k.append(form, mesajEl);
+    if (ben) {
+      var vazgec = document.createElement('button');
+      vazgec.type = 'button';
+      vazgec.className = 'ikincil';
+      vazgec.textContent = 'Vazgeç';
+      vazgec.addEventListener('click', function () { kimAcik = false; kimGoster(); });
+      k.appendChild(vazgec);
+    }
+  }
+
+  // ---- Ekip listesi ve özlem ----
+  function ozlenenMi(id) { return D.ozlenenler().some(function (o) { return o.id === id; }); }
+  function benOzlendiMi() { return !!D.ben && ozlenenMi(D.ben.id); }
+
+  function ozlemGoster() {
+    var el = $('ozlem');
+    var o = D.ozlenenler();
+    if (D.mod !== 'canli' || !o.length) { el.hidden = true; return; }
+    var adlar = o.slice(0, 3).map(function (m) { return m.name; });
+    var fazla = o.length - adlar.length;
+    el.textContent = AD + ' özledi: ' + adlar.join(', ') + (fazla > 0 ? ' ve ' + fazla + ' kişi daha' : '') + '.';
+    el.hidden = false;
+  }
+
+  function ekipGoster() {
+    if (D.mod !== 'canli') return;
+    $('ekip-bolum').hidden = false;
+    var ol = $('ekip-liste');
+    ol.textContent = '';
+    if (!D.ekip.length) {
+      var bos = document.createElement('li');
+      bos.className = 'bos';
+      bos.textContent = 'Henüz kimse ad eklemedi. İlk sen ekle.';
+      ol.appendChild(bos);
+      return;
+    }
+    var ben = D.ben;
+    D.ekip.forEach(function (m) {
+      var li = document.createElement('li');
+      var ozlem = ozlenenMi(m.id);
+      if (ozlem) li.className = 'ozlenen';
+      var ad = document.createElement('span');
+      ad.className = 'ekip-ad';
+      ad.textContent = m.name + (ben && ben.id === m.id ? ' (sen)' : '');
+      var son = document.createElement('span');
+      son.className = 'ekip-son';
+      son.textContent = m.last_action_at ? 'Son bakım ' + gunOnce(m.last_action_at) : 'Henüz bakmadı';
+      li.append(ad, son);
+      if (ozlem) {
+        var etiket = document.createElement('span');
+        etiket.className = 'ekip-ozlem';
+        etiket.textContent = AD + ' özledi';
+        li.appendChild(etiket);
+      }
+      ol.appendChild(li);
+    });
+  }
+
+  // Özlenen kişi gelince kedi karşılar (sayfa başına bir kez)
+  var selamlandi = false;
+  function selamla() {
+    if (selamlandi || D.mod !== 'canli' || !D.ben || !D.anlik()) return;
+    selamlandi = true;
+    var o = D.ozlenenler().filter(function (m) { return m.id === D.ben.id; })[0];
+    if (!o) return;
+    mesaj(AD + ' seni özlemiş! ' + (o.hic ? 'Daha hiç bakım yapmadın; bir mama vermeye ne dersin?' : o.gun + ' gündür uğramıyordun.'), 'ozlem');
+    kedi.tepki('play');
   }
 
   if (D.mod === 'demo') {
@@ -256,15 +376,18 @@
     if (tur === 'durum') goster();
     if (tur === 'gecmis') { gecmisGoster(); sonBakan(); }
     if (tur === 'baglanti') rozet();
-    if (tur === 'oturum') { girisGoster(); gecmisGoster(); sonBakan(); dugmeler(); }
+    if (tur === 'ekip') { ekipGoster(); ozlemGoster(); if (!kimAcik) kimGoster(); }
+    if (tur === 'ben') { kimGoster(); ekipGoster(); }
   });
   rozet();
-  girisGoster();
+  kimGoster();
   D.baslat({ gecmis: true }).then(function () {
     rozet();
     gecmisGoster();
+    kimGoster();
+    selamla();
   }, function () { rozet(); });
 
   // Değerler yavaş değişir; yarım dakikada bir yeniden hesaplanır
-  setInterval(function () { if (!document.hidden) { goster(); gecmisGoster(); } }, 30000);
+  setInterval(function () { if (!document.hidden) { goster(); gecmisGoster(); ekipGoster(); } }, 30000);
 })();
