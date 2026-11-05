@@ -206,6 +206,40 @@
     details.tamam .surecler { margin-top: 8px; }
     details.tamam .surec { opacity: 0.7; }
 
+    /* Arama: etkinlik ve süreçleri ada, tarihe ya da aya göre süzer */
+    .ara {
+      position: relative;
+      max-width: 520px;
+      margin-bottom: clamp(16px, 2.5vh, 24px);
+    }
+    .ara svg {
+      position: absolute;
+      left: 14px;
+      top: 14px; /* 46px yüksekliğindeki kutunun ortası */
+      width: 18px;
+      height: 18px;
+      stroke: var(--muted);
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      pointer-events: none;
+    }
+    .ara input {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 14px 0 42px;
+      border: 1px solid var(--surface-2);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      font-size: 1rem;
+    }
+    .ara input::placeholder { color: var(--muted); }
+    .ara input:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+    .ara-sonuc { margin-top: 6px; font-size: 0.82rem; color: var(--muted); min-height: 1.2em; }
+    .grup[hidden], .surec[hidden], .liste li[hidden] { display: none; }
+
     .kaynak { margin-top: 24px; font-size: 0.82rem; line-height: 1.5; color: var(--muted); }
     .kaynak a { color: var(--accent-ink); font-weight: 700; text-underline-offset: 3px; }
 
@@ -236,6 +270,12 @@
       <div class="cubuk" role="progressbar" aria-label="Dönemin ilerleyişi" aria-valuemin="0" aria-valuemax="100" id="durum-cubuk"><i></i></div>
       <div class="alt" id="durum-alt"></div>
     </section>
+
+    <div class="ara" role="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="ara" autocomplete="off" placeholder="Takvimde ara: final, bütünleme, kasım…" aria-label="Akademik takvimde ara" aria-describedby="ara-sonuc">
+      <p class="ara-sonuc" id="ara-sonuc" aria-live="polite"></p>
+    </div>
 
     <div class="ikili">
       <section aria-labelledby="takvim-baslik">
@@ -439,6 +479,84 @@
         return { el: div, ilk: ilk, son: son };
       }
 
+      // Arama: Türkçe karakterler olmadan da eşleşir ("butunleme" → "Bütünleme").
+      // Ay başlığı eşleşirse o ayın tüm etkinlikleri görünür. Arama sürerken geçmiş etkinlikler ve
+      // tamamlanan süreçler de taranır.
+      function sade(s) {
+        return s.toLocaleLowerCase('tr').replace(/[çğıöşüâî]/g, function (c) {
+          return { 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u', 'â': 'a', 'î': 'i' }[c];
+        }).replace(/\s+/g, ' ').trim();
+      }
+      function aramaKur() {
+        var girdi = document.getElementById('ara');
+        var sonuc = document.getElementById('ara-sonuc');
+        var dugme = document.getElementById('gecmis-ac');
+        var gecmisKutu = document.getElementById('gecmis');
+        var tamam = document.getElementById('tamam');
+        var once = null; // arama öncesi geçmiş/tamamlanan görünürlüğü
+        var gruplar = Array.prototype.slice.call(document.querySelectorAll('#takvim .grup, #gecmis .grup'));
+        var kartlar = Array.prototype.slice.call(document.querySelectorAll('.surec'));
+        var bosEtkinlik = document.createElement('p');
+        bosEtkinlik.className = 'bos';
+        bosEtkinlik.textContent = 'Aramayla eşleşen etkinlik yok.';
+        bosEtkinlik.hidden = true;
+        document.getElementById('takvim').appendChild(bosEtkinlik);
+
+        function uygula() {
+          var kelimeler = sade(girdi.value).split(' ').filter(Boolean);
+          function eslesir(metin) { var m = sade(metin); return kelimeler.every(function (k) { return m.indexOf(k) !== -1; }); }
+          var aktif = kelimeler.length > 0;
+
+          if (aktif && !once) {
+            once = { gecmis: gecmisKutu.hidden, dugme: dugme.hidden, tamam: tamam.open };
+          }
+          var etkinlik = 0, surec = 0, tamamVar = false;
+          gruplar.forEach(function (g) {
+            var baslikTutar = aktif && eslesir(g.querySelector('h3').textContent);
+            var gorunen = 0;
+            g.querySelectorAll('.liste li').forEach(function (li) {
+              var goster = !aktif || baslikTutar || eslesir(li.textContent);
+              li.hidden = !goster;
+              if (goster) gorunen++;
+            });
+            g.hidden = !gorunen;
+            if (aktif) etkinlik += gorunen;
+          });
+          kartlar.forEach(function (k) {
+            var goster = !aktif || eslesir(k.textContent);
+            k.hidden = !goster;
+            if (goster && aktif) { surec++; if (k.parentNode.id === 'tamam-liste') tamamVar = true; }
+          });
+
+          if (aktif) {
+            var gecmisVar = !!gecmisKutu.querySelector('.grup:not([hidden])');
+            gecmisKutu.hidden = !gecmisVar;
+            dugme.hidden = true;
+            if (!tamam.hidden) tamam.open = tamamVar;
+            bosEtkinlik.hidden = etkinlik > 0;
+            sonuc.textContent = etkinlik + surec
+              ? etkinlik + ' etkinlik, ' + surec + ' başvuru süreci bulundu'
+              : 'Sonuç yok. Başka bir kelime deneyin.';
+          } else {
+            if (once) {
+              gecmisKutu.hidden = once.gecmis;
+              dugme.hidden = once.dugme;
+              tamam.open = once.tamam;
+              once = null;
+            }
+            bosEtkinlik.hidden = true;
+            sonuc.textContent = '';
+          }
+        }
+        girdi.addEventListener('input', uygula);
+        girdi.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && girdi.value) { girdi.value = ''; uygula(); }
+        });
+        // ?ara=final ile doğrudan arama
+        var q = (location.search.match(/[?&]ara=([^&]*)/) || [])[1];
+        if (q) { girdi.value = decodeURIComponent(q.replace(/\+/g, ' ')); uygula(); }
+      }
+
       fetch('data/akademik-takvim.json', { cache: 'no-cache' })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function (veri) {
@@ -501,6 +619,7 @@
           a.rel = 'noopener';
           a.textContent = 'arel.edu.tr akademik takvim';
           kaynak.append('Kaynak: ', a, '. ' + veri.not);
+          aramaKur();
         })
         .catch(function () {
           var p = document.createElement('p');

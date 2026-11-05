@@ -55,7 +55,7 @@
       align-items: start;
       gap: 40px clamp(20px, 2.4vw, 40px);
     }
-    /* Sağ sütun: ÖSYM sınavları, altında akademik takvim */
+    /* Sağ sütun: akademik takvim (başvurular), altında ÖSYM sınavları */
     .sag { grid-area: osym; display: grid; align-content: start; gap: clamp(24px, 3.5vh, 40px); min-width: 0; }
     .araclar { grid-area: araclar; }
     .yemek { grid-area: yemek; }
@@ -340,6 +340,17 @@
 
     <div class="govde">
     <div class="sag">
+    <section class="takvim" aria-labelledby="takvim-baslik">
+      <div class="osym-head">
+        <h2 id="takvim-baslik">Akademik takvim</h2>
+        <span class="donem" id="donem-hafta"></span>
+      </div>
+      <div class="yaklasan" id="takvim-yaklasan" hidden>
+        <ul id="yaklasan-liste" aria-labelledby="takvim-baslik"></ul>
+      </div>
+      <p class="alt-satir"><span></span><a href="akademik-takvim.html">Akademik takvim</a></p>
+    </section>
+
     <section class="osym" id="osym" hidden aria-labelledby="osym-baslik">
       <div class="osym-head">
         <h2 id="osym-baslik">ÖSYM sınavları</h2>
@@ -356,17 +367,6 @@
       </a>
       <ul id="osym-liste"></ul>
       <p class="alt-satir"><span></span><a href="sinavlar.html">Aylık sınav takvimi</a></p>
-    </section>
-
-    <section class="takvim" aria-labelledby="takvim-baslik">
-      <div class="osym-head">
-        <h2 id="takvim-baslik">Akademik takvim</h2>
-        <span class="donem" id="donem-hafta"></span>
-      </div>
-      <div class="yaklasan" id="takvim-yaklasan" hidden>
-        <ul id="yaklasan-liste" aria-labelledby="takvim-baslik"></ul>
-      </div>
-      <p class="alt-satir"><span></span><a href="akademik-takvim.html">Akademik takvim</a></p>
     </section>
     </div>
 
@@ -492,7 +492,7 @@
         .catch(function () { /* veri yoksa bölüm gizli kalır */ });
     })();
 
-    // Akademik takvim (data/akademik-takvim.json): başlıkta dönemin kaçıncı haftası, altta süren ve yaklaşan etkinlikler.
+    // Akademik takvim (data/akademik-takvim.json): başlıkta dönemin kaçıncı haftası, altta süren ve yaklaşan başvurular.
     (function () {
       var ADET = 6; // geniş ekranda sigdir() sığmayanları gizler; telefonda 3
       var bugun = (location.search.match(/[?&]bugun=(\d{4}-\d{2}-\d{2})/) || [])[1] ||
@@ -532,13 +532,12 @@
           var dersler = veri.etkinlikler.filter(function (e) { return e.tur === 'ders'; });
           hafta(dersler);
 
-          // Anasayfadaki satırlar: "ana" işaretli etkinlikler, derslerin başlangıç/bitiş günleri, süreçlerin ilk adımı
-          var olaylar = veri.etkinlikler.filter(function (e) { return e.ana; });
-          dersler.forEach(function (d) {
-            olaylar.push({ ad: d.ad + ' başlıyor', bas: d.bas }, { ad: d.ad + ' sona eriyor', bas: d.bit });
-          });
+          // Anasayfada yalnızca başvuru günleri: adında "başvuru" geçen etkinlikler ve süreçlerin başvuru adımı
+          function basvuruMu(ad) { return /başvuru/i.test(ad.toLocaleLowerCase('tr')); }
+          var olaylar = veri.etkinlikler.filter(function (e) { return basvuruMu(e.ad); });
           veri.surecler.forEach(function (s) {
-            if (s.ana) olaylar.push({ ad: s.ana, bas: s.adimlar[0].bas, bit: s.adimlar[0].bit });
+            var adim = s.adimlar.filter(function (a) { return basvuruMu(a.ad); })[0];
+            if (adim) olaylar.push({ ad: s.ana || s.ad + ' başvurusu', bas: adim.bas, bit: adim.bit });
           });
           var secilen = olaylar
             .filter(function (e) { return (e.bit || e.bas) >= bugun; })
