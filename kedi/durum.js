@@ -128,14 +128,22 @@
         S.hata = null;
         if (S.baglanti !== 'acik') { S.baglanti = 'acik'; yay('baglanti'); }
         yay('durum');
-        if (ops.gecmis) return canli.gecmisYukle();
-      }).catch(function (e) {
+      }).then(function () {
+        // Geçmiş ayrı yüklenir: okunamaması (ör. RLS reddi) sunucu bağlantısının koptuğu anlamına gelmez
+        if (ops.gecmis) canli.gecmisYukle().catch(function () {});
+      }, function (e) {
         canli.koptu(e);
         throw hata('network');
       });
     },
     gecmisYukle: function () {
-      // RLS: geçmişi yalnızca ekip üyeleri görür; diğerlerine boş liste döner
+      // Geçmişi yalnızca ekip üyeleri görür: giriş yapmamış ziyaretçinin okuma yetkisi yoktur (istek reddedilir),
+      // üye olmayan giriş yapmış kullanıcıya RLS boş liste döndürür. Üye değilse hiç istenmez.
+      if (S.oturum.durum !== 'uye') {
+        S.gecmis = [];
+        yay('gecmis');
+        return Promise.resolve();
+      }
       return sb.from('pet_actions')
         .select('id, action, result, reason, actor_name, created_at')
         .order('created_at', { ascending: false })
