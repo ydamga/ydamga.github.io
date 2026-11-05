@@ -155,8 +155,8 @@
     .alt-satir a:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
 
     /* ÖSYM başvuruları: data/osym.json'dan, GitHub Actions her sabah günceller */
-    .osym[hidden], .osym ul[hidden], .osym .siradaki[hidden] { display: none; }
-    /* İlk açılışta göze çarpan: en yakın sınav */
+    .osym[hidden], .osym ul[hidden], .siradaki[hidden] { display: none; }
+    /* İlk açılışta göze çarpan: en yakın (ya da süren) başvuru */
     .siradaki {
       display: grid;
       gap: 10px;
@@ -181,7 +181,7 @@
       text-transform: uppercase;
       margin-bottom: 4px;
     }
-    .osym .siradaki .ad {
+    .siradaki .ad {
       display: block;
       font-size: clamp(1.15rem, 1.7vw, 1.5rem);
       font-weight: 800;
@@ -321,9 +321,9 @@
     @media (hover: hover) and (pointer: fine) {
       #osym-liste li a:hover { background: var(--surface-2); }
     }
-    /* Telefonda 3 etkinlik */
+    /* Telefonda büyük kartın altında 2 başvuru */
     @media (max-width: 760px) {
-      .yaklasan li:nth-child(n+4) { display: none; }
+      .yaklasan li:nth-child(n+3) { display: none; }
     }
 
     @media (max-width: 899px) {
@@ -373,6 +373,14 @@
         <h2 id="takvim-baslik">Akademik takvim</h2>
         <span class="donem" id="donem-hafta"></span>
       </div>
+      <a class="siradaki" id="takvim-siradaki" href="akademik-takvim.html" hidden>
+        <span>
+          <span class="etiket"></span>
+          <span class="ad"></span>
+          <span class="basvuru"></span>
+        </span>
+        <span class="zaman"><b></b><span></span></span>
+      </a>
       <div class="yaklasan" id="takvim-yaklasan" hidden>
         <ul id="yaklasan-liste" aria-labelledby="takvim-baslik"></ul>
       </div>
@@ -385,14 +393,6 @@
         <span id="osym-not"></span>
       </div>
       <ul class="uyarilar" id="osym-uyarilar" aria-label="Bugünün başvuru uyarıları" hidden></ul>
-      <a class="siradaki" id="osym-siradaki" target="_blank" rel="noopener" hidden>
-        <span>
-          <span class="etiket">En yakın sınav</span>
-          <span class="ad"></span>
-          <span class="basvuru"></span>
-        </span>
-        <span class="zaman"><b></b><span></span></span>
-      </a>
       <ul id="osym-liste"></ul>
       <p class="alt-satir"><span></span><a href="sinavlar.html">Aylık sınav takvimi</a></p>
     </section>
@@ -493,20 +493,9 @@
             .filter(function (s) { return s.sinav_tarihi && s.sinav_tarihi >= bugun; })
             .slice(0, 6);
 
-          // En yakın sınav büyük kartta, kalan gün sayısıyla
-          var ilk = yaklasan.shift();
-          if (ilk) {
-            var kart = document.getElementById('osym-siradaki');
-            var kalan = Math.round((new Date(ilk.sinav_tarihi + 'T12:00:00Z') - new Date(bugun + 'T12:00:00Z')) / 864e5);
-            kart.href = ilk.link;
-            kart.querySelector('.ad').textContent = ilk.ad;
-            kart.querySelector('.basvuru').textContent = basvuruMetni(ilk);
-            kart.querySelector('.zaman b').textContent = kisa(ilk.sinav_tarihi);
-            kart.querySelector('.zaman span').textContent = kalan === 0 ? 'Bugün' : kalan === 1 ? 'Yarın' : kalan + ' gün kaldı';
-            kart.hidden = false;
-          }
+          // Yaklaşan sınavlar tek panelde, sağda sınav tarihi
           yaklasan.forEach(function (s) { liste.appendChild(satir(s, s.ad, basvuruMetni(s), 'Sınav ' + kisa(s.sinav_tarihi))); });
-          if (!ilk) {
+          if (!yaklasan.length) {
             var bos = document.createElement('li');
             bos.className = 'bos';
             bos.textContent = 'Takvimde yaklaşan sınav yok. Yeni takvim yayımlanınca burada görünür.';
@@ -573,6 +562,21 @@
             .slice(0, ADET);
           if (!secilen.length) return;
 
+          // En yakın (ya da süren) başvuru büyük kartta
+          var ilk = secilen.shift();
+          var kart = document.getElementById('takvim-siradaki');
+          var ilkBas = fark(bugun, ilk.bas);
+          var ilkSuruyor = ilkBas <= 0;
+          kart.querySelector('.etiket').textContent = ilkSuruyor ? 'Süren başvuru' : 'En yakın başvuru';
+          kart.querySelector('.ad').textContent = ilk.ad;
+          kart.querySelector('.basvuru').textContent = 'Başvuru ' + (ilk.bit ? uzun(ilk.bas) + ' – ' + uzun(ilk.bit) : uzun(ilk.bas));
+          kart.querySelector('.zaman b').textContent = ilk.bit ? tarih(ilk.bas, true) + ' – ' + tarih(ilk.bit, true) : tarih(ilk.bas, true);
+          var ilkKalan = ilk.bit ? fark(bugun, ilk.bit) : 0;
+          kart.querySelector('.zaman span').textContent = !ilkSuruyor
+            ? (ilkBas === 1 ? 'Yarın başlıyor' : ilkBas + ' gün sonra')
+            : (!ilk.bit || ilkKalan === 0 ? 'Son gün' : ilkKalan + ' gün kaldı');
+          kart.hidden = false;
+
           var liste = document.getElementById('yaklasan-liste');
           secilen.forEach(function (e) {
             var li = document.createElement('li');
@@ -596,14 +600,14 @@
             li.append(ad, t, k);
             liste.appendChild(li);
           });
-          document.getElementById('takvim-yaklasan').hidden = false;
+          document.getElementById('takvim-yaklasan').hidden = !secilen.length;
           sigdir();
         })
         .catch(function () { /* veri yoksa yalnızca başlık ve bağlantı görünür */ });
     })();
 
     // Geniş ekranda (üç ya da iki sütun) sağ sütunu ekrana sığdır: sayfa kaydırma gerektiriyorsa
-    // önce uzun olan listenin sonundan satır gizle. En az 1 ÖSYM sınavı ve 2 takvim etkinliği kalır.
+    // önce uzun olan listenin sonundan satır gizle. Takvimde büyük kartın altında en az 1 başvuru, ÖSYM'de en az 2 sınav kalır.
     function sigdir() {
       var osym = Array.prototype.slice.call(document.querySelectorAll('#osym-liste li:not(.bos)'));
       var takvim = Array.prototype.slice.call(document.querySelectorAll('#yaklasan-liste li'));
@@ -613,9 +617,9 @@
       var kok = document.documentElement;
       while (kok.scrollHeight > innerHeight + 1) {
         var o = gorunen(osym), t = gorunen(takvim);
-        if (t.length > 2 && t.length >= o.length) t[t.length - 1].classList.add('sigmaz');
-        else if (o.length > 1) o[o.length - 1].classList.add('sigmaz');
-        else if (t.length > 2) t[t.length - 1].classList.add('sigmaz');
+        if (t.length > 1 && t.length >= o.length) t[t.length - 1].classList.add('sigmaz');
+        else if (o.length > 2) o[o.length - 1].classList.add('sigmaz');
+        else if (t.length > 1) t[t.length - 1].classList.add('sigmaz');
         else break;
       }
     }
