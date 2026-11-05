@@ -34,9 +34,9 @@ revoke all on schema private from public;
 -- ---------------------------------------------------------------------------
 create table public.game_rules (
   id smallint primary key default 1 check (id = 1),
-  hunger_rise_per_hour      numeric not null default 8  check (hunger_rise_per_hour between 0 and 100),
-  happiness_drop_per_hour   numeric not null default 5  check (happiness_drop_per_hour between 0 and 100),
-  cleanliness_drop_per_hour numeric not null default 3  check (cleanliness_drop_per_hour between 0 and 100),
+  hunger_rise_per_hour      numeric not null default 12.5 check (hunger_rise_per_hour between 0 and 100),
+  happiness_drop_per_hour   numeric not null default 7.5 check (happiness_drop_per_hour between 0 and 100),
+  cleanliness_drop_per_hour numeric not null default 12.5 check (cleanliness_drop_per_hour between 0 and 100),
   energy_drop_per_hour      numeric not null default 4  check (energy_drop_per_hour between 0 and 100),
   energy_rest_per_hour      numeric not null default 15 check (energy_rest_per_hour between 0 and 100),
   rest_max_hours            numeric not null default 3  check (rest_max_hours > 0 and rest_max_hours <= 24),

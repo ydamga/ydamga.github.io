@@ -1,4 +1,5 @@
--- Güncelleme: kedi daha sık bakım ister ve uyurken uyandırılabilir.
+-- Güncelleme: kedi 2 saatte bir bakım ister ve uyurken uyandırılabilir.
+-- Birden çok kez çalıştırmak güvenlidir (örneğin oranlar değiştiğinde yeniden çalıştırın).
 -- schema.sql'i (isimle bakım sürümü) daha önce çalıştırdıysanız bunu bir kez SQL Editor'de çalıştırın.
 -- schema.sql'i henüz çalıştırmadıysanız gerekmez: schema.sql bu değişiklikleri zaten içerir
 -- (yine de çalıştırırsanız zararı yoktur).
@@ -17,17 +18,17 @@ from public.game_rules r, lateral private.pet_current(p, r, now()) c
 where p.id = 1 and r.id = 1;
 
 update public.game_rules set
-  hunger_rise_per_hour = 8,
-  happiness_drop_per_hour = 5,
-  cleanliness_drop_per_hour = 3,
+  hunger_rise_per_hour = 12.5,
+  happiness_drop_per_hour = 7.5,
+  cleanliness_drop_per_hour = 12.5,
   energy_drop_per_hour = 4,
   energy_rest_per_hour = 15,
   updated_at = now()
 where id = 1;
 
-alter table public.game_rules alter column hunger_rise_per_hour set default 8;
-alter table public.game_rules alter column happiness_drop_per_hour set default 5;
-alter table public.game_rules alter column cleanliness_drop_per_hour set default 3;
+alter table public.game_rules alter column hunger_rise_per_hour set default 12.5;
+alter table public.game_rules alter column happiness_drop_per_hour set default 7.5;
+alter table public.game_rules alter column cleanliness_drop_per_hour set default 12.5;
 alter table public.game_rules alter column energy_drop_per_hour set default 4;
 alter table public.game_rules alter column energy_rest_per_hour set default 15;
 

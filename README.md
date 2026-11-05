@@ -31,7 +31,7 @@ Anasayfanın alt bilgisinde, yalnızca kendisine ayrılmış bir şeritte dolaş
 | `kedi/ana.js`, `kedi/oda.js` | Anasayfa şeridi ve Kedi Odası arayüzü |
 | `supabase/schema.sql` | Tablolar, kısıtlar, indeksler, fonksiyonlar, RLS, Realtime |
 | `supabase/test-rls.sql` | Yetki ve fonksiyon sınaması (geri alınan tek işlem) |
-| `supabase/guncelleme-uyandir.sql` | Kurulu isimli şemaya daha sık bakım ve uyandırmayı ekler |
+| `supabase/guncelleme-uyandir.sql` | Kurulu isimli şemaya 2 saatlik bakım oranlarını ve uyandırmayı ekler (tekrar çalıştırılabilir) |
 | `supabase/eski-semayi-kaldir.sql` | Eski e-postayla girişli şemayı kaldırır (yalnızca o kuruluysa) |
 | `test/kedi-kurallar.test.js` | Oyun kuralları birim testleri |
 
@@ -47,8 +47,8 @@ Bütün yollar görelidir (`kedi/...`, `kedi-odasi.html`); site bir depo alt diz
   saatte `energy_rest_per_hour` artar, enerji 100 olunca kedi erken uyanır. Kedi uyurken "Dinlendir" düğmesi
   **Uyandır** olur: uyandırılan kedi o ana kadar kazandığı enerjiyi korur. Uyurken oyun reddedilir; besleme ve
   temizleme uykuyu bozmaz.
-- **Bakım sıklığı:** varsayılan oranlarla (saatte açlık +8, mutluluk −5, temizlik −3, enerji −4) kedi yaklaşık
-  3 saatte bir beslenmek ve oynanmak, günde birkaç kez taranmak ister.
+- **Bakım sıklığı:** varsayılan oranlarla (saatte açlık +12,5, mutluluk −7,5, temizlik −12,5, enerji −4) kedi
+  yaklaşık 2 saatte bir beslenmek, oynanmak ve taranmak ister.
 - **İhtiyaç zaten karşılanmışsa** eylem reddedilir ve kedi buna uygun tepki verir (tokken yemez, temizken
   temizlenmez, uykusu yokken uyumaz, yorgunken oynamaz, uyanıkken uyandırılmaz). Reddedilen deneme de geçmişe yazılır.
 - **Ceza yok.** Değerler 0–100 arasında kalır; ihmal edilen kedi yalnızca aç, üzgün, yorgun ve tozlu görünür,
