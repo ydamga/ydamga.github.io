@@ -5,6 +5,6 @@
 // herkes görebilir; verileri koruyan Row Level Security politikalarıdır (supabase/schema.sql).
 // service_role / secret anahtarı asla bu dosyaya, depoya ya da sayfaya koymayın.
 window.KEDI_BAGLANTI = {
-  url: '',
-  anahtar: ''
+  url: 'https://mzqvmppxntsrkrehrtjy.supabase.co',
+  anahtar: 'sb_publishable_cdCV1S4hU-BhDxPogF5tMw_4kuX5OFg'
 };
