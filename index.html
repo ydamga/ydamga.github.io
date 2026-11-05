@@ -273,26 +273,54 @@
     .takvim .donem { font-size: 0.82rem; color: var(--text-2); font-variant-numeric: tabular-nums; }
     .takvim .donem b { color: var(--accent-ink); font-weight: 800; }
     .yaklasan[hidden] { display: none; }
-    .yaklasan { background: var(--surface); animation: rise 600ms var(--ease-out) 320ms both; }
-    .yaklasan ul { list-style: none; }
+    /* Başvurular ayrı kartlarda, sağda kalan süre hap etiketinde */
+    .yaklasan { animation: rise 600ms var(--ease-out) 320ms both; }
+    .yaklasan ul { list-style: none; display: grid; gap: 6px; }
     .yaklasan li {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
+      gap: 4px 16px;
+      align-items: center;
+      padding: clamp(7px, 1vh, 12px) clamp(14px, 1.6vw, 20px);
+      background: var(--surface);
+      font-variant-numeric: tabular-nums;
+    }
+    .yaklasan .ad { font-weight: 700; font-size: 0.94rem; line-height: 1.25; }
+    .yaklasan .tarih { grid-column: 1 / -1; grid-row: 2; color: var(--text-2); font-size: 0.84rem; }
+    .yaklasan .kalan {
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: end;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-2);
+      color: var(--text-2);
+      font-size: 0.82rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .yaklasan .tatil .ad::after { content: " · tatil"; font-weight: 500; color: var(--text-2); }
+    /* Süren başvuru: vurgu renginde kart */
+    .yaklasan .suruyor { background: var(--accent); color: var(--on-accent); }
+    .yaklasan .suruyor .tarih { color: var(--on-accent); }
+    .yaklasan .suruyor .kalan { border-color: var(--on-accent); color: var(--on-accent); font-weight: 700; }
+
+    /* ÖSYM listesi tek panelde, satırlar çizgiyle ayrılır, sağda sınav tarihi düz metin */
+    #osym-liste { gap: 0; background: var(--surface); }
+    #osym-liste li a {
       gap: 2px 12px;
       align-items: baseline;
       padding: clamp(7px, 1vh, 10px) clamp(14px, 1.6vw, 20px);
       border-top: 1px solid var(--surface-2);
-      font-variant-numeric: tabular-nums;
+      background: transparent;
     }
-    .yaklasan li:first-child { border-top: 0; }
-    .yaklasan .ad { font-weight: 700; font-size: 0.92rem; line-height: 1.3; }
-    .yaklasan .tarih { grid-column: 1; color: var(--text-2); font-size: 0.82rem; }
-    .yaklasan .kalan { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--text-2); font-size: 0.82rem; white-space: nowrap; }
-    .yaklasan .tatil .ad::after { content: " · tatil"; font-weight: 500; color: var(--text-2); }
-    /* Süren (ve bugünkü) etkinlik: vurgu renginde zemin, solda şerit */
-    .yaklasan .suruyor { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); box-shadow: inset 4px 0 0 var(--accent); border-top-color: transparent; }
-    .yaklasan .suruyor + li { border-top-color: transparent; }
-    .yaklasan .suruyor .kalan { color: var(--accent-ink); font-weight: 800; }
+    #osym-liste li:first-child a { border-top: 0; }
+    #osym-liste .ad { font-size: 0.92rem; line-height: 1.3; }
+    #osym-liste .tarih { grid-column: 1; grid-row: 2; font-size: 0.82rem; }
+    #osym-liste .gun { grid-column: 2; grid-row: 1 / span 2; align-self: center; padding: 0; border: 0; }
+    @media (hover: hover) and (pointer: fine) {
+      #osym-liste li a:hover { background: var(--surface-2); }
+    }
     /* Telefonda 3 etkinlik */
     @media (max-width: 760px) {
       .yaklasan li:nth-child(n+4) { display: none; }
