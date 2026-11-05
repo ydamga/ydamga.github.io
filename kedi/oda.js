@@ -14,27 +14,29 @@
     energy: '<path d="M13 3 5 14h6l-1 7 8-11h-6z"/>',
     cleanliness: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>'
   };
-  var FIIL = { feed: 'mama verdi', play: 'oyun oynadı', rest: 'dinlendirdi', clean: 'temizledi' };
-  var EDILGEN = { feed: 'Mama verildi', play: 'Oyun oynandı', rest: 'Dinlendirildi', clean: 'Temizlendi' };
+  var FIIL = { feed: 'mama verdi', play: 'oyun oynadı', rest: 'dinlendirdi', wake: 'uyandırdı', clean: 'temizledi' };
+  var EDILGEN = { feed: 'Mama verildi', play: 'Oyun oynandı', rest: 'Dinlendirildi', wake: 'Uyandırıldı', clean: 'Temizlendi' };
   var RED_KISA = {
     already_full: 'tok olduğu için yemedi', sleeping: 'uyuyordu', too_tired: 'oynayamayacak kadar yorgundu',
     already_happy: 'zaten çok mutluydu', already_resting: 'zaten uyuyordu', not_tired: 'uykusu yoktu',
-    already_clean: 'zaten temizdi'
+    already_clean: 'zaten temizdi', not_sleeping: 'zaten uyanıktı'
   };
   var BASARI = {
     feed: AD + ' mamasını afiyetle yedi.',
     play: AD + ' topun peşinden koştu! Mutluluğu arttı, biraz yoruldu.',
     rest: AD + ' minderine kıvrıldı.',
+    wake: AD + ' gerindi, kocaman esnedi ve uyandı.',
     clean: AD + ' tarandı, tüyleri parlıyor.'
   };
   var RED = {
     already_full: AD + ' tok; mama kabını kokladı ama yemedi.',
-    sleeping: AD + ' uyuyor; uyanınca oynarsınız.',
+    sleeping: AD + ' uyuyor; oynamak için önce uyandırın.',
     too_tired: AD + ' oynayamayacak kadar yorgun. Önce biraz dinlensin.',
     already_happy: AD + ' zaten çok mutlu; şimdilik oyun istemiyor.',
     already_resting: AD + ' zaten uyuyor.',
     not_tired: AD + ' dinç; şu an uykusu yok.',
-    already_clean: AD + ' zaten tertemiz.'
+    already_clean: AD + ' zaten tertemiz.',
+    not_sleeping: AD + ' zaten uyanık.'
   };
   var HATA = {
     no_name: 'Önce aşağıdan adını seç; bakım bu adla kaydedilir.',
@@ -95,8 +97,22 @@
     $('ruh-mesaj').textContent = r.mesaj;
     $('oda').setAttribute('aria-label', 'Kedi odası: ' + AD + ' ' + r.ad.toLocaleLowerCase('tr') + '. ' + r.mesaj);
     kedi.guncelle(K.isaretler(c));
+    uykuDugmesi(c.resting);
     sonBakan();
     ozlemGoster();
+  }
+
+  // Kedi uyurken "Dinlendir" düğmesi "Uyandır" olur
+  var uykuBtn = document.querySelector('.eylem[data-eylem="rest"]');
+  var UYKU_DUGME = {
+    rest: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Dinlendir',
+    wake: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Uyandır'
+  };
+  function uykuDugmesi(uyuyor) {
+    var eylem = uyuyor ? 'wake' : 'rest';
+    if (uykuBtn.dataset.eylem === eylem) return;
+    uykuBtn.dataset.eylem = eylem;
+    uykuBtn.innerHTML = UYKU_DUGME[eylem];
   }
 
   // En son kimin bakım yaptığı (canlı modda sunucunun yazdığı ad)
@@ -361,7 +377,8 @@
     var o = D.ozlenenler().filter(function (m) { return m.id === D.ben.id; })[0];
     if (!o) return;
     mesaj(AD + ' seni özlemiş! ' + (o.hic ? 'Daha hiç bakım yapmadın; bir mama vermeye ne dersin?' : o.gun + ' gündür uğramıyordun.'), 'ozlem');
-    kedi.tepki('play');
+    // Uyuyan kedi karşılamak için uyanmaz
+    if (!D.anlik().resting) kedi.tepki('play');
   }
 
   if (D.mod === 'demo') {

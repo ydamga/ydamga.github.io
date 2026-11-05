@@ -9,12 +9,12 @@ window.KEDI_AYAR = {
   ozlemGun: 3,
 
   kurallar: {
-    hunger_rise_per_hour: 4,        // açlık saatte artar
-    happiness_drop_per_hour: 2,     // mutluluk saatte azalır
-    cleanliness_drop_per_hour: 1,   // temizlik saatte azalır
-    energy_drop_per_hour: 2,        // uyanıkken enerji saatte azalır (istenen kurallarda yoktu; enerjinin zamanla düşmesi için eklendi)
-    energy_rest_per_hour: 10,       // dinlenirken enerji saatte artar
-    rest_max_hours: 3,              // bir dinlenme en çok bu kadar sürer; enerji 100 olunca erken uyanır
+    hunger_rise_per_hour: 8,        // açlık saatte artar (beslemek ~3 saatte bir gerekir)
+    happiness_drop_per_hour: 5,     // mutluluk saatte azalır
+    cleanliness_drop_per_hour: 3,   // temizlik saatte azalır
+    energy_drop_per_hour: 4,        // uyanıkken enerji saatte azalır (istenen kurallarda yoktu; enerjinin zamanla düşmesi için eklendi)
+    energy_rest_per_hour: 15,       // dinlenirken enerji saatte artar
+    rest_max_hours: 3,              // bir dinlenme en çok bu kadar sürer; enerji 100 olunca erken uyanır (ya da uyandırılır)
 
     feed_amount: 25,                // besleme açlığı azaltır
     play_amount: 15,                // oyun mutluluğu artırır

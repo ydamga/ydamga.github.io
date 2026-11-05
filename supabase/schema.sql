@@ -5,6 +5,7 @@
 -- Sonra supabase/test-rls.sql ile sınayın.
 --
 -- Model
+--  * Eylemler: feed (besle), play (oynat), rest (dinlendir), wake (uyandır), clean (temizle).
 --  * Giriş/kayıt yok. Ekip listesi public.team_members'ta isimlerden oluşur; sayfayı açan kişi adını seçer
 --    ya da yeni ad ekler (public.add_team_member). Seçilen ad tarayıcıda hatırlanır.
 --  * Her bakım bir isimle kaydedilir; geçmişi herkes görür. Kedi, bir süredir uğramayanları "özler"
@@ -33,11 +34,11 @@ revoke all on schema private from public;
 -- ---------------------------------------------------------------------------
 create table public.game_rules (
   id smallint primary key default 1 check (id = 1),
-  hunger_rise_per_hour      numeric not null default 4  check (hunger_rise_per_hour between 0 and 100),
-  happiness_drop_per_hour   numeric not null default 2  check (happiness_drop_per_hour between 0 and 100),
-  cleanliness_drop_per_hour numeric not null default 1  check (cleanliness_drop_per_hour between 0 and 100),
-  energy_drop_per_hour      numeric not null default 2  check (energy_drop_per_hour between 0 and 100),
-  energy_rest_per_hour      numeric not null default 10 check (energy_rest_per_hour between 0 and 100),
+  hunger_rise_per_hour      numeric not null default 8  check (hunger_rise_per_hour between 0 and 100),
+  happiness_drop_per_hour   numeric not null default 5  check (happiness_drop_per_hour between 0 and 100),
+  cleanliness_drop_per_hour numeric not null default 3  check (cleanliness_drop_per_hour between 0 and 100),
+  energy_drop_per_hour      numeric not null default 4  check (energy_drop_per_hour between 0 and 100),
+  energy_rest_per_hour      numeric not null default 15 check (energy_rest_per_hour between 0 and 100),
   rest_max_hours            numeric not null default 3  check (rest_max_hours > 0 and rest_max_hours <= 24),
   feed_amount               numeric not null default 25 check (feed_amount between 0 and 100),
   play_amount               numeric not null default 15 check (play_amount between 0 and 100),
@@ -91,9 +92,9 @@ create table public.pet_actions (
   pet_id smallint not null default 1 references public.pets (id),
   member_id bigint references public.team_members (id) on delete set null,
   actor_name text not null check (char_length(actor_name) between 1 and 60),
-  action text not null check (action in ('feed', 'play', 'rest', 'clean')),
+  action text not null check (action in ('feed', 'play', 'rest', 'wake', 'clean')),
   result text not null check (result in ('applied', 'declined')),
-  reason text check (reason in ('already_full', 'sleeping', 'too_tired', 'already_happy', 'already_resting', 'not_tired', 'already_clean')),
+  reason text check (reason in ('already_full', 'sleeping', 'too_tired', 'already_happy', 'already_resting', 'not_tired', 'not_sleeping', 'already_clean')),
   created_at timestamptz not null default now(),
   check ((result = 'applied') = (reason is null))
 );
@@ -200,7 +201,7 @@ declare
   v_until timestamptz;
   v_hours numeric;
 begin
-  if p_action is null or p_action not in ('feed', 'play', 'rest', 'clean') then
+  if p_action is null or p_action not in ('feed', 'play', 'rest', 'wake', 'clean') then
     raise exception 'invalid_action' using errcode = '22023';
   end if;
   select * into v_member from public.team_members where id = p_member_id;
@@ -257,6 +258,10 @@ begin
                       else v_rules.rest_max_hours end;
       v_until := v_now + make_interval(secs => v_hours * 3600);
     end if;
+  elsif p_action = 'wake' then
+    -- Uyandırma: o ana kadar kazanılan enerji kalır, uyku biter
+    if not c.resting then v_reason := 'not_sleeping';
+    else v_until := null; end if;
   elsif p_action = 'clean' then
     if v_clean >= v_rules.full_cleanliness then v_reason := 'already_clean';
     else v_clean := least(100, v_clean + v_rules.clean_amount); end if;
@@ -319,7 +324,7 @@ commit;
 --   delete from public.team_members where name = 'Ayşe Y.';
 --
 -- Oyun ayarlarını değiştirme (kedi/ayar.js'i de aynı değerlerle güncelleyin):
---   update public.game_rules set hunger_rise_per_hour = 3, updated_at = now() where id = 1;
+--   update public.game_rules set hunger_rise_per_hour = 6, updated_at = now() where id = 1;
 --   Not: yeni oran, son bakımdan (pets.updated_at) bu yana geçen sürenin tamamına uygulanır.
 --   Eski oranla geçen süreyi korumak için değiştirmeden hemen önce bir bakım yapın.
 --

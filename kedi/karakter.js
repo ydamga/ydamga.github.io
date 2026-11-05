@@ -206,8 +206,17 @@
           baslat();
         } else if (azalt.matches) sabit();
       },
-      // Bakım sonrası kısa tepki: 'feed' | 'play' | 'rest' | 'clean' | 'red'
+      // Bakım sonrası kısa tepki: 'feed' | 'play' | 'rest' | 'wake' | 'clean' | 'red'
       tepki: function (tur) {
+        if (tur === 'wake') {
+          // Uyanınca gerinip esner, sonra dolaşmaya devam eder
+          if (yuruyor) { yuruyor = false; konum(suankiX(), 0); }
+          balon(null);
+          if (azalt.matches) { sabit(); return; }
+          poz('esniyor');
+          bekle(1900, dinlen);
+          return;
+        }
         if (tur === 'red') {
           balon(null);
           if (azalt.matches) return;

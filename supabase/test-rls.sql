@@ -82,6 +82,11 @@ begin
   r := public.perform_pet_action('play', (m->>'id')::bigint);
   assert r->>'result' = 'declined' and r->>'reason' = 'sleeping', 'HATA: uyuyan kedi oynatıldı';
   raise notice 'OK bakım: oyna/temizle/dinlendir uygulandı, uykudayken oyun reddedildi';
+  r := public.perform_pet_action('wake', (m->>'id')::bigint);
+  assert r->>'result' = 'applied' and (r->'pet'->>'resting_until') is null, 'HATA: uyandırma uygulanmadı: ' || r::text;
+  r := public.perform_pet_action('wake', (m->>'id')::bigint);
+  assert r->>'result' = 'declined' and r->>'reason' = 'not_sleeping', 'HATA: uyanık kedi uyandırıldı';
+  raise notice 'OK bakım: uyuyan kedi uyandırıldı, uyanıkken uyandırma reddedildi';
 
   begin
     perform public.perform_pet_action('dance', (m->>'id')::bigint);
@@ -143,7 +148,7 @@ exception when raise_exception then
 end $$;
 
 reset role;
-update public.game_rules set cooldown_seconds = 0, max_actions_per_hour = 5 where id = 1;
+update public.game_rules set cooldown_seconds = 0, max_actions_per_hour = 7 where id = 1;
 set local role anon;
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
 do $$
@@ -156,7 +161,7 @@ exception when raise_exception then
 end $$;
 
 reset role;
-update public.game_rules set max_actions_per_hour = 1000, max_actions_per_minute_total = 5 where id = 1;
+update public.game_rules set max_actions_per_hour = 1000, max_actions_per_minute_total = 7 where id = 1;
 set local role anon;
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
 do $$

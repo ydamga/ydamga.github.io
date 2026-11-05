@@ -1,4 +1,5 @@
-// kedi/kurallar.js birim testleri. Çalıştırma: node --test test/
+// kedi/kurallar.js birim testleri. Çalıştırma: node --test test/kedi-kurallar.test.js
+// Oranlar kedi/ayar.js'ten okunur; testler oran değişince de geçerli kalır.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const K = require('../kedi/kurallar.js');
@@ -15,10 +16,11 @@ const yakin = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, a + ' ≈ ' + b);
 
 test('geçen süreye göre ihtiyaçlar değişir', () => {
   const c = K.hesapla(kedi(), R, T0 + 5 * SAAT);
-  yakin(c.hunger, 30 + 5 * 4);
-  yakin(c.happiness, 70 - 5 * 2);
-  yakin(c.cleanliness, 80 - 5 * 1);
-  yakin(c.energy, 70 - 5 * 2);
+  const s = (x) => Math.min(100, Math.max(0, x));
+  yakin(c.hunger, s(30 + 5 * R.hunger_rise_per_hour));
+  yakin(c.happiness, s(70 - 5 * R.happiness_drop_per_hour));
+  yakin(c.cleanliness, s(80 - 5 * R.cleanliness_drop_per_hour));
+  yakin(c.energy, s(70 - 5 * R.energy_drop_per_hour));
   assert.equal(c.resting, false);
 });
 
@@ -63,23 +65,39 @@ test('temizleme temizliği 25 artırır; temizken reddedilir', () => {
 });
 
 test('dinlenme süre boyunca enerji kazandırır ve kendiliğinden biter', () => {
-  const s = K.uygula(kedi({ energy: 40 }), 'rest', R, T0);
+  const k = Object.assign({}, R, { energy_rest_per_hour: 10, energy_drop_per_hour: 2, rest_max_hours: 3 });
+  const s = K.uygula(kedi({ energy: 40 }), 'rest', k, T0);
   assert.equal(s.result, 'applied');
   // 60 puan / saatte 10 = 6 saat gerekir; en çok 3 saat sürer
   assert.equal(Date.parse(s.pet.resting_until), T0 + 3 * SAAT);
-  const iki = K.hesapla(s.pet, R, T0 + 2 * SAAT);
+  const iki = K.hesapla(s.pet, k, T0 + 2 * SAAT);
   assert.equal(iki.resting, true);
   yakin(iki.energy, 60);
   // 3 saat dinlenme (+30), sonra 1 saat uyanık (−2)
-  const dort = K.hesapla(s.pet, R, T0 + 4 * SAAT);
+  const dort = K.hesapla(s.pet, k, T0 + 4 * SAAT);
   assert.equal(dort.resting, false);
   yakin(dort.energy, 68);
 });
 
 test('enerji dolunca dinlenme erken biter', () => {
   const s = K.uygula(kedi({ energy: 85 }), 'rest', R, T0);
-  assert.equal(Date.parse(s.pet.resting_until), T0 + 1.5 * SAAT);
-  yakin(K.hesapla(s.pet, R, T0 + 1.5 * SAAT).energy, 100);
+  const sure = (100 - 85) / R.energy_rest_per_hour;
+  assert.equal(Date.parse(s.pet.resting_until), T0 + sure * SAAT);
+  yakin(K.hesapla(s.pet, R, T0 + sure * SAAT).energy, 100);
+});
+
+test('uyuyan kedi uyandırılabilir; kazandığı enerji kalır, uyanıkken uyandırma reddedilir', () => {
+  const s = K.uygula(kedi({ energy: 30 }), 'rest', R, T0);
+  const u = K.uygula(s.pet, 'wake', R, T0 + SAAT);
+  assert.equal(u.result, 'applied');
+  assert.equal(u.pet.resting_until, null);
+  const c = K.hesapla(u.pet, R, T0 + SAAT);
+  assert.equal(c.resting, false);
+  yakin(c.energy, 30 + R.energy_rest_per_hour);
+  // Uyandıktan sonra oyun oynanabilir
+  assert.equal(K.uygula(u.pet, 'play', R, T0 + SAAT).result, 'applied');
+  assert.equal(K.uygula(u.pet, 'wake', R, T0 + SAAT).reason, 'not_sleeping');
+  assert.equal(K.uygula(kedi(), 'wake', R, T0).reason, 'not_sleeping');
 });
 
 test('dinlenirken başka bakım dinlenmeyi bozmaz, uyurken oyun reddedilir', () => {
@@ -87,7 +105,8 @@ test('dinlenirken başka bakım dinlenmeyi bozmaz, uyurken oyun reddedilir', () 
   const b = K.uygula(s.pet, 'feed', R, T0 + SAAT);
   assert.equal(b.result, 'applied');
   assert.equal(b.pet.resting_until, s.pet.resting_until);
-  yakin(K.hesapla(b.pet, R, T0 + 3 * SAAT).energy, 70);
+  const uyku = Date.parse(s.pet.resting_until) - T0;
+  yakin(K.hesapla(b.pet, R, T0 + uyku).energy, Math.min(100, 40 + (uyku / SAAT) * R.energy_rest_per_hour));
   assert.equal(K.uygula(b.pet, 'play', R, T0 + 2 * SAAT).reason, 'sleeping');
   assert.equal(K.uygula(b.pet, 'rest', R, T0 + 2 * SAAT).reason, 'already_resting');
   assert.equal(K.uygula(kedi({ energy: 95 }), 'rest', R, T0).reason, 'not_tired');
@@ -95,7 +114,7 @@ test('dinlenirken başka bakım dinlenmeyi bozmaz, uyurken oyun reddedilir', () 
 
 test('reddedilen eylem durumu değiştirmez', () => {
   const p = kedi({ hunger: 5 });
-  assert.equal(K.uygula(p, 'feed', R, T0 + SAAT).pet, p);
+  assert.equal(K.uygula(p, 'feed', R, T0).pet, p);
 });
 
 test('bilinmeyen eylem hata verir', () => {

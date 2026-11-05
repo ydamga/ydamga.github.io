@@ -11,7 +11,7 @@
   else kok.KediKurallar = kur();
 })(this, function () {
   var SAAT = 3600 * 1000;
-  var EYLEMLER = ['feed', 'play', 'rest', 'clean'];
+  var EYLEMLER = ['feed', 'play', 'rest', 'wake', 'clean'];
 
   function sinirla(x) { return Math.min(100, Math.max(0, x)); }
   function zaman(t) { return t == null ? null : typeof t === 'number' ? t : Date.parse(t); }
@@ -59,6 +59,10 @@
         var gereken = k.energy_rest_per_hour > 0 ? (100 - c.energy) / k.energy_rest_per_hour : k.rest_max_hours;
         c.resting_until = simdi + Math.min(k.rest_max_hours, gereken) * SAAT;
       }
+    } else if (eylem === 'wake') {
+      // Uyandırma: o ana kadar kazanılan enerji kalır, uyku biter
+      if (!c.resting) neden = 'not_sleeping';
+      else c.resting_until = null;
     } else if (eylem === 'clean') {
       if (c.cleanliness >= k.full_cleanliness) neden = 'already_clean';
       else c.cleanliness = sinirla(c.cleanliness + k.clean_amount);

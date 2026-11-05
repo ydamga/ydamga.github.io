@@ -31,6 +31,7 @@ Anasayfanın alt bilgisinde, yalnızca kendisine ayrılmış bir şeritte dolaş
 | `kedi/ana.js`, `kedi/oda.js` | Anasayfa şeridi ve Kedi Odası arayüzü |
 | `supabase/schema.sql` | Tablolar, kısıtlar, indeksler, fonksiyonlar, RLS, Realtime |
 | `supabase/test-rls.sql` | Yetki ve fonksiyon sınaması (geri alınan tek işlem) |
+| `supabase/guncelleme-uyandir.sql` | Kurulu isimli şemaya daha sık bakım ve uyandırmayı ekler |
 | `supabase/eski-semayi-kaldir.sql` | Eski e-postayla girişli şemayı kaldırır (yalnızca o kuruluysa) |
 | `test/kedi-kurallar.test.js` | Oyun kuralları birim testleri |
 
@@ -43,10 +44,13 @@ Bütün yollar görelidir (`kedi/...`, `kedi-odasi.html`); site bir depo alt diz
   periyodik istek gitmez; sayfa yalnızca açılışta, sekmeye dönüldüğünde ve bağlantı geri geldiğinde durumu okur,
   değişiklikleri Realtime ile alır.
 - **Dinlenme süreli bir durumdur.** "Dinlendir" kediyi en çok `rest_max_hours` saat uyutur; bu sürede enerji
-  saatte `energy_rest_per_hour` artar, enerji 100 olunca kedi erken uyanır. Uyurken oyun reddedilir; besleme ve
+  saatte `energy_rest_per_hour` artar, enerji 100 olunca kedi erken uyanır. Kedi uyurken "Dinlendir" düğmesi
+  **Uyandır** olur: uyandırılan kedi o ana kadar kazandığı enerjiyi korur. Uyurken oyun reddedilir; besleme ve
   temizleme uykuyu bozmaz.
+- **Bakım sıklığı:** varsayılan oranlarla (saatte açlık +8, mutluluk −5, temizlik −3, enerji −4) kedi yaklaşık
+  3 saatte bir beslenmek ve oynanmak, günde birkaç kez taranmak ister.
 - **İhtiyaç zaten karşılanmışsa** eylem reddedilir ve kedi buna uygun tepki verir (tokken yemez, temizken
-  temizlenmez, uykusu yokken uyumaz, yorgunken oynamaz). Reddedilen deneme de geçmişe yazılır.
+  temizlenmez, uykusu yokken uyumaz, yorgunken oynamaz, uyanıkken uyandırılmaz). Reddedilen deneme de geçmişe yazılır.
 - **Ceza yok.** Değerler 0–100 arasında kalır; ihmal edilen kedi yalnızca aç, üzgün, yorgun ve tozlu görünür,
   ilk bakımda toparlanır.
 - **Görünür davranış:** acıkınca mama balonu, mutsuzken düşük kulak ve üzgün yüz, daha az ve yavaş yürüme,
@@ -130,7 +134,7 @@ Canlı modda kurallar `public.game_rules` tablosundan gelir ve sunucuda uygulan�
 kullanır. İkisini aynı tutun:
 
 ```sql
-update public.game_rules set hunger_rise_per_hour = 3, updated_at = now() where id = 1;
+update public.game_rules set hunger_rise_per_hour = 6, updated_at = now() where id = 1;
 ```
 
 Yeni oran son bakımdan bu yana geçen sürenin tamamına uygulanır; eski oranla geçen süreyi korumak için
