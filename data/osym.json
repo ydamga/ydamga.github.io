@@ -1,24 +1,6 @@
 {
-  "guncellendi": "2026-11-07T15:28+03:00",
+  "guncellendi": "2026-11-08T15:46+03:00",
   "sinavlar": [
-    {
-      "kod": "EUS",
-      "ad": "2026-EUS",
-      "link": "https://www.osym.gov.tr/SinavGrubu/Index/11",
-      "basvuru_baslangic": "2026-09-23T10:30:00+03:00",
-      "basvuru_bitis": "2026-10-01T23:59:00+03:00",
-      "gec_basvuru_bitis": "2026-10-08T23:59:00+03:00",
-      "sinav_tarihi": "2026-11-07"
-    },
-    {
-      "kod": "STS Eczacılık",
-      "ad": "2026-STS Eczacılık",
-      "link": "https://www.osym.gov.tr/SinavGrubu/Index/22",
-      "basvuru_baslangic": "2026-09-23T10:30:00+03:00",
-      "basvuru_bitis": "2026-10-01T23:59:00+03:00",
-      "gec_basvuru_bitis": "2026-10-08T23:59:00+03:00",
-      "sinav_tarihi": "2026-11-07"
-    },
     {
       "kod": "e-TEP",
       "ad": "e-TEP 2026/4 İngilizce",
