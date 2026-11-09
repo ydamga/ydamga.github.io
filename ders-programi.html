@@ -61,7 +61,8 @@ body.g-done #gBar{display:flex;position:fixed;top:0;left:0;right:0;height:50px;z
 #gBar .sp{flex:1}
 #gBar .act{border:1px solid var(--line);color:var(--ink)}
 #gBar #gMsg{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-#gBar #gMsg.err{color:var(--warn)}
+#gBar #gMsg.err{color:var(--warn);white-space:normal;line-height:1.25;max-height:34px}
+#gBar #gMsg a{color:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px}
 #gBar button{transition:transform 160ms cubic-bezier(.23,1,.32,1),background-color 150ms ease,color 150ms ease}
 #gBar button:active:not(:disabled){transform:scale(.97)}
 #gBar button:disabled{opacity:.5;cursor:wait}
@@ -1246,6 +1247,12 @@ $("build").addEventListener("click",()=>{
   function card(html){box.innerHTML='<div class="g-card"><a class="home" href="index.html">← ÖDHM araçları</a><h1>'+esc(AYAR.baslikTR)+'</h1>'+html+'</div>';box.hidden=false}
   // Güncelleme sırasında mevcut program görünür kalır; durum üst çubukta yazılır
   function msg(t,err){var m=$("gMsg");m.textContent=t||"";m.className=err?"err":"";m.title=t||""}
+  // SharePoint erişim sorunu: üst çubukta tıklanabilir bağlantı + sayfayı yenileme uyarısı
+  function accessMsg(hint){var m=$("gMsg"),a=document.createElement("a");
+    a.href=AYAR.sharepointSite;a.target="_blank";a.rel="noopener";a.textContent="SharePoint'i açıp giriş yapın";
+    m.textContent="";m.className="err";
+    m.append(hint+" ",a,", ardından bu sayfayı yenileyin. Kayıtlı program korunuyor.");
+    m.title=m.textContent}
   function wait(t){if(quiet)msg(t);else card('<p class="g-msg"><span class="g-spin"></span>'+esc(t)+'</p>')}
   function when(t){return new Date(t).toLocaleString("tr-TR",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"})}
 
@@ -1315,12 +1322,14 @@ $("build").addEventListener("click",()=>{
 
   function fail(e){console.error(e);
     var s=e.status,m,extra="";
-    if(s===401||s===403){m=sessionHint(e);
-      extra='<p class="g-msg">Aynı tarayıcıda <a href="'+esc(AYAR.sharepointSite)+'" target="_blank" rel="noopener">SharePoint sitesini açıp</a> üniversite hesabınızla giriş yapın, sonra “Tekrar dene”ye basın.</p>'}
+    var access=s===401||s===403;
+    if(access){m=sessionHint(e);
+      extra='<ol class="g-steps"><li><a href="'+esc(AYAR.sharepointSite)+'" target="_blank" rel="noopener"><b>Buraya tıklayarak SharePoint sitesini açın</b></a> ve aynı tarayıcıda üniversite hesabınızla giriş yapın.</li>'+
+        '<li>Giriş yaptıktan sonra bu sekmeye dönüp <b>sayfayı yenileyin</b> (aşağıdaki düğme veya F5).</li></ol>'}
     else m=e.message.split("\n")[0];
     var det=e.detail||e.message.split("\n").slice(1).join("\n");
     card('<p class="g-err">'+esc(m)+'</p>'+extra+(det?'<pre class="g-det">'+esc(det)+'</pre>':"")+
-      '<div class="g-btns"><button class="btn g-b" id="gRe">Tekrar dene</button><button class="btn g-b ghost" id="gMan">Excel\'leri elle yükle</button></div>');
+      '<div class="g-btns"><button class="btn g-b" id="gRe">'+(access?"Sayfayı yenile":"Tekrar dene")+'</button><button class="btn g-b ghost" id="gMan">Excel\'leri elle yükle</button></div>');
     $("gRe").onclick=function(){location.reload()};$("gMan").onclick=manual}
 
   async function run(){
@@ -1358,7 +1367,8 @@ $("build").addEventListener("click",()=>{
       await run();
     }catch(e){
       console.error(e);
-      if(keep)msg((sessionHint(e)?sessionHint(e)+" SharePoint'te giriş yapıp tekrar deneyin. ":"")+e.message.split("\n")[0]+" — kayıtlı program korunuyor.",true);
+      if(keep&&sessionHint(e))accessMsg(sessionHint(e));
+      else if(keep)msg(e.message.split("\n")[0]+" — kayıtlı program korunuyor.",true);
       else fail(e);
     }finally{busy=false;quiet=false;btn.disabled=false}
   }
