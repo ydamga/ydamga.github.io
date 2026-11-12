@@ -338,7 +338,7 @@ body.mo{overflow:hidden}
 var DATA = __DATA__;
 var TX={
 tr:{days:["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"],tabOgr:"Öğrenci",tabHoca:"Öğretim elemanı",tabSnv:"Sınavlar",sv:{vOgr:"Öğrenci",vHoca:"Akademisyen",vBol:"Bölüm",vGun:"Günlük",allP:"Tüm bölümler",nEx:"Sınav sayısı",peak:"En yoğun saat",total:"Toplam",
-gunNote:function(d,n){return d+" günde "+n+" sınav. Aynı dersin aynı saatteki sınavı bir kez sayılır. Günün sınavlarını görmek için tarihe basın."},noDate:function(n){return"Tarihi belirtilmemiş "+n+" sınav sayılmadı."},phOgr:"Öğrenci numarası veya adı",phHoca:"Ad veya soyad yazın",go:"Göster",selProg:"Bölüm seçin",allY:"Tüm sınıflar",allT:"Tüm sınavlar",date:"Tarih",time:"Saat",course:"Ders",sec:"Şube",year:"Sınıf",type:"Sınav",inst:"Öğretim elemanı",room:"Sınav yeri",camp:"Yerleşke",none:"Bu seçim için sınav bulunamadı.",empty:"Bir numara ya da ad yazın.",nf:function(t){return"“"+t+"” ile eşleşen kayıt bulunamadı."},multi:function(n){return n+" kişi eşleşti. Listeden seçin."},cf:"Çakışma",miss:function(n){return n+" dersin sınav bilgisi bulunamadı"},cnt:function(n){return n+" sınav"}},subNum:"Numarayla",tabDer:"Derslikler",dGo:"Göster",dFreeT:"Boş derslikler",dNow:"Şimdi",backDer:"← Derslik programına dön",
+gunNote:function(d,n){return d+" günde "+n+" sınav. Aynı dersin aynı saatteki sınavı bir kez sayılır. Günün sınavlarını görmek için tarihe basın."},noDate:function(n){return"Tarihi belirtilmemiş "+n+" sınav sayılmadı."},phOgr:"Öğrenci numarası veya adı",phHoca:"Ad veya soyad yazın",go:"Göster",selProg:"Bölüm seçin",allY:"Tüm sınıflar",allT:"Tüm sınavlar",date:"Tarih",time:"Saat",course:"Ders",sec:"Şube",year:"Sınıf",type:"Sınav",inst:"Öğretim elemanı",room:"Sınav yeri",camp:"Yerleşke",nOgr:"Öğrenci",ogrNote:"Öğrenci sayısı, sınavı olan derslerin şubelerine kayıtlı öğrencilerin toplamıdır; aynı gün iki sınava giren öğrenci iki kez sayılır.",none:"Bu seçim için sınav bulunamadı.",empty:"Bir numara ya da ad yazın.",nf:function(t){return"“"+t+"” ile eşleşen kayıt bulunamadı."},multi:function(n){return n+" kişi eşleşti. Listeden seçin."},cf:"Çakışma",miss:function(n){return n+" dersin sınav bilgisi bulunamadı"},cnt:function(n){return n+" sınav"}},subNum:"Numarayla",tabDer:"Derslikler",dGo:"Göster",dFreeT:"Boş derslikler",dNow:"Şimdi",backDer:"← Derslik programına dön",
  der:{ph:"Derslik adı yazın",day:"Gün",time:"Saat",room:"Derslik",cap:"Kapasite",next:"Sonraki ders",noMore:"Bu gün başka ders yok",open:"Derslik programını aç",back:"← Boş derslik listesine dön",
    none:"Bu gün ve saatte boş derslik yok.",isFree:"Boş",capV:function(n){return"Kapasite: "+n},nextAt:function(t){return"sonraki ders "+t},
    busy:function(c,t){return"Dolu ("+c+", bitiş "+t+")"},sub:function(w,n,N){return w+" itibarıyla "+N+" derslikten "+n+" tanesi boş"}},
@@ -362,7 +362,7 @@ subSin:"Bölüm ve sınıfla",tabDvm:"Devam raporu",backDvm:"← Devam raporuna 
    emptyNum:"Öğrenci numarası ya da adı yazın.",nfHoca:function(t){return"“"+t+"” ile eşleşen öğretim elemanı bulunamadı."},
    nfNum:function(t){return"“"+t+"” numarası ya da adıyla eşleşen öğrenci bulunamadı."},multi:function(n){return n+" kişi eşleşti. Listeden seçin."},conflict:"Dikkat: programda çakışan dersler var (kırmızı çerçeveli bloklar)."}},
 en:{days:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],tabOgr:"Student",tabHoca:"Instructor",tabSnv:"Exams",sv:{vOgr:"Student",vHoca:"Instructor",vBol:"Department",vGun:"Daily",allP:"All departments",nEx:"Exams",peak:"Busiest time",total:"Total",
-gunNote:function(d,n){return n+" exam"+(n===1?"":"s")+" on "+d+" day"+(d===1?"":"s")+". A course's exam at the same time counts once. Select a date to see its exams."},noDate:function(n){return n+" exam"+(n===1?"":"s")+" without a date not counted."},phOgr:"Student number or name",phHoca:"Type a first or last name",go:"Show",selProg:"Select department",allY:"All years",allT:"All exams",date:"Date",time:"Time",course:"Course",sec:"Section",year:"Year",type:"Exam",inst:"Instructor",room:"Location",camp:"Campus",none:"No exams found for this selection.",empty:"Please type a number or name.",nf:function(t){return"No match for “"+t+"”."},multi:function(n){return n+" people match. Pick one from the list."},cf:"Clash",miss:function(n){return"No exam information for "+n+(n===1?" course":" courses")},cnt:function(n){return n+(n===1?" exam":" exams")}},subNum:"By student number",tabDer:"Classrooms",dGo:"Show",dFreeT:"Free classrooms",dNow:"Now",backDer:"← Back to classroom schedule",
+gunNote:function(d,n){return n+" exam"+(n===1?"":"s")+" on "+d+" day"+(d===1?"":"s")+". A course's exam at the same time counts once. Select a date to see its exams."},noDate:function(n){return n+" exam"+(n===1?"":"s")+" without a date not counted."},phOgr:"Student number or name",phHoca:"Type a first or last name",go:"Show",selProg:"Select department",allY:"All years",allT:"All exams",date:"Date",time:"Time",course:"Course",sec:"Section",year:"Year",type:"Exam",inst:"Instructor",room:"Location",camp:"Campus",nOgr:"Students",ogrNote:"Student numbers add up the students enrolled in each examined course section; a student with two exams on the same day is counted twice.",none:"No exams found for this selection.",empty:"Please type a number or name.",nf:function(t){return"No match for “"+t+"”."},multi:function(n){return n+" people match. Pick one from the list."},cf:"Clash",miss:function(n){return"No exam information for "+n+(n===1?" course":" courses")},cnt:function(n){return n+(n===1?" exam":" exams")}},subNum:"By student number",tabDer:"Classrooms",dGo:"Show",dFreeT:"Free classrooms",dNow:"Now",backDer:"← Back to classroom schedule",
  der:{ph:"Type a classroom name",day:"Day",time:"Time",room:"Classroom",cap:"Capacity",next:"Next class",noMore:"No more classes this day",open:"Open classroom schedule",back:"← Back to free classrooms",
    none:"No free classrooms at this day and time.",isFree:"Free",capV:function(n){return"Capacity: "+n},nextAt:function(t){return"next class "+t},
    busy:function(c,t){return"In use ("+c+", until "+t+")"},sub:function(w,n,N){return n+" of "+N+(N===1?" classroom":" classrooms")+" free at "+w}},
@@ -672,13 +672,13 @@ function snvDate(d){if(!d)return"—";var p=d.split("-"),wd=(new Date(Date.UTC(+
 function snvTable(rows,o){var S=L.sv;
   rows=rows.filter(function(r){return!SNV.tip||r.t===SNV.tip});
   if(!rows.length)return'<p class="msg">'+esc(S.none)+'</p>';
-  var yer=rows.some(function(r){return r.rr&&r.rr.length});
-  var h='<div class="box"><table><tr><th>'+S.date+'</th><th>'+S.time+'</th><th>'+S.course+'</th><th>'+S.sec+'</th>'+(o.y?'<th>'+S.year+'</th>':"")+'<th>'+S.type+'</th>'+(yer?'<th>'+S.camp+'</th><th>'+S.room+'</th>':"")+'<th>'+S.inst+'</th></tr>';
+  var yer=rows.some(function(r){return r.rr&&r.rr.length}),og=rows.some(function(r){return r.o});
+  var h='<div class="box"><table><tr><th>'+S.date+'</th><th>'+S.time+'</th><th>'+S.course+'</th><th>'+S.sec+'</th>'+(o.y?'<th>'+S.year+'</th>':"")+'<th>'+S.type+'</th>'+(og?'<th class="r">'+S.nOgr+'</th>':"")+(yer?'<th>'+S.camp+'</th><th>'+S.room+'</th>':"")+'<th>'+S.inst+'</th></tr>';
   rows.forEach(function(r){
     var cf=o.cf&&r.d&&r.a>=0&&rows.some(function(p){return p!==r&&p.d===r.d&&p.a===r.a});
     h+='<tr><td>'+esc(snvDate(r.d))+'</td><td>'+(r.a>=0?fmt(r.a):"—")+(cf?'<span class="cfl">'+esc(S.cf)+'</span>':"")+'</td><td><b>'+esc(r.c)+'</b> '+esc(r.n)+'</td><td>'+esc(r.s)+'</td>'+
       (o.y?'<td>'+esc(L.year(r.y))+'</td>':"")+'<td>'+esc(r.t)+(r.sn?' <span class="kmeta">'+esc(r.sn)+'</span>':"")+'</td>'+
-      (yer?'<td>'+(r.kk&&r.kk.length?esc(r.kk.join(", ")):"—")+'</td><td>'+esc((r.rr||[]).join(", ")||"—")+'</td>':"")+'<td>'+esc((r.hh||[]).join(", "))+'</td></tr>'});
+      (og?'<td class="r">'+(r.o||"—")+'</td>':"")+(yer?'<td>'+(r.kk&&r.kk.length?esc(r.kk.join(", ")):"—")+'</td><td>'+esc((r.rr||[]).join(", ")||"—")+'</td>':"")+'<td>'+esc((r.hh||[]).join(", "))+'</td></tr>'});
   return h+'</table></div>'}
 function snvShowOgr(no){var P=DATA.ogrenci.people[no],S=L.sv;if(!P)return;var rows=[],miss=[];
   P.courses.forEach(function(c){var r=EXK[c.code+"|"+c.sube];
@@ -697,25 +697,25 @@ function snvShowBol(){var S=L.sv;if(!SNV.prog){$("snvRes").innerHTML="";return}
 // Günlük sınav sayıları: aynı ders/şube/sınav/saat tek sayılır (birden çok bölüm ya da hoca olsa da)
 function snvShowGun(){var S=L.sv,R=$("snvRes");
   var rows=snvMerge(DATA.sinav.ex.filter(function(o){return(!SNV.prog||o.p===SNV.prog)&&(!SNV.tip||o.t===SNV.tip)}),false);
-  var D={},nd=0,tp=SNVT.length>1&&!SNV.tip?SNVT:[],tot={},ktot={},mx=0,N=0;
-  rows.forEach(function(r){if(!r.d){nd++;return}var e=D[r.d]||(D[r.d]={n:0,t:{},s:{},k:{}});e.n++;N++;
+  var D={},nd=0,tp=SNVT.length>1&&!SNV.tip?SNVT:[],tot={},ktot={},mx=0,N=0,NO=0;
+  rows.forEach(function(r){if(!r.d){nd++;return}var e=D[r.d]||(D[r.d]={n:0,o:0,t:{},s:{},k:{}});e.n++;N++;e.o+=r.o||0;NO+=r.o||0;
     e.t[r.t]=(e.t[r.t]||0)+1;tot[r.t]=(tot[r.t]||0)+1;if(r.a>=0)e.s[r.a]=(e.s[r.a]||0)+1;if(e.n>mx)mx=e.n;
     r.kk.forEach(function(k){e.k[k]=(e.k[k]||0)+1;ktot[k]=(ktot[k]||0)+1})});
   // Yerleşke sütunları: yalnızca sınav yerinde CY/TY geçen kayıt varsa
   var kp=KAMPS.filter(function(k){return ktot[k]});
   var ds=Object.keys(D).sort();
   if(!ds.length){R.innerHTML='<p class="msg">'+esc(S.none)+'</p>';return}
-  var h='<p class="kmeta">'+esc(S.gunNote(ds.length,N))+(nd?' '+esc(S.noDate(nd)):'')+'</p><div class="box"><table><tr><th>'+esc(S.date)+'</th><th class="r">'+esc(S.nEx)+'</th>'+
+  var h='<p class="kmeta">'+esc(S.gunNote(ds.length,N))+(nd?' '+esc(S.noDate(nd)):'')+(NO?' '+esc(S.ogrNote):'')+'</p><div class="box"><table><tr><th>'+esc(S.date)+'</th><th class="r">'+esc(S.nEx)+'</th>'+(NO?'<th class="r">'+esc(S.nOgr)+'</th>':'')+
     tp.map(function(t){return'<th class="r">'+esc(t)+'</th>'}).join("")+
     kp.map(function(k){return'<th class="r">'+esc(k)+'</th>'}).join("")+'<th class="r">'+esc(S.peak)+'</th></tr>';
   ds.forEach(function(d){var e=D[d],pk=-1,pc=0;
     Object.keys(e.s).forEach(function(a){if(e.s[a]>pc||(e.s[a]===pc&&+a<pk)){pc=e.s[a];pk=+a}});
     h+='<tr'+(d===SNV.day?' class="on"':'')+'><td><button type="button" class="hl" data-day="'+d+'" aria-pressed="'+(d===SNV.day)+'">'+esc(snvDate(d))+'</button></td>'+
-      '<td class="r"><span class="rt"><i><b style="width:'+Math.round(e.n/mx*100)+'%"></b></i><span>'+e.n+'</span></span></td>'+
+      '<td class="r"><span class="rt"><i><b style="width:'+Math.round(e.n/mx*100)+'%"></b></i><span>'+e.n+'</span></span></td>'+(NO?'<td class="r">'+(e.o?e.o.toLocaleString("tr-TR"):'<span class="kmeta">–</span>')+'</td>':'')+
       tp.map(function(t){return'<td class="r">'+(e.t[t]||'<span class="kmeta">–</span>')+'</td>'}).join("")+
       kp.map(function(k){return'<td class="r">'+(e.k[k]||'<span class="kmeta">–</span>')+'</td>'}).join("")+
       '<td class="r">'+(pk>=0?fmt(pk)+' <span class="kmeta">('+pc+')</span>':'—')+'</td></tr>'});
-  h+='<tr class="tot"><td>'+esc(S.total)+'</td><td class="r">'+N+'</td>'+tp.map(function(t){return'<td class="r">'+(tot[t]||0)+'</td>'}).join("")+kp.map(function(k){return'<td class="r">'+ktot[k]+'</td>'}).join("")+'<td></td></tr></table></div>';
+  h+='<tr class="tot"><td>'+esc(S.total)+'</td><td class="r">'+N+'</td>'+(NO?'<td class="r">'+NO.toLocaleString("tr-TR")+'</td>':'')+tp.map(function(t){return'<td class="r">'+(tot[t]||0)+'</td>'}).join("")+kp.map(function(k){return'<td class="r">'+ktot[k]+'</td>'}).join("")+'<td></td></tr></table></div>';
   if(SNV.day&&D[SNV.day]){var dr=snvSort(rows.filter(function(r){return r.d===SNV.day}));
     h+='<div class="person"><div><h2>'+esc(snvDate(SNV.day))+'</h2><p>'+esc(S.cnt(dr.length))+'</p></div></div>'+snvTable(dr,{})}
   R.innerHTML=h}
@@ -1140,15 +1140,25 @@ function sinavYerleri(){
       const e=R.get(k)||(R.set(k,{t:new Set(),u:new Set()}),R.get(k));(lab?e.u:e.t).add(lbl)})});
   return k=>{const e=R.get(k)||R.get(k.split("|")[0]+"|*");return e?[...(e.t.size?e.t:e.u)]:[]};
 }
+// Sınava girecek öğrenci sayısı (ders kodu + şube): öğrenci Excel'inden tekil öğrenci numarası,
+// yoksa öğretim elemanı Excel'indeki "dersi alan öğrenci sayısı". Şube bulunamazsa dersin tüm şubeleri toplanır.
+function sinavOgrSay(){
+  const S=new Map(),H=new Map();
+  sRows.forEach(x=>{const k=str(x.dh_kodu)+"|"+str(x.dh_sube_kodu);(S.get(k)||(S.set(k,new Set()),S.get(k))).add(str(x.ogrenci_no).toLocaleUpperCase("tr"))});
+  hAll.forEach(x=>{const k=str(x.dh_kodu)+"|"+str(x.dh_sube_kodu),n=parseInt(str(x.dh_dersi_alan_ogr_say),10);if(n>0&&!(H.get(k)>=n))H.set(k,n)});
+  const C=new Map();S.forEach((v,k)=>C.set(k,v.size));H.forEach((n,k)=>{if(!C.has(k))C.set(k,n)});
+  const T=new Map();C.forEach((n,k)=>{const c=k.split("|")[0];T.set(c,(T.get(c)||0)+n)});
+  return k=>C.has(k)?C.get(k):T.get(k.split("|")[0])||0;
+}
 function buildSinav(){
-  const seen=new Set(),ex=[],yer=sinavYerleri();
+  const seen=new Set(),ex=[],yer=sinavYerleri(),say=sinavOgrSay();
   eRows.forEach(x=>{
     const code=str(x.dh_kodu),a=toMin(x.snv_saati),un=str(x.dh_o_e_unvan),h=str(x.dh_ogretim_uyesi)||str(x.dh_ogretim_elemani);
     let b=h;if(un&&h.toLocaleLowerCase("tr").startsWith(un.toLocaleLowerCase("tr")))b=h.slice(un.length).trim();
     const o={k:code+"|"+str(x.dh_sube_kodu),c:code,n:str(x.dh_adi),s:str(x.dh_sube_kodu),f:str(x.dh_fakultesi),p:str(x.dh_programi),y:normSin(x.dh_sinifi),
       h,b,t:str(x.snv_tipi)||str(x.snv_adi),sn:str(x.snv_adi),d:parseDate(x.snv_tarihi),a:a==null?-1:a};
     const sig=[o.k,o.p,o.y,o.h,o.t,o.sn,o.d,o.a].join("|");if(seen.has(sig))return;seen.add(sig);
-    const r=yer(o.k);if(r.length)o.r=r;
+    const r=yer(o.k);if(r.length)o.r=r;const n=say(o.k);if(n)o.o=n;
     if(!o.h){delete o.h;delete o.b}if(!o.f)delete o.f;if(!o.sn||o.sn===o.t)delete o.sn;
     ex.push(o)});
   ex.sort((p,q)=>(p.d||"9").localeCompare(q.d||"9")||p.a-q.a||p.c.localeCompare(q.c,"tr"));
