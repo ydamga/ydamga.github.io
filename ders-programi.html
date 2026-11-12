@@ -121,7 +121,7 @@ body.g-done{overflow:hidden}
     <p class="sub">Öğrenci, akademisyen ve bölüm bazlı sınav takvimi</p>
     <div class="step"><b>Sınav Excel dosyası</b>
       <input type="file" id="eFile" accept=".xlsx,.xls,.csv,.xlsm"><div class="info" id="eInfo"></div><div class="info" id="eStatus"></div></div>
-    <p class="note">Akademisyen ve bölüm görünümleri yalnızca bu dosyayla çalışır. Öğrenci görünümü için öğrenci Excel'i de yüklenmelidir; öğrencinin dersleri ders kodu ve şubeyle sınavlara bağlanır.</p>
+    <p class="note">Akademisyen ve bölüm görünümleri yalnızca bu dosyayla çalışır. Öğrenci görünümü için öğrenci Excel'i de yüklenmelidir; öğrencinin dersleri ders kodu ve şubeyle sınavlara bağlanır. Sınav yeri ve yerleşke (CY Cevizlibağ, TY Tepekent) ders programındaki dersliklerden alınır; bunun için öğretim elemanı ya da öğrenci Excel'i de yüklenmelidir.</p>
   </section>
 
   <section class="card" style="margin-top:16px">
@@ -665,7 +665,7 @@ function snvFind(list,t){var w=norm(t).split(" ").filter(Boolean);return w.lengt
 function snvMerge(rows,keepY){var m={},out=[];
   rows.forEach(function(o){var key=[o.k,o.t,o.sn,o.d,o.a,keepY?o.p+"|"+o.y:""].join("|"),e=m[key];
     if(!e){e=m[key]={o:o,h:[],r:[]};out.push(e)}if(o.h&&e.h.indexOf(o.h)<0)e.h.push(o.h);
-    (o.r||"").split(/\s*[,;\/]\s*/).forEach(function(r){if(r&&e.r.indexOf(r)<0)e.r.push(r)})});
+    (o.r||[]).forEach(function(r){if(r&&e.r.indexOf(r)<0)e.r.push(r)})});
   return out.map(function(e){var o={};for(var k in e.o)o[k]=e.o[k];o.hh=e.h;o.rr=e.r;o.kk=snvKamp(e.r);return o})}
 function snvSort(a){return a.sort(function(x,y){var dx=x.d||"9",dy=y.d||"9";return dx<dy?-1:dx>dy?1:x.a-y.a||x.c.localeCompare(y.c,"tr")})}
 function snvDate(d){if(!d)return"—";var p=d.split("-"),wd=(new Date(Date.UTC(+p[0],+p[1]-1,+p[2])).getUTCDay()+6)%7;return p[2]+"."+p[1]+"."+p[0]+" "+L.days[wd]}
@@ -1127,19 +1127,29 @@ $("eFile").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;
     $("eInfo").textContent=`${new Set(eRows.map(x=>str(x.dh_kodu))).size} ders, ${eRows.length} sınav satırı okundu.`;refresh();
   },"e")});
 // Sınav yeri sütunu adı sistemden sisteme değişebilir; adında derslik/salon/yer/mekan geçen ilk sütun alınır
-function sinavYerKey(rows){
-  const keys=Object.keys(rows[0]||{}),pref=["snv_derslik","snv_derslik_ad","snv_derslik_adi","snv_yeri","sinav_yeri","snv_salon","derslik","derslik_ad","derslik_adi","salon","mekan"];
-  return pref.find(k=>keys.includes(k))||keys.find(k=>/derslik|salon|mekan|(^|_)yer(i|leri)?($|_)/.test(k)&&!/kontenjan|kapasite|sayi/.test(k))||"";
+// Sınav Excel'inde yer yok; dersin derslikleri ders programından (ders kodu + şube) alınır.
+// Kuramsal derslik varsa uygulama (laboratuvar) derslikleri sınav yeri sayılmaz.
+// Derslik adında yerleşke kısaltması yoksa derslik kodu da eklenir (CY/TY oradan okunur).
+function sinavYerleri(){
+  const R=new Map();
+  hAll.concat(sRows).forEach(x=>{
+    const ad=str(x.dp_derslik_ad),kod=str(x.dp_derslik_kod);if(!ad&&!kod)return;
+    const kamp=/(^|[^a-zçğıöşü])(cy|ty)(?![a-zçğıöşü])/i,lbl=!ad?kod:kod&&!kamp.test(ad)&&kamp.test(kod)?ad+" ("+kod+")":ad;
+    const lab=norm(x.dp_uygulama_mi)==="evet";
+    [str(x.dh_kodu)+"|"+str(x.dh_sube_kodu),str(x.dh_kodu)+"|*"].forEach(k=>{
+      const e=R.get(k)||(R.set(k,{t:new Set(),u:new Set()}),R.get(k));(lab?e.u:e.t).add(lbl)})});
+  return k=>{const e=R.get(k)||R.get(k.split("|")[0]+"|*");return e?[...(e.t.size?e.t:e.u)]:[]};
 }
 function buildSinav(){
-  const seen=new Set(),ex=[],rk=sinavYerKey(eRows);
+  const seen=new Set(),ex=[],yer=sinavYerleri();
   eRows.forEach(x=>{
     const code=str(x.dh_kodu),a=toMin(x.snv_saati),un=str(x.dh_o_e_unvan),h=str(x.dh_ogretim_uyesi)||str(x.dh_ogretim_elemani);
     let b=h;if(un&&h.toLocaleLowerCase("tr").startsWith(un.toLocaleLowerCase("tr")))b=h.slice(un.length).trim();
     const o={k:code+"|"+str(x.dh_sube_kodu),c:code,n:str(x.dh_adi),s:str(x.dh_sube_kodu),f:str(x.dh_fakultesi),p:str(x.dh_programi),y:normSin(x.dh_sinifi),
-      h,b,t:str(x.snv_tipi)||str(x.snv_adi),sn:str(x.snv_adi),d:parseDate(x.snv_tarihi),a:a==null?-1:a,r:rk?str(x[rk]):""};
-    const sig=[o.k,o.p,o.y,o.h,o.t,o.sn,o.d,o.a,o.r].join("|");if(seen.has(sig))return;seen.add(sig);
-    if(!o.h){delete o.h;delete o.b}if(!o.f)delete o.f;if(!o.sn||o.sn===o.t)delete o.sn;if(!o.r)delete o.r;
+      h,b,t:str(x.snv_tipi)||str(x.snv_adi),sn:str(x.snv_adi),d:parseDate(x.snv_tarihi),a:a==null?-1:a};
+    const sig=[o.k,o.p,o.y,o.h,o.t,o.sn,o.d,o.a].join("|");if(seen.has(sig))return;seen.add(sig);
+    const r=yer(o.k);if(r.length)o.r=r;
+    if(!o.h){delete o.h;delete o.b}if(!o.f)delete o.f;if(!o.sn||o.sn===o.t)delete o.sn;
     ex.push(o)});
   ex.sort((p,q)=>(p.d||"9").localeCompare(q.d||"9")||p.a-q.a||p.c.localeCompare(q.c,"tr"));
   return{ex};
