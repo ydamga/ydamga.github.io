@@ -1,5 +1,5 @@
 {
-  "guncellendi": "2026-11-23T20:24+03:00",
+  "guncellendi": "2026-11-28T18:21+03:00",
   "sinavlar": [
     {
       "kod": "YÖK-YKDS",
@@ -56,6 +56,24 @@
       "sinav_tarihi": "2026-12-27"
     },
     {
+      "kod": "e-YDS",
+      "ad": "e-YDS 2027/1 İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-01-04T00:00:00+03:00",
+      "basvuru_bitis": "2027-01-07T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-01-16"
+    },
+    {
+      "kod": "e-TEP",
+      "ad": "e-TEP 2027/1 İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/1",
+      "basvuru_baslangic": "2027-01-06T00:00:00+03:00",
+      "basvuru_bitis": "2027-01-13T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-01-30"
+    },
+    {
       "kod": "Kaymakamlık",
       "ad": "2027-Kaymakamlık",
       "link": "https://www.osym.gov.tr/SinavGrubu/Index/46",
@@ -63,6 +81,519 @@
       "basvuru_bitis": "2026-12-21T23:59:00+03:00",
       "gec_basvuru_bitis": "2026-12-29T23:59:00+03:00",
       "sinav_tarihi": "2027-01-31"
+    },
+    {
+      "kod": "Kaymakamlık",
+      "ad": "2027-Kaymakamlık",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/46",
+      "basvuru_baslangic": "2026-12-16T00:00:00+03:00",
+      "basvuru_bitis": "2026-12-21T23:59:00+03:00",
+      "gec_basvuru_bitis": "2026-12-29T23:59:00+03:00",
+      "sinav_tarihi": "2027-01-31"
+    },
+    {
+      "kod": "e-YDS",
+      "ad": "e-YDS 2027/2 İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-01-20T00:00:00+03:00",
+      "basvuru_bitis": "2027-01-28T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-02-06"
+    },
+    {
+      "kod": "MEB-EKYS",
+      "ad": "2027-MEB-EKYS",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/25",
+      "basvuru_baslangic": "2027-01-06T00:00:00+03:00",
+      "basvuru_bitis": "2027-01-13T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-01-20T23:59:00+03:00",
+      "sinav_tarihi": "2027-02-21"
+    },
+    {
+      "kod": "DGUY",
+      "ad": "2027-DGUY",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/36",
+      "basvuru_baslangic": "2027-01-29T00:00:00+03:00",
+      "basvuru_bitis": "2027-02-03T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-02-08T23:59:00+03:00",
+      "sinav_tarihi": "2027-02-27"
+    },
+    {
+      "kod": "YÖKDİL",
+      "ad": "2027-YÖKDİL/1",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/12",
+      "basvuru_baslangic": "2027-01-12T00:00:00+03:00",
+      "basvuru_bitis": "2027-01-20T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-01-28T10:00:00+03:00",
+      "sinav_tarihi": "2027-02-28"
+    },
+    {
+      "kod": "MSÜ",
+      "ad": "2027-MSÜ",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/27",
+      "basvuru_baslangic": "2027-01-13T00:00:00+03:00",
+      "basvuru_bitis": "2027-02-10T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-02-16T23:59:00+03:00",
+      "sinav_tarihi": "2027-03-20"
+    },
+    {
+      "kod": "TUS",
+      "ad": "2027-TUS 1. Dönem",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/6",
+      "basvuru_baslangic": "2027-02-02T00:00:00+03:00",
+      "basvuru_bitis": "2027-02-10T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-02-17T23:59:00+03:00",
+      "sinav_tarihi": "2027-03-27"
+    },
+    {
+      "kod": "STS Tıp",
+      "ad": "2027-STS Tıp Doktorluğu 1. Dönem",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/45",
+      "basvuru_baslangic": "2027-02-02T00:00:00+03:00",
+      "basvuru_bitis": "2027-02-10T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-02-17T23:59:00+03:00",
+      "sinav_tarihi": "2027-03-27"
+    },
+    {
+      "kod": "YDS",
+      "ad": "2027-YDS/1",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-02-03T00:00:00+03:00",
+      "basvuru_bitis": "2027-02-11T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-02-18T23:59:00+03:00",
+      "sinav_tarihi": "2027-03-28"
+    },
+    {
+      "kod": "e-TEP",
+      "ad": "e-TEP 2027/2 İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/1",
+      "basvuru_baslangic": "2027-03-03T00:00:00+03:00",
+      "basvuru_bitis": "2027-03-17T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-04-03"
+    },
+    {
+      "kod": "DİB-MBSTS",
+      "ad": "2027-DİB-MBSTS",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/47",
+      "basvuru_baslangic": "2027-02-09T00:00:00+03:00",
+      "basvuru_bitis": "2027-02-17T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-02-25T23:59:00+03:00",
+      "sinav_tarihi": "2027-04-04"
+    },
+    {
+      "kod": "TR-YÖS",
+      "ad": "2027-TR-YÖS/1",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/13",
+      "basvuru_baslangic": "2027-01-14T00:00:00+03:00",
+      "basvuru_bitis": "2027-02-03T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-02-11T23:59:00+03:00",
+      "sinav_tarihi": "2027-04-11"
+    },
+    {
+      "kod": "e-YDS",
+      "ad": "e-YDS 2027/3 İspanyolca/İtalyanca",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-02-04T00:00:00+03:00",
+      "basvuru_bitis": "2027-04-08T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-04-17"
+    },
+    {
+      "kod": "ALES",
+      "ad": "2027-ALES/1",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/5",
+      "basvuru_baslangic": "2027-02-24T00:00:00+03:00",
+      "basvuru_bitis": "2027-03-04T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-03-17T23:59:00+03:00",
+      "sinav_tarihi": "2027-04-18"
+    },
+    {
+      "kod": "e-YDS",
+      "ad": "e-YDS 2027/4 İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-04-07T00:00:00+03:00",
+      "basvuru_bitis": "2027-04-14T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-04-24"
+    },
+    {
+      "kod": "HMGS",
+      "ad": "2027-HMGS/1",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/19",
+      "basvuru_baslangic": "2027-03-05T00:00:00+03:00",
+      "basvuru_bitis": "2027-03-17T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-03-24T23:59:00+03:00",
+      "sinav_tarihi": "2027-04-25"
+    },
+    {
+      "kod": "e-YDS",
+      "ad": "e-YDS 2027/5 Farsça/Yunanca/Bulgarca",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-02-04T00:00:00+03:00",
+      "basvuru_bitis": "2027-04-21T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-05-02"
+    },
+    {
+      "kod": "YDUS",
+      "ad": "2027-YDUS",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/10",
+      "basvuru_baslangic": "2027-03-17T00:00:00+03:00",
+      "basvuru_bitis": "2027-03-25T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-04-01T23:59:00+03:00",
+      "sinav_tarihi": "2027-05-02"
+    },
+    {
+      "kod": "MEB-AGS",
+      "ad": "2027-MEB-AGS",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/15",
+      "basvuru_baslangic": "2027-03-19T00:00:00+03:00",
+      "basvuru_bitis": "2027-03-29T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-04-06T23:59:00+03:00",
+      "sinav_tarihi": "2027-05-08"
+    },
+    {
+      "kod": "MEB-AGS-ÖABT",
+      "ad": "2027-MEB-AGS-ÖABT",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/57",
+      "basvuru_baslangic": "2027-03-19T00:00:00+03:00",
+      "basvuru_bitis": "2027-03-29T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-04-06T23:59:00+03:00",
+      "sinav_tarihi": "2027-05-09"
+    },
+    {
+      "kod": "e-YÖKDİL",
+      "ad": "e-YÖKDİL 2027/1 İngilizce-Sosyal Bilimler",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/12",
+      "basvuru_baslangic": "2027-05-04T00:00:00+03:00",
+      "basvuru_bitis": "2027-05-12T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-05-29"
+    },
+    {
+      "kod": "e-YÖKDİL",
+      "ad": "e-YÖKDİL 2027/2 İngilizce-Sağlık Bilimleri",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/12",
+      "basvuru_baslangic": "2027-05-04T00:00:00+03:00",
+      "basvuru_bitis": "2027-05-12T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-05-30"
+    },
+    {
+      "kod": "e-YÖKDİL",
+      "ad": "e-YÖKDİL 2027/3 İngilizce-Fen Bilimleri",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/12",
+      "basvuru_baslangic": "2027-05-04T00:00:00+03:00",
+      "basvuru_bitis": "2027-05-27T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-06-05"
+    },
+    {
+      "kod": "STS Öğretmenlik",
+      "ad": "2027-STS Öğretmenlik",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/21",
+      "basvuru_baslangic": "2027-04-28T00:00:00+03:00",
+      "basvuru_bitis": "2027-05-05T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-05-12T23:59:00+03:00",
+      "sinav_tarihi": "2027-06-12"
+    },
+    {
+      "kod": "YKS",
+      "ad": "2027-YKS 1. Oturum (TYT)",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/2",
+      "basvuru_baslangic": "2027-02-04T00:00:00+03:00",
+      "basvuru_bitis": "2027-03-02T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-03-18T23:59:00+03:00",
+      "sinav_tarihi": "2027-06-19"
+    },
+    {
+      "kod": "YKS",
+      "ad": "2027-YKS 2. Oturum (AYT)",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/2",
+      "basvuru_baslangic": "2027-02-04T00:00:00+03:00",
+      "basvuru_bitis": "2027-03-02T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-03-18T23:59:00+03:00",
+      "sinav_tarihi": "2027-06-20"
+    },
+    {
+      "kod": "YKS",
+      "ad": "2027-YKS 3. Oturum (YDT)",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/2",
+      "basvuru_baslangic": "2027-02-04T00:00:00+03:00",
+      "basvuru_bitis": "2027-03-02T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-03-18T23:59:00+03:00",
+      "sinav_tarihi": "2027-06-20"
+    },
+    {
+      "kod": "e-YDS",
+      "ad": "e-YDS 2027/6 İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-06-09T00:00:00+03:00",
+      "basvuru_bitis": "2027-06-17T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-06-26"
+    },
+    {
+      "kod": "e-YDS",
+      "ad": "e-YDS 2027/7 Arapça/Rusça",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-06-15T00:00:00+03:00",
+      "basvuru_bitis": "2027-06-24T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-07-03"
+    },
+    {
+      "kod": "e-YDS",
+      "ad": "e-YDS 2027/8 Almanca/Fransızca",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-06-15T00:00:00+03:00",
+      "basvuru_bitis": "2027-06-24T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-07-04"
+    },
+    {
+      "kod": "e-YDTS",
+      "ad": "e-YDTS 2027/1 Türkçe",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/54",
+      "basvuru_baslangic": "2027-06-09T00:00:00+03:00",
+      "basvuru_bitis": "2027-06-23T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-07-10"
+    },
+    {
+      "kod": "ALES",
+      "ad": "2027-ALES/2",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/5",
+      "basvuru_baslangic": "2027-05-25T00:00:00+03:00",
+      "basvuru_bitis": "2027-06-02T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-06-09T23:59:00+03:00",
+      "sinav_tarihi": "2027-07-11"
+    },
+    {
+      "kod": "e-TEP",
+      "ad": "e-TEP 2027/3 İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/1",
+      "basvuru_baslangic": "2027-06-16T00:00:00+03:00",
+      "basvuru_bitis": "2027-06-30T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-07-17"
+    },
+    {
+      "kod": "DGS",
+      "ad": "2027-DGS",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/8",
+      "basvuru_baslangic": "2027-05-26T00:00:00+03:00",
+      "basvuru_bitis": "2027-06-03T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-06-15T23:59:00+03:00",
+      "sinav_tarihi": "2027-07-18"
+    },
+    {
+      "kod": "ÖZYES",
+      "ad": "2027-ÖZYES",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/17",
+      "basvuru_baslangic": "2027-06-01T00:00:00+03:00",
+      "basvuru_bitis": "2027-06-10T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-06-17T23:59:00+03:00",
+      "sinav_tarihi": "2027-07-21"
+    },
+    {
+      "kod": "YÖKDİL",
+      "ad": "2027-YÖKDİL/2",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/12",
+      "basvuru_baslangic": "2027-06-08T00:00:00+03:00",
+      "basvuru_bitis": "2027-06-16T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-06-23T23:59:00+03:00",
+      "sinav_tarihi": "2027-07-25"
+    },
+    {
+      "kod": "e-YDS",
+      "ad": "e-YDS 2027/9 İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-08-04T00:00:00+03:00",
+      "basvuru_bitis": "2027-08-12T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-08-21"
+    },
+    {
+      "kod": "STS Tıp",
+      "ad": "2027-STS Tıp Doktorluğu 2. Dönem",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/45",
+      "basvuru_baslangic": "2027-07-05T00:00:00+03:00",
+      "basvuru_bitis": "2027-07-13T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-07-22T23:59:00+03:00",
+      "sinav_tarihi": "2027-08-22"
+    },
+    {
+      "kod": "TUS",
+      "ad": "2027-TUS 2. Dönem",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/6",
+      "basvuru_baslangic": "2027-07-05T00:00:00+03:00",
+      "basvuru_bitis": "2027-07-13T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-07-22T23:59:00+03:00",
+      "sinav_tarihi": "2027-08-22"
+    },
+    {
+      "kod": "KPSS",
+      "ad": "2027-KPSS A Grubu (Genel Yetenek-Genel Kültür)",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/3",
+      "basvuru_baslangic": "2027-07-08T00:00:00+03:00",
+      "basvuru_bitis": "2027-07-19T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-07-29T23:59:00+03:00",
+      "sinav_tarihi": "2027-09-12"
+    },
+    {
+      "kod": "e-YDTS",
+      "ad": "e-YDTS 2027/2 Türkçe",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/54",
+      "basvuru_baslangic": "2027-08-18T00:00:00+03:00",
+      "basvuru_bitis": "2027-09-01T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-09-18"
+    },
+    {
+      "kod": "KPSS",
+      "ad": "2027-KPSS A Grubu (Alan Bilgisi) 1. gün",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/3",
+      "basvuru_baslangic": "2027-07-08T00:00:00+03:00",
+      "basvuru_bitis": "2027-07-19T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-07-29T23:59:00+03:00",
+      "sinav_tarihi": "2027-09-18"
+    },
+    {
+      "kod": "KPSS",
+      "ad": "2027-KPSS A Grubu (Alan Bilgisi) 2. gün",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/3",
+      "basvuru_baslangic": "2027-07-08T00:00:00+03:00",
+      "basvuru_bitis": "2027-07-19T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-07-29T23:59:00+03:00",
+      "sinav_tarihi": "2027-09-19"
+    },
+    {
+      "kod": "e-YDS",
+      "ad": "e-YDS 2027/10 İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-09-08T00:00:00+03:00",
+      "basvuru_bitis": "2027-09-16T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-09-25"
+    },
+    {
+      "kod": "HMGS",
+      "ad": "2027-HMGS/2",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/19",
+      "basvuru_baslangic": "2027-08-10T00:00:00+03:00",
+      "basvuru_bitis": "2027-08-18T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-08-25T23:59:00+03:00",
+      "sinav_tarihi": "2027-09-26"
+    },
+    {
+      "kod": "İYÖS",
+      "ad": "2027-İYÖS",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/18",
+      "basvuru_baslangic": "2027-08-10T00:00:00+03:00",
+      "basvuru_bitis": "2027-08-18T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-08-25T23:59:00+03:00",
+      "sinav_tarihi": "2027-09-26"
+    },
+    {
+      "kod": "TR-YÖS",
+      "ad": "2027-TR-YÖS/2",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/13",
+      "basvuru_baslangic": "2027-07-07T00:00:00+03:00",
+      "basvuru_bitis": "2027-08-02T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-08-10T23:59:00+03:00",
+      "sinav_tarihi": "2027-10-10"
+    },
+    {
+      "kod": "e-YDS",
+      "ad": "e-YDS 2027/11 Farsça/İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-09-29T00:00:00+03:00",
+      "basvuru_bitis": "2027-10-07T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-10-16"
+    },
+    {
+      "kod": "BKUBTS",
+      "ad": "2027-BKUBTS",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/16",
+      "basvuru_baslangic": "2027-09-01T00:00:00+03:00",
+      "basvuru_bitis": "2027-09-09T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-09-16T23:59:00+03:00",
+      "sinav_tarihi": "2027-10-17"
+    },
+    {
+      "kod": "DUS",
+      "ad": "2027-DUS",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/9",
+      "basvuru_baslangic": "2027-09-07T00:00:00+03:00",
+      "basvuru_bitis": "2027-09-15T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-09-23T23:59:00+03:00",
+      "sinav_tarihi": "2027-10-24"
+    },
+    {
+      "kod": "STS Diş Hekimliği",
+      "ad": "2027-STS Diş Hekimliği",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/39",
+      "basvuru_baslangic": "2027-09-07T00:00:00+03:00",
+      "basvuru_bitis": "2027-09-15T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-09-23T23:59:00+03:00",
+      "sinav_tarihi": "2027-10-24"
+    },
+    {
+      "kod": "EUS",
+      "ad": "2027-EUS",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/11",
+      "basvuru_baslangic": "2027-09-22T00:00:00+03:00",
+      "basvuru_bitis": "2027-09-30T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-10-07T23:59:00+03:00",
+      "sinav_tarihi": "2027-11-06"
+    },
+    {
+      "kod": "STS Eczacılık",
+      "ad": "2027-STS Eczacılık",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/22",
+      "basvuru_baslangic": "2027-09-22T00:00:00+03:00",
+      "basvuru_bitis": "2027-09-30T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-10-07T23:59:00+03:00",
+      "sinav_tarihi": "2027-11-06"
+    },
+    {
+      "kod": "e-TEP",
+      "ad": "e-TEP 2027/4 İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/1",
+      "basvuru_baslangic": "2027-10-13T00:00:00+03:00",
+      "basvuru_bitis": "2027-10-27T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-11-13"
+    },
+    {
+      "kod": "YDS",
+      "ad": "2027-YDS/2",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-10-05T00:00:00+03:00",
+      "basvuru_bitis": "2027-10-13T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-10-20T23:59:00+03:00",
+      "sinav_tarihi": "2027-11-21"
+    },
+    {
+      "kod": "ALES",
+      "ad": "2027-ALES/3",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/5",
+      "basvuru_baslangic": "2027-10-12T00:00:00+03:00",
+      "basvuru_bitis": "2027-10-20T23:59:00+03:00",
+      "gec_basvuru_bitis": "2027-10-27T23:59:00+03:00",
+      "sinav_tarihi": "2027-11-28"
+    },
+    {
+      "kod": "e-YDS",
+      "ad": "e-YDS 2027/12 İngilizce",
+      "link": "https://www.osym.gov.tr/SinavGrubu/Index/7",
+      "basvuru_baslangic": "2027-12-01T00:00:00+03:00",
+      "basvuru_bitis": "2027-12-09T23:59:00+03:00",
+      "gec_basvuru_bitis": null,
+      "sinav_tarihi": "2027-12-18"
     }
   ]
 }
